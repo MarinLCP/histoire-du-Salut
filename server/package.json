@@ -4,10 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "dev": "node --env-file=.env --watch src/index.js",
     "db:schema": "node --env-file=.env scripts/create-schema.js",
     "seed": "node --env-file=.env scripts/seed.js"
   },
   "dependencies": {
+    "express": "^5.2.1",
     "pg": "^8.23.0"
   }
 }
