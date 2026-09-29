@@ -14,7 +14,7 @@ await client.connect();
 
 try {
   await client.query(schema);
-  console.log('Schéma créé : tables books et verses.');
+  console.log('Schéma créé : tables books, verses et passages.');
 } finally {
   // On ferme la connexion même en cas d'erreur, sinon le script ne s'arrête pas
   await client.end();

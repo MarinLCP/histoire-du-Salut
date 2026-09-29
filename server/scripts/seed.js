@@ -1,10 +1,12 @@
-// Remplit les tables books et verses à partir de data/bible.db (SQLite, AELF).
+// Remplit les tables books et verses à partir de data/bible.db (SQLite, AELF),
+// puis la table passages à partir de db/passages.js.
 // Rejouable : on vide les tables avant de les remplir, dans une transaction.
 // Usage : npm run seed
 
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
+import { passages } from '../db/passages.js';
 
 const BATCH_SIZE = 1000;
 
@@ -40,7 +42,7 @@ try {
 
   // Pas de CASCADE : si une autre table pointe un jour vers ces tables
   // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
-  await client.query('TRUNCATE books, verses RESTART IDENTITY');
+  await client.query('TRUNCATE passages, verses, books RESTART IDENTITY');
 
   // Les livres, un par un (seulement 74). On garde l'id de chaque code.
   const bookIds = new Map();
@@ -75,12 +77,54 @@ try {
     );
   }
 
+  // Les passages : on vérifie d'abord que leurs bornes existent vraiment
+  for (const [index, passage] of passages.entries()) {
+    const bookId = bookIds.get(passage.book);
+    if (!bookId) {
+      throw new Error(`Passage "${passage.title}" : livre ${passage.book} introuvable.`);
+    }
+
+    const [startChapter, startVerse] = passage.start.map(String);
+    const [endChapter, endVerse] = passage.end.map(String);
+
+    const startPosition = await findVersePosition(bookId, startChapter, startVerse);
+    const endPosition = await findVersePosition(bookId, endChapter, endVerse);
+
+    if (startPosition === null) {
+      throw new Error(`Passage "${passage.title}" : ${passage.book} ${startChapter},${startVerse} introuvable.`);
+    }
+    if (endPosition === null) {
+      throw new Error(`Passage "${passage.title}" : ${passage.book} ${endChapter},${endVerse} introuvable.`);
+    }
+    if (startPosition > endPosition) {
+      throw new Error(`Passage "${passage.title}" : le début est après la fin.`);
+    }
+
+    await client.query(
+      `INSERT INTO passages (position, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [index + 1, passage.title, bookId, startChapter, startVerse, endChapter, endVerse],
+    );
+  }
+
   await client.query('COMMIT');
-  console.log(`Seed terminé : ${sourceBooks.length} livres, ${sourceVerses.length} versets.`);
+  console.log(
+    `Seed terminé : ${sourceBooks.length} livres, ${sourceVerses.length} versets, ${passages.length} passages.`,
+  );
 } catch (error) {
   // En cas d'erreur, on annule tout ce qui a été fait depuis BEGIN
   await client.query('ROLLBACK');
   throw error;
 } finally {
   await client.end();
+}
+
+// Renvoie la position d'un verset, ou null s'il n'existe pas.
+// (Déclaration de fonction : utilisable plus haut dans le fichier grâce au hoisting)
+async function findVersePosition(bookId, chapter, verse) {
+  const result = await client.query(
+    'SELECT position FROM verses WHERE book_id = $1 AND chapter = $2 AND verse = $3',
+    [bookId, chapter, verse],
+  );
+  return result.rows.length > 0 ? result.rows[0].position : null;
 }

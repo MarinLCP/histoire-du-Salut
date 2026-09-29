@@ -23,3 +23,15 @@ CREATE TABLE IF NOT EXISTS verses (
     (kind = 'unnumbered' AND verse IS NULL)
   )
 );
+
+-- Un passage = une plage continue de versets dans un livre.
+CREATE TABLE IF NOT EXISTS passages (
+  id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  position      INTEGER NOT NULL UNIQUE, -- ordre dans le scroll
+  title         TEXT NOT NULL,
+  book_id       INTEGER NOT NULL REFERENCES books(id),
+  start_chapter TEXT NOT NULL,
+  start_verse   TEXT NOT NULL,
+  end_chapter   TEXT NOT NULL,
+  end_verse     TEXT NOT NULL
+);
