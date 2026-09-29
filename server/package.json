@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "db:schema": "node --env-file=.env scripts/create-schema.js"
+    "db:schema": "node --env-file=.env scripts/create-schema.js",
+    "seed": "node --env-file=.env scripts/seed.js"
   },
   "dependencies": {
     "pg": "^8.23.0"

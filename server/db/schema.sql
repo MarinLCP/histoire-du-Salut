@@ -12,8 +12,14 @@ CREATE TABLE IF NOT EXISTS verses (
   id       INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   book_id  INTEGER NOT NULL REFERENCES books(id),
   chapter  TEXT NOT NULL,           -- texte car l'AELF a "9A", "113B"...
-  verse    TEXT NOT NULL,           -- texte car l'AELF a "1a", "1b"...
+  verse    TEXT,                    -- texte car l'AELF a "1a", "1b"... NULL si sans numéro
+  kind     TEXT NOT NULL DEFAULT 'verse', -- 'verse' ou 'unnumbered' (ex. "ELLE" dans le Cantique)
   text     TEXT NOT NULL,
   position INTEGER NOT NULL UNIQUE, -- ordre de lecture global
-  UNIQUE (book_id, chapter, verse)
+  UNIQUE (book_id, chapter, verse),
+  -- Garde-fou : un 'verse' a toujours un numéro, un 'unnumbered' jamais
+  CHECK (
+    (kind = 'verse' AND verse IS NOT NULL) OR
+    (kind = 'unnumbered' AND verse IS NULL)
+  )
 );
