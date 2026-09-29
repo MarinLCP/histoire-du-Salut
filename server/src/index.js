@@ -1,18 +1,9 @@
-// Point d'entrée de l'API.
+// Point d'entrée de l'API : démarre le serveur.
 // Usage : npm run dev (redémarre à chaque modification) ou npm start
 
-import express from 'express';
-import passagesRouter from './routes/passages.js';
+import app from './app.js';
 
-const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Route de santé : permet de vérifier que le serveur tourne
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-app.use('/api/passages', passagesRouter);
 
 app.listen(PORT, () => {
   console.log(`API démarrée sur http://localhost:${PORT}`);
