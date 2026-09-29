@@ -2,6 +2,7 @@
 // Usage : npm run dev (redémarre à chaque modification) ou npm start
 
 import express from 'express';
+import passagesRouter from './routes/passages.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +11,8 @@ const PORT = process.env.PORT || 3000;
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+app.use('/api/passages', passagesRouter);
 
 app.listen(PORT, () => {
   console.log(`API démarrée sur http://localhost:${PORT}`);
