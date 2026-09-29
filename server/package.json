@@ -1,0 +1,12 @@
+{
+  "name": "histoire-du-salut-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:schema": "node --env-file=.env scripts/create-schema.js"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}
