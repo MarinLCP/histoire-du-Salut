@@ -117,30 +117,39 @@ function verseKind(verse) {
 
 // Pour 2 lignes de 3 colonnes : "($1, $2, $3), ($4, $5, $6)"
 function placeholdersFor(rows) {
-  let parameterNumber = 0;
-  const nextPlaceholder = () => `$${++parameterNumber}`;
+  return rows.map((row, rowIndex) => placeholdersForRow(rowIndex, row.length)).join(', ');
+}
 
-  return rows.map((row) => `(${row.map(nextPlaceholder).join(', ')})`).join(', ');
+// La ligne n°1 (2e ligne) de 3 colonnes utilise $4, $5, $6
+function placeholdersForRow(rowIndex, columnCount) {
+  const firstNumber = rowIndex * columnCount + 1;
+  const placeholders = [];
+
+  for (let number = firstNumber; number < firstNumber + columnCount; number++) {
+    placeholders.push(`$${number}`);
+  }
+  return `(${placeholders.join(', ')})`;
 }
 
 // Insère les passages dans l'ordre de la liste, après avoir vérifié leurs bornes.
-async function insertPassages(client, passageList, bookIds) {
-  for (const [index, passage] of passageList.entries()) {
+async function insertPassages(client, passages, bookIds) {
+  for (const [index, passage] of passages.entries()) {
     await insertPassage(client, passage, index + 1, bookIds);
   }
 }
 
 async function insertPassage(client, passage, position, bookIds) {
   const bookId = requireBookId(passage, bookIds);
-  const [startChapter, startVerse] = passage.start.map(String);
-  const [endChapter, endVerse] = passage.end.map(String);
+  // Dans passages.js, les bornes sont des nombres ; en base, chapter et verse sont du texte
+  const start = passage.start.map(String);
+  const end = passage.end.map(String);
 
-  await requireValidBounds(client, passage, bookId);
+  await requireValidBounds(client, passage, bookId, start, end);
 
   await client.query(
     `INSERT INTO passages (position, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [position, passage.title, bookId, startChapter, startVerse, endChapter, endVerse],
+    [position, passage.title, bookId, ...start, ...end],
   );
 }
 
@@ -155,9 +164,9 @@ function requireBookId(passage, bookIds) {
 }
 
 // Vérifie que le début et la fin existent, et que le début vient avant la fin.
-async function requireValidBounds(client, passage, bookId) {
-  const startPosition = await requireVersePosition(client, passage, bookId, passage.start);
-  const endPosition = await requireVersePosition(client, passage, bookId, passage.end);
+async function requireValidBounds(client, passage, bookId, start, end) {
+  const startPosition = await requireVersePosition(client, passage, bookId, start);
+  const endPosition = await requireVersePosition(client, passage, bookId, end);
 
   if (startPosition > endPosition) {
     throw new Error(`Passage "${passage.title}" : le début est après la fin.`);
@@ -168,7 +177,7 @@ async function requireValidBounds(client, passage, bookId) {
 async function requireVersePosition(client, passage, bookId, [chapter, verse]) {
   const result = await client.query(
     'SELECT position FROM verses WHERE book_id = $1 AND chapter = $2 AND verse = $3',
-    [bookId, String(chapter), String(verse)],
+    [bookId, chapter, verse],
   );
 
   if (result.rows.length === 0) {
