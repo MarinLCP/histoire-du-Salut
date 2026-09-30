@@ -1,7 +1,7 @@
 // Routes /api/passages
 
 import { Router } from 'express';
-import { getPassageById } from '../queries/passages.js';
+import { getPassageById } from '../queries/passages.queries.js';
 
 const router = Router();
 

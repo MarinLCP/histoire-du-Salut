@@ -1,12 +1,12 @@
 // Remplit les tables books et verses à partir de data/bible.db (SQLite, AELF),
-// puis la table passages à partir de db/passages.js.
+// puis la table passages à partir de db/passages.data.js.
 // Rejouable : on vide les tables avant de les remplir, dans une transaction.
 // Usage : npm run seed
 
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
-import { passages } from '../db/passages.js';
+import { passages } from '../db/passages.data.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
@@ -140,7 +140,7 @@ async function insertPassages(client, passages, bookIds) {
 
 async function insertPassage(client, passage, position, bookIds) {
   const bookId = requireBookId(passage, bookIds);
-  // Dans passages.js, les bornes sont des nombres ; en base, chapter et verse sont du texte
+  // Dans passages.data.js, les bornes sont des nombres ; en base, chapter et verse sont du texte
   const start = passage.start.map(String);
   const end = passage.end.map(String);
 

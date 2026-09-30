@@ -2,8 +2,8 @@
 // Pas de app.listen ici : les tests importent l'app sans démarrer de serveur.
 
 import express from 'express';
-import passagesRouter from './routes/passages.js';
-import timelineRouter from './routes/timeline.js';
+import passagesRouter from './routes/passages.routes.js';
+import timelineRouter from './routes/timeline.routes.js';
 
 const app = express();
 

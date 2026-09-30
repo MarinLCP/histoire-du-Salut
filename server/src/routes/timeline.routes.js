@@ -1,7 +1,7 @@
 // Routes /api/timeline
 
 import { Router } from 'express';
-import { getTimeline } from '../queries/passages.js';
+import { getTimeline } from '../queries/passages.queries.js';
 
 const router = Router();
 

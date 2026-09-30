@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Passage from './Passage.jsx';
 import TimelineStatus from './TimelineStatus.jsx';
-import { fetchTimeline } from '../api/passages.js';
+import { fetchTimeline } from '../api/passages.api.js';
 import './Timeline.css';
 
 // On charge la suite un peu AVANT que l'utilisateur n'arrive en bas (600px avant)
