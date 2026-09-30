@@ -35,14 +35,50 @@ Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
 2. Y écrire le SQL du changement (`ALTER TABLE ...`, `CREATE TABLE ...`).
 3. Lancer `npm run db:migrate` : seules les nouvelles migrations sont appliquées (la table `schema_migrations` retient les autres).
 
+## Mise en ligne (Render)
+
+En production, un seul serveur : Express envoie l'API **et** le site React construit (`client/dist`).
+
+**1. Remplir la base Render depuis son Mac** (une fois, puis à chaque nouvelle migration)
+
+Créer `server/.env.production` (ignoré par Git, ne jamais le commiter) avec l'**External Database URL** de Render,
+suivie de `?sslmode=verify-full` :
+
+```
+DATABASE_URL=postgresql://...render.com/...?sslmode=verify-full
+```
+
+```bash
+cd server
+npm run db:migrate:prod    # crée les tables sur Render
+npm run seed:prod          # remplit la base Render depuis bible.db
+```
+
+**2. Créer le Web Service sur Render** (New → Web Service → ce dépôt GitHub)
+
+| Réglage | Valeur |
+|---|---|
+| Region | la même que la base |
+| Root Directory | *(vide)* |
+| Build Command | `cd client && npm ci --include=dev && npm run build && cd ../server && npm ci --omit=dev` |
+| Start Command | `cd server && npm start` |
+| Health Check Path | `/api/health` |
+| Variable `DATABASE_URL` | l'**Internal Database URL** de Render (réseau privé, sans SSL) |
+| Variable `NODE_ENV` | `production` |
+
+La version de Node est fixée par le fichier `.node-version` (24).
+Chaque `git push` sur `main` redéploie le site.
+
 ## Arborescence
 
 ```
 histoire-du-Salut/
 ├── README.md                        ← ce fichier
+├── .node-version                    ← version de Node utilisée par Render (24)
 │
 ├── server/                          ← API (Node + Express + PostgreSQL)
 │   ├── .env.example                 ← modèle du fichier .env (DATABASE_URL)
+│   │                                  (.env et .env.production : jamais commités)
 │   ├── vitest.config.js             ← charge .env pour les tests
 │   ├── data/
 │   │   └── bible.db                 ← source des textes (SQLite, AELF), lue par le seed
@@ -56,7 +92,7 @@ histoire-du-Salut/
 │   │   └── seed.js                  ← npm run seed : bible.db + passages.data.js → PostgreSQL
 │   ├── src/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
-│   │   ├── app.js                   ← l'app Express : branche les routes
+│   │   ├── app.js                   ← l'app Express : routes + site React construit (prod)
 │   │   ├── db.js                    ← connexion à PostgreSQL (pool)
 │   │   ├── queries/
 │   │   │   └── passages.queries.js  ← tout le SQL des passages

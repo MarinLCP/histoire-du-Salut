@@ -3,11 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "start": "node --env-file=.env src/index.js",
+    "start": "node --env-file-if-exists=.env src/index.js",
     "dev": "node --env-file=.env --watch src/index.js",
     "db:migrate": "node --env-file=.env scripts/migrate.js",
     "seed": "node --env-file=.env scripts/seed.js",
+    "db:migrate:prod": "node --env-file=.env.production scripts/migrate.js",
+    "seed:prod": "node --env-file=.env.production scripts/seed.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
