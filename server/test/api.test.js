@@ -95,3 +95,58 @@ describe('GET /api/timeline', () => {
     expect(res.status).toBe(400);
   });
 });
+
+// Fin de la timeline : ces tests ne supposent pas un nombre précis de passages,
+// ils parcourent l'API comme le ferait le front.
+describe('GET /api/timeline : fin de la timeline', () => {
+  // Parcourt toute la timeline page par page, comme un utilisateur qui scrolle
+  async function scrollToTheEnd(limit) {
+    const pages = [];
+    let after = 0;
+
+    // Garde-fou : si nextCursor ne devient jamais null, le test échoue au lieu de tourner à l'infini
+    for (let i = 0; i < 100; i++) {
+      const res = await request(app).get(`/api/timeline?after=${after}&limit=${limit}`);
+      pages.push(res.body);
+      if (res.body.nextCursor === null) return pages;
+      after = res.body.nextCursor;
+    }
+    throw new Error('La timeline ne se termine jamais');
+  }
+
+  test('en scrollant, on arrive au bout, sans doublon et sans page vide', async () => {
+    const pages = await scrollToTheEnd(5);
+    const positions = pages.flatMap((page) => page.passages.map((p) => p.position));
+
+    expect(pages.every((page) => page.passages.length > 0)).toBe(true);
+    expect(new Set(positions).size).toBe(positions.length);
+  });
+
+  test('après le dernier passage, la timeline est vide (et ce n\'est pas une erreur)', async () => {
+    const pages = await scrollToTheEnd(20);
+    const lastPosition = pages.at(-1).passages.at(-1).position;
+
+    const res = await request(app).get(`/api/timeline?after=${lastPosition}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ passages: [], nextCursor: null });
+  });
+
+  test('une page pleine qui finit pile sur le dernier passage annonce qu\'il n\'y a plus rien', async () => {
+    const pages = await scrollToTheEnd(20);
+    const lastPosition = pages.at(-1).passages.at(-1).position;
+
+    const res = await request(app).get(`/api/timeline?after=${lastPosition - 5}&limit=5`);
+
+    expect(res.body.passages).toHaveLength(5);
+    expect(res.body.passages.at(-1).position).toBe(lastPosition);
+    expect(res.body.nextCursor).toBeNull();
+  });
+
+  test('un curseur très loin après la fin renvoie une timeline vide', async () => {
+    const res = await request(app).get('/api/timeline?after=999999');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ passages: [], nextCursor: null });
+  });
+});
