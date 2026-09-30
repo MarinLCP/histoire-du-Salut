@@ -4,4 +4,11 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // En dev, les appels à /api sont transmis à l'API Express (port 3000).
+    // Le navigateur croit parler au même serveur : pas de problème de CORS.
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
 })
