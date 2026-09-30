@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Passage from './Passage.jsx';
+import TimelineStatus from './TimelineStatus.jsx';
 import { fetchTimeline } from '../api/passages.js';
 import './Timeline.css';
 
@@ -56,9 +57,13 @@ function Timeline() {
         <Passage key={passage.id} passage={passage} />
       ))}
 
-      {/* États simples pour l'instant : ils seront soignés en V3.5 */}
-      {isLoading && <p className="timeline-status">Chargement…</p>}
-      {error && <p className="timeline-status">{error}</p>}
+      {/* Réessayer = effacer l'erreur : canLoadMore redevient vrai et l'observateur relance le chargement */}
+      <TimelineStatus
+        isLoading={isLoading}
+        error={error}
+        isFinished={nextCursor === null}
+        onRetry={() => setError(null)}
+      />
 
       <div ref={sentinelRef} aria-hidden="true" />
     </div>

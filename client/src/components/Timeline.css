@@ -8,3 +8,13 @@
   text-align: center;
   color: var(--text-muted);
 }
+
+.timeline-retry {
+  padding: 0.5rem 1.2rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.timeline-end {
+  font-style: italic;
+}
