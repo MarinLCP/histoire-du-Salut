@@ -1,10 +1,14 @@
-// La liste des passages, chargée page par page depuis l'API.
-// Pour l'instant avec un bouton "Charger la suite" : le scroll infini viendra en V3.4.
+// La liste des passages, chargée page par page depuis l'API (scroll infini).
+// Un élément invisible (la "sentinelle") est placé tout en bas de la liste :
+// quand il approche de l'écran, on charge la page suivante.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Passage from './Passage.jsx';
 import { fetchTimeline } from '../api/passages.js';
 import './Timeline.css';
+
+// On charge la suite un peu AVANT que l'utilisateur n'arrive en bas (600px avant)
+const PRELOAD_DISTANCE = '600px';
 
 function Timeline() {
   const [passages, setPassages] = useState([]);
@@ -12,39 +16,39 @@ function Timeline() {
   const [nextCursor, setNextCursor] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const sentinelRef = useRef(null);
 
-  // Ajoute une page de passages à la suite de ceux déjà affichés
-  function addPage(page) {
-    setPassages((previous) => [...previous, ...page.passages]);
-    setNextCursor(page.nextCursor);
-  }
+  const canLoadMore = nextCursor !== null && !isLoading && !error;
 
-  function loadNextPage() {
+  function loadPage(after) {
     setIsLoading(true);
-    fetchTimeline(nextCursor)
-      .then(addPage)
+    fetchTimeline(after)
+      .then((page) => {
+        setPassages((previous) => [...previous, ...page.passages]);
+        setNextCursor(page.nextCursor);
+      })
       .catch((fetchError) => setError(fetchError.message))
       .finally(() => setIsLoading(false));
   }
 
-  // Première page, au premier affichage
+  // Surveille la sentinelle. Le premier chargement passe aussi par ici :
+  // au départ la liste est vide, donc la sentinelle est déjà visible.
   useEffect(() => {
-    // Si le composant disparaît avant la réponse, on ignore celle-ci
-    // (en dev, le StrictMode de React lance cet effet deux fois exprès)
-    let ignore = false;
+    if (!canLoadMore) return;
 
-    fetchTimeline(0)
-      .then((page) => {
-        if (!ignore) addPage(page);
-      })
-      .catch((fetchError) => {
-        if (!ignore) setError(fetchError.message);
-      });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        // On arrête d'observer tout de suite : une seule page chargée à la fois
+        observer.disconnect();
+        loadPage(nextCursor);
+      },
+      { rootMargin: PRELOAD_DISTANCE },
+    );
 
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [canLoadMore, nextCursor]);
 
   return (
     <div className="timeline">
@@ -53,13 +57,10 @@ function Timeline() {
       ))}
 
       {/* États simples pour l'instant : ils seront soignés en V3.5 */}
+      {isLoading && <p className="timeline-status">Chargement…</p>}
       {error && <p className="timeline-status">{error}</p>}
 
-      {nextCursor !== null && !error && (
-        <button className="timeline-more" onClick={loadNextPage} disabled={isLoading}>
-          {isLoading ? 'Chargement…' : 'Charger la suite'}
-        </button>
-      )}
+      <div ref={sentinelRef} aria-hidden="true" />
     </div>
   );
 }
