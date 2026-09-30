@@ -1,14 +1,15 @@
--- Schéma de la base : les livres de la Bible et leurs versets.
--- IF NOT EXISTS permet de relancer ce fichier sans erreur.
+-- Migration 001 : schéma initial (livres, versets, passages).
+-- Appliquée une seule fois par npm run db:migrate. NE JAMAIS modifier une migration déjà appliquée
+-- (en local ou en ligne) : pour changer le schéma, créer une nouvelle migration 002_..., 003_...
 
-CREATE TABLE IF NOT EXISTS books (
+CREATE TABLE books (
   id       INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   code     TEXT NOT NULL UNIQUE,   -- ex. "Gn"
   title    TEXT NOT NULL,          -- ex. "La Genèse"
   position INTEGER NOT NULL UNIQUE -- ordre dans la Bible
 );
 
-CREATE TABLE IF NOT EXISTS verses (
+CREATE TABLE verses (
   id       INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   book_id  INTEGER NOT NULL REFERENCES books(id),
   chapter  TEXT NOT NULL,           -- texte car l'AELF a "9A", "113B"...
@@ -25,7 +26,7 @@ CREATE TABLE IF NOT EXISTS verses (
 );
 
 -- Un passage = une plage continue de versets dans un livre.
-CREATE TABLE IF NOT EXISTS passages (
+CREATE TABLE passages (
   id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   position      INTEGER NOT NULL UNIQUE, -- ordre dans le scroll
   -- Identifiant fixe, utilisé dans les liens partagés (ex. "creation")

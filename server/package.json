@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --env-file=.env src/index.js",
     "dev": "node --env-file=.env --watch src/index.js",
-    "db:schema": "node --env-file=.env scripts/create-schema.js",
+    "db:migrate": "node --env-file=.env scripts/migrate.js",
     "seed": "node --env-file=.env scripts/seed.js",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -17,7 +17,7 @@ cd server
 npm install
 cp .env.example .env       # puis remplir DATABASE_URL
 createdb histoire_du_salut
-npm run db:schema          # crée les tables
+npm run db:migrate         # crée les tables (applique les migrations)
 npm run seed               # remplit les tables (rejouable)
 
 # 2. Lancer l'app : deux terminaux
@@ -26,6 +26,14 @@ cd client && npm run dev   # site sur http://localhost:5173 (dev:mobile pour le 
 ```
 
 Tests : `npm test` dans `server/` (API) et dans `client/` (logique et composants).
+
+## Faire évoluer la base (migrations)
+
+Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
+
+1. Créer le fichier suivant dans `server/db/migrations/`, ex. `002_add_explanations.sql` (3 chiffres, `_`, un nom en minuscules).
+2. Y écrire le SQL du changement (`ALTER TABLE ...`, `CREATE TABLE ...`).
+3. Lancer `npm run db:migrate` : seules les nouvelles migrations sont appliquées (la table `schema_migrations` retient les autres).
 
 ## Arborescence
 
@@ -39,10 +47,12 @@ histoire-du-Salut/
 │   ├── data/
 │   │   └── bible.db                 ← source des textes (SQLite, AELF), lue par le seed
 │   ├── db/
-│   │   ├── schema.sql               ← tables books, verses, passages
+│   │   ├── migrations/              ← l'historique du schéma, appliqué dans l'ordre
+│   │   │   └── 001_initial_schema.sql ← tables books, verses, passages
 │   │   └── passages.data.js         ← les 32 passages (slug + références) : à modifier ici
 │   ├── scripts/
-│   │   ├── create-schema.js         ← npm run db:schema
+│   │   ├── migrate.js               ← npm run db:migrate : applique les nouvelles migrations
+│   │   ├── migrations.js            ← règle : quelles migrations restent à appliquer
 │   │   └── seed.js                  ← npm run seed : bible.db + passages.data.js → PostgreSQL
 │   ├── src/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
@@ -54,6 +64,7 @@ histoire-du-Salut/
 │   │       ├── passages.routes.js   ← GET /api/passages/:slug
 │   │       └── timeline.routes.js   ← GET /api/timeline?after=&limit=
 │   └── test/                        ← tests de l'API (supertest), un fichier par route
+│       ├── migrations.test.js       ← choix des migrations à appliquer (sans base)
 │       ├── health.test.js           ← GET /api/health
 │       ├── passages.test.js         ← GET /api/passages/:slug
 │       └── timeline.test.js         ← GET /api/timeline (dont la fin de la timeline)
