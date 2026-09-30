@@ -1,0 +1,32 @@
+.passage {
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.passage-title {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.passage-reference {
+  margin: 0.25rem 0 1.5rem;
+  color: var(--text-muted);
+}
+
+.verse {
+  margin: 0 0 0.75rem;
+  /* Le texte AELF contient des retours à la ligne (vers poétiques) : on les respecte */
+  white-space: pre-line;
+}
+
+.verse-number {
+  margin-right: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.7em;
+}
+
+.verse-unnumbered {
+  font-style: italic;
+  color: var(--text-muted);
+}
