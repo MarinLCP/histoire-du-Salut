@@ -51,3 +51,47 @@ describe('GET /api/passages/:id', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('GET /api/timeline', () => {
+  test('sans paramètre, renvoie les 5 premiers passages', async () => {
+    const res = await request(app).get('/api/timeline');
+
+    expect(res.status).toBe(200);
+    expect(res.body.passages.map((p) => p.position)).toEqual([1, 2, 3, 4, 5]);
+    expect(res.body.nextCursor).toBe(5);
+  });
+
+  test('?after=3&limit=5 renvoie les passages 4 à 8', async () => {
+    const res = await request(app).get('/api/timeline?after=3&limit=5');
+
+    expect(res.body.passages.map((p) => p.position)).toEqual([4, 5, 6, 7, 8]);
+    expect(res.body.nextCursor).toBe(8);
+  });
+
+  test('chaque passage contient ses versets', async () => {
+    const res = await request(app).get('/api/timeline?limit=1');
+
+    expect(res.body.passages[0].title).toBe('La Création');
+    expect(res.body.passages[0].verses.length).toBeGreaterThan(0);
+  });
+
+  test('nextCursor permet d\'enchaîner les pages sans trou ni doublon', async () => {
+    const page1 = await request(app).get('/api/timeline?limit=3');
+    const page2 = await request(app).get(`/api/timeline?after=${page1.body.nextCursor}&limit=3`);
+
+    const positions = [...page1.body.passages, ...page2.body.passages].map((p) => p.position);
+    expect(positions).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  test.each([
+    ['after=-1'],
+    ['after=abc'],
+    ['limit=0'],
+    ['limit=21'],
+    ['limit=abc'],
+  ])('renvoie 400 pour ?%s', async (query) => {
+    const res = await request(app).get(`/api/timeline?${query}`);
+
+    expect(res.status).toBe(400);
+  });
+});

@@ -4,45 +4,92 @@
 
 import { pool } from '../db.js';
 
+// Colonnes communes aux requêtes qui lisent des passages (p = passages, b = books)
+const PASSAGE_COLUMNS = `
+  p.id, p.position, p.title,
+  b.code AS book_code, b.title AS book_title,
+  p.start_chapter, p.start_verse, p.end_chapter, p.end_verse
+`;
+
 // Renvoie un passage avec ses versets, ou null s'il n'existe pas.
 export async function getPassageById(id) {
-  const passageResult = await pool.query(
-    `SELECT p.id, p.position, p.title,
-            p.book_id, b.code AS book_code, b.title AS book_title,
-            p.start_chapter, p.start_verse, p.end_chapter, p.end_verse
+  const result = await pool.query(
+    `SELECT ${PASSAGE_COLUMNS}
      FROM passages p
      JOIN books b ON b.id = p.book_id
      WHERE p.id = $1`,
     [id],
   );
 
-  if (passageResult.rows.length === 0) {
+  if (result.rows.length === 0) {
     return null;
   }
 
-  const passage = passageResult.rows[0];
+  const versesByPassage = await findVersesByPassageIds([id]);
+  return toPassage(result.rows[0], versesByPassage);
+}
 
-  // Tous les versets entre le début et la fin, dans l'ordre de lecture.
-  // On passe par la colonne position pour gérer les passages sur plusieurs chapitres.
-  const versesResult = await pool.query(
-    `SELECT chapter, verse, kind, text
-     FROM verses
-     WHERE book_id = $1
-       AND position BETWEEN
-         (SELECT position FROM verses WHERE book_id = $1 AND chapter = $2 AND verse = $3)
-         AND
-         (SELECT position FROM verses WHERE book_id = $1 AND chapter = $4 AND verse = $5)
-     ORDER BY position`,
-    [passage.book_id, passage.start_chapter, passage.start_verse, passage.end_chapter, passage.end_verse],
+// Renvoie les `limit` passages qui suivent la position `after`, avec leurs versets.
+// nextCursor = la position à passer en `after` pour la page suivante, ou null s'il n'y en a plus.
+// Toujours 2 requêtes, quelle que soit la taille de la page.
+export async function getTimeline(after, limit) {
+  // On demande un passage de plus que nécessaire : s'il existe, il reste une page après.
+  const result = await pool.query(
+    `SELECT ${PASSAGE_COLUMNS}
+     FROM passages p
+     JOIN books b ON b.id = p.book_id
+     WHERE p.position > $1
+     ORDER BY p.position
+     LIMIT $2`,
+    [after, limit + 1],
   );
 
+  const hasMore = result.rows.length > limit;
+  const rows = result.rows.slice(0, limit);
+
+  const versesByPassage = await findVersesByPassageIds(rows.map((row) => row.id));
+  const passages = rows.map((row) => toPassage(row, versesByPassage));
+
   return {
-    id: passage.id,
-    position: passage.position,
-    title: passage.title,
-    book: { code: passage.book_code, title: passage.book_title },
-    start: { chapter: passage.start_chapter, verse: passage.start_verse },
-    end: { chapter: passage.end_chapter, verse: passage.end_verse },
-    verses: versesResult.rows,
+    passages,
+    nextCursor: hasMore ? passages.at(-1).position : null,
+  };
+}
+
+// Récupère en UNE requête les versets de plusieurs passages.
+// Renvoie une Map : id du passage -> liste de ses versets (dans l'ordre de lecture).
+async function findVersesByPassageIds(ids) {
+  // s = verset de début, e = verset de fin, v = tous les versets entre les deux.
+  // La colonne position gère les passages sur plusieurs chapitres.
+  // = ANY($1) : "l'id fait partie de ce tableau", comme un IN (...) avec un tableau JS
+  const result = await pool.query(
+    `SELECT p.id AS passage_id, v.chapter, v.verse, v.kind, v.text
+     FROM passages p
+     JOIN verses s ON s.book_id = p.book_id AND s.chapter = p.start_chapter AND s.verse = p.start_verse
+     JOIN verses e ON e.book_id = p.book_id AND e.chapter = p.end_chapter AND e.verse = p.end_verse
+     JOIN verses v ON v.position BETWEEN s.position AND e.position
+     WHERE p.id = ANY($1)
+     ORDER BY p.position, v.position`,
+    [ids],
+  );
+
+  // On range chaque ligne dans la liste de son passage
+  const versesByPassage = new Map(ids.map((id) => [id, []]));
+  for (const { passage_id, ...verse } of result.rows) {
+    versesByPassage.get(passage_id).push(verse);
+  }
+  return versesByPassage;
+}
+
+// Transforme une ligne SQL en objet renvoyé par l'API
+function toPassage(row, versesByPassage) {
+  return {
+    id: row.id,
+    position: row.position,
+    title: row.title,
+    book: { code: row.book_code, title: row.book_title },
+    start: { chapter: row.start_chapter, verse: row.start_verse },
+    end: { chapter: row.end_chapter, verse: row.end_verse },
+    verses: versesByPassage.get(row.id),
   };
 }

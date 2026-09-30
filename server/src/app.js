@@ -3,6 +3,7 @@
 
 import express from 'express';
 import passagesRouter from './routes/passages.js';
+import timelineRouter from './routes/timeline.js';
 
 const app = express();
 
@@ -12,5 +13,6 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/passages', passagesRouter);
+app.use('/api/timeline', timelineRouter);
 
 export default app;
