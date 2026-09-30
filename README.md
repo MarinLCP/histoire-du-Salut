@@ -52,8 +52,10 @@ histoire-du-Salut/
 │   │   └── routes/
 │   │       ├── passages.routes.js   ← GET /api/passages/:id
 │   │       └── timeline.routes.js   ← GET /api/timeline?after=&limit=
-│   └── test/
-│       └── api.test.js              ← tests de l'API (supertest)
+│   └── test/                        ← tests de l'API (supertest), un fichier par route
+│       ├── health.test.js           ← GET /api/health
+│       ├── passages.test.js         ← GET /api/passages/:id
+│       └── timeline.test.js         ← GET /api/timeline (dont la fin de la timeline)
 │
 └── client/                          ← site web (React + Vite)
     ├── index.html                   ← la seule page HTML (app "single page")
