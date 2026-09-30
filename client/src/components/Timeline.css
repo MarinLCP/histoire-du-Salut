@@ -1,0 +1,17 @@
+/* Un trait discret entre deux passages */
+.timeline .passage + .passage {
+  border-top: 1px solid var(--text-muted);
+}
+
+.timeline-status {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.timeline-more {
+  display: block;
+  margin: 1rem auto 3rem;
+  padding: 0.6rem 1.4rem;
+  font: inherit;
+  cursor: pointer;
+}
