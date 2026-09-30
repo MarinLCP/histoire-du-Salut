@@ -1,11 +1,13 @@
 // Affiche un passage : son titre, sa référence et ses versets.
 // Reçoit un passage tel que renvoyé par l'API (un élément de GET /api/timeline).
-// Toucher ou cliquer sur un verset le surligne (ou retire le surlignage).
+// Un appui long (ou un clic droit) sur un verset ouvre son menu : surligner, écrire une note.
 
 import { verseKey } from '../highlights/highlights.js';
+import { useLongPress } from '../hooks/useLongPress.js';
 import './Passage.css';
 
-function Passage({ passage, highlights, onToggleHighlight }) {
+// annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets
+function Passage({ passage, annotations }) {
   return (
     <article className="passage">
       <header>
@@ -17,52 +19,53 @@ function Passage({ passage, highlights, onToggleHighlight }) {
         <Verse
           key={index}
           verse={verse}
-          highlightKey={verseKey(passage.book.code, verse)}
-          highlights={highlights}
-          onToggleHighlight={onToggleHighlight}
+          verseKey={verseKey(passage.book.code, verse)}
+          annotations={annotations}
         />
       ))}
     </article>
   );
 }
 
-// Un verset avec son numéro, ou une ligne sans numéro (ex. "ELLE" dans le Cantique)
-function Verse({ verse, highlightKey, highlights, onToggleHighlight }) {
-  // Les lignes sans numéro ne sont pas des versets : on ne peut pas les surligner
+// Une ligne sans numéro (ex. "ELLE" dans le Cantique) n'est pas un verset : pas de menu
+function Verse({ verse, verseKey, annotations }) {
   if (verse.kind === 'unnumbered') {
     return <p className="verse verse-unnumbered">{verse.text}</p>;
   }
+  return <NumberedVerse verse={verse} verseKey={verseKey} annotations={annotations} />;
+}
 
-  const isHighlighted = highlights.has(highlightKey);
-  const toggle = () => onToggleHighlight(highlightKey);
+// Composant séparé : un hook (useLongPress) ne peut pas être appelé après un return conditionnel
+function NumberedVerse({ verse, verseKey, annotations }) {
+  const openMenu = () => annotations.openMenu(verseKey);
+  const longPressHandlers = useLongPress(openMenu);
+  const isHighlighted = annotations.highlights.has(verseKey);
+  const note = annotations.notes.get(verseKey);
 
   return (
-    <p
-      className={isHighlighted ? 'verse verse-highlighted' : 'verse'}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isHighlighted}
-      onClick={() => toggleUnlessSelectingText(toggle)}
-      onKeyDown={(event) => toggleOnEnterOrSpace(event, toggle)}
-    >
-      <sup className="verse-number">{verse.verse}</sup>
-      {verse.text}
-    </p>
+    <>
+      <p
+        className={isHighlighted ? 'verse verse-highlighted' : 'verse'}
+        role="button"
+        tabIndex={0}
+        aria-haspopup="dialog"
+        {...longPressHandlers}
+        onKeyDown={(event) => openOnEnterOrSpace(event, openMenu)}
+      >
+        <sup className="verse-number">{verse.verse}</sup>
+        {verse.text}
+      </p>
+      {note && <p className="verse-note">{note.text}</p>}
+    </>
   );
 }
 
-// Sur ordinateur, sélectionner du texte à la souris finit par un clic : on ne surligne pas dans ce cas
-function toggleUnlessSelectingText(toggle) {
-  if (window.getSelection().toString() !== '') return;
-  toggle();
-}
-
 // Au clavier, un élément role="button" doit réagir à Entrée et à Espace, comme un vrai bouton
-function toggleOnEnterOrSpace(event, toggle) {
+function openOnEnterOrSpace(event, openMenu) {
   if (event.key !== 'Enter' && event.key !== ' ') return;
   // Sans ça, Espace ferait aussi défiler la page
   event.preventDefault();
-  toggle();
+  openMenu();
 }
 
 // "Gn 1, 1-5" ou, sur deux chapitres, "Gn 1, 1 – 2, 25"

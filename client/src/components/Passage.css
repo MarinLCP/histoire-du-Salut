@@ -18,11 +18,21 @@
   margin: 0 0 0.75rem;
   /* Le texte AELF contient des retours à la ligne (vers poétiques) : on les respecte */
   white-space: pre-line;
-  /* Un verset est cliquable (surlignage) */
-  cursor: pointer;
+  /* Un verset a un menu (appui long ou clic droit) : curseur "menu contextuel" sur ordinateur */
+  cursor: context-menu;
   border-radius: 0.2rem;
-  /* Sur mobile, supprime le flash gris au toucher : le surlignage suffit comme retour visuel */
+  /* Sur mobile, supprime le flash gris au toucher */
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Écrans tactiles : on désactive le menu natif de l'appui long (sélection, copier...)
+   pour laisser la place au nôtre. Sur ordinateur, la sélection à la souris reste possible. */
+@media (hover: none) {
+  .verse {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 .verse-highlighted {
@@ -45,4 +55,15 @@
   font-style: italic;
   color: var(--text-muted);
   cursor: default;
+}
+
+/* Note personnelle, affichée sous son verset */
+.verse-note {
+  margin: -0.25rem 0 1rem 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--highlight);
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--text-muted);
+  white-space: pre-line;
 }

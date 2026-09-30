@@ -1,0 +1,61 @@
+/* Panneau collé en bas de l'écran (bottom sheet) */
+.verse-menu {
+  width: 100%;
+  max-width: 38rem;
+  margin: auto auto 0;
+  /* Pas de marge interne ici : voir useBackdropClose dans VerseMenu.jsx */
+  padding: 0;
+  border: none;
+  border-radius: 1rem 1rem 0 0;
+  color: var(--text);
+  background: var(--background);
+}
+
+.verse-menu::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.verse-menu-content {
+  padding: 1.25rem 1rem 1.5rem;
+}
+
+.verse-menu-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.verse-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.verse-menu button {
+  /* 44px : taille minimale recommandée pour une cible au doigt */
+  min-height: 44px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.verse-menu .verse-menu-primary {
+  background: var(--highlight);
+}
+
+.verse-menu-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem;
+  /* Au moins 16px : sinon Safari sur iPhone zoome tout seul quand on écrit */
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  border-radius: 0.5rem;
+  resize: vertical;
+}

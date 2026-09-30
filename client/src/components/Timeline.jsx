@@ -6,20 +6,19 @@ import { useEffect, useRef, useState } from 'react';
 import Passage from './Passage.jsx';
 import TimelineStatus from './TimelineStatus.jsx';
 import { fetchTimeline } from '../api/passages.api.js';
-import { useHighlights } from '../highlights/useHighlights.js';
 import './Timeline.css';
 
 // On charge la suite un peu AVANT que l'utilisateur n'arrive en bas (600px avant)
 const PRELOAD_DISTANCE = '600px';
 
-function Timeline() {
+// annotations : surlignages et notes de l'utilisateur, transmis tels quels aux passages
+function Timeline({ annotations }) {
   const [passages, setPassages] = useState([]);
   // Position après laquelle charger la page suivante ; null = on est arrivé au bout
   const [nextCursor, setNextCursor] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const sentinelRef = useRef(null);
-  const { highlights, toggle: toggleHighlight } = useHighlights();
 
   const canLoadMore = nextCursor !== null && !isLoading && !error;
 
@@ -56,12 +55,7 @@ function Timeline() {
   return (
     <div className="timeline">
       {passages.map((passage) => (
-        <Passage
-          key={passage.id}
-          passage={passage}
-          highlights={highlights}
-          onToggleHighlight={toggleHighlight}
-        />
+        <Passage key={passage.id} passage={passage} annotations={annotations} />
       ))}
 
       {/* Réessayer = effacer l'erreur : canLoadMore redevient vrai et l'observateur relance le chargement */}
