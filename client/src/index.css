@@ -4,6 +4,8 @@
   --text: #1f1d1a;
   --text-muted: #6f6a62;
   --background: #fbf9f5;
+  /* Jaune doux, comme un surligneur sur du papier */
+  --highlight: #fbeaa0;
 
   color-scheme: light dark;
   color: var(--text);
@@ -17,6 +19,7 @@
     --text: #ece8e1;
     --text-muted: #a39d93;
     --background: #1b1a18;
+    --highlight: #54461a;
   }
 }
 

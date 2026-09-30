@@ -18,6 +18,21 @@
   margin: 0 0 0.75rem;
   /* Le texte AELF contient des retours à la ligne (vers poétiques) : on les respecte */
   white-space: pre-line;
+  /* Un verset est cliquable (surlignage) */
+  cursor: pointer;
+  border-radius: 0.2rem;
+  /* Sur mobile, supprime le flash gris au toucher : le surlignage suffit comme retour visuel */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.verse-highlighted {
+  background: var(--highlight);
+}
+
+/* Contour visible quand on navigue au clavier (Tab) */
+.verse:focus-visible {
+  outline: 2px solid var(--text-muted);
+  outline-offset: 2px;
 }
 
 .verse-number {
@@ -29,4 +44,5 @@
 .verse-unnumbered {
   font-style: italic;
   color: var(--text-muted);
+  cursor: default;
 }
