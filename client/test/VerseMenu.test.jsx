@@ -17,8 +17,23 @@ beforeAll(() => {
 afterEach(cleanup);
 
 function renderMenu(props = {}) {
-  const handlers = { onToggleHighlight: vi.fn(), onSaveNote: vi.fn(), onClose: vi.fn() };
-  render(<VerseMenu verseKey="Gn 1,3" isHighlighted={false} note={undefined} {...handlers} {...props} />);
+  const handlers = {
+    onToggleHighlight: vi.fn(),
+    onSaveNote: vi.fn(),
+    onClose: vi.fn(),
+    // Faux presse-papiers : la copie réussit (le vrai n'existe pas dans jsdom)
+    onCopy: vi.fn().mockResolvedValue(undefined),
+  };
+  render(
+    <VerseMenu
+      verseKey="Gn 1,3"
+      verseText="Et la lumière fut."
+      isHighlighted={false}
+      note={undefined}
+      {...handlers}
+      {...props}
+    />,
+  );
   return handlers;
 }
 
@@ -72,6 +87,25 @@ describe('VerseMenu', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter une note' }));
 
     expect(screen.queryByRole('button', { name: 'Supprimer la note' })).toBeNull();
+  });
+
+  describe('copier le verset', () => {
+    test('copie le verset avec sa référence, et le confirme', async () => {
+      const { onCopy } = renderMenu();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Copier le verset' }));
+
+      expect(onCopy).toHaveBeenCalledWith('«\u00a0Et la lumière fut.\u00a0» (Gn 1,3)');
+      expect(await screen.findByRole('button', { name: 'Verset copié ✓' })).toBeDefined();
+    });
+
+    test('si la copie échoue, le dit au lieu de faire comme si de rien n\'était', async () => {
+      renderMenu({ onCopy: vi.fn().mockRejectedValue(new Error('refusé')) });
+
+      await userEvent.click(screen.getByRole('button', { name: 'Copier le verset' }));
+
+      expect(await screen.findByRole('button', { name: 'Copie impossible' })).toBeDefined();
+    });
   });
 
   describe('fermeture en touchant le fond grisé', () => {

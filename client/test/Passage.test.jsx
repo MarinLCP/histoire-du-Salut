@@ -20,6 +20,9 @@ const passage = {
   ],
 };
 
+// Ce que reçoit le menu quand on l'ouvre sur le premier verset : sa référence et son texte
+const FIRST_VERSE = { key: 'Gn 1,1', text: 'Au commencement, Dieu créa le ciel et la terre.' };
+
 function renderPassage({ highlights = new Map(), notes = new Map() } = {}) {
   const openMenu = vi.fn();
   render(<Passage passage={passage} annotations={{ highlights, notes, openMenu }} />);
@@ -52,7 +55,7 @@ describe('Passage', () => {
     fireEvent.pointerDown(firstVerse(), { button: 0, clientX: 50, clientY: 50 });
     vi.advanceTimersByTime(LONG_PRESS_DELAY);
 
-    expect(openMenu).toHaveBeenCalledWith('Gn 1,1');
+    expect(openMenu).toHaveBeenCalledWith(FIRST_VERSE);
   });
 
   test('un toucher bref n\'ouvre pas le menu', () => {
@@ -81,7 +84,7 @@ describe('Passage', () => {
 
     fireEvent.contextMenu(firstVerse());
 
-    expect(openMenu).toHaveBeenCalledWith('Gn 1,1');
+    expect(openMenu).toHaveBeenCalledWith(FIRST_VERSE);
   });
 
   test('au clavier, Entrée ouvre le menu', () => {
@@ -89,7 +92,7 @@ describe('Passage', () => {
 
     fireEvent.keyDown(firstVerse(), { key: 'Enter' });
 
-    expect(openMenu).toHaveBeenCalledWith('Gn 1,1');
+    expect(openMenu).toHaveBeenCalledWith(FIRST_VERSE);
   });
 
   test('une ligne sans numéro n\'a pas de menu', () => {

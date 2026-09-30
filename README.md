@@ -1,7 +1,7 @@
 # L'histoire d'un Salut
 
 App web de scroll infini pour lire la Bible dans l'ordre de l'histoire du salut :
-32 grands passages, de la Création à Ap 21. On peut surligner un verset et y ajouter une note.
+32 grands passages, de la Création à Ap 21. Un appui long sur un verset ouvre un menu : le surligner, y ajouter une note, le copier.
 
 Monorepo : `server/` (API Node + Express + PostgreSQL) et `client/` (React + Vite).
 Chaque dossier a son propre `package.json` : `npm install` se fait dans chacun.
@@ -68,7 +68,7 @@ histoire-du-Salut/
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── TimelineStatus.jsx   ← chargement / erreur / fin de l'histoire
     │   │   ├── Passage.jsx / .css   ← un passage, ses versets et leurs notes
-    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note)
+    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier)
     │   ├── highlights/              ← surlignages
     │   │   ├── highlights.js        ← logique pure
     │   │   ├── highlights.storage.js← sauvegarde dans le navigateur
@@ -77,6 +77,9 @@ histoire-du-Salut/
     │   │   ├── notes.js
     │   │   ├── notes.storage.js
     │   │   └── useNotes.js
+    │   ├── copy/                    ← copier un verset
+    │   │   ├── copyVerse.js         ← texte copié : « verset » (Gn 1,3)
+    │   │   └── clipboard.js         ← presse-papiers (+ secours hors HTTPS)
     │   ├── hooks/                   ← appui long
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   └── useLongPress.js      ← branchement React
@@ -89,6 +92,7 @@ histoire-du-Salut/
         ├── notes.test.js
         ├── notes.storage.test.js
         ├── longPress.test.js
+        ├── copyVerse.test.js
         ├── Passage.test.jsx         ← composants (React Testing Library + jsdom)
         └── VerseMenu.test.jsx
 ```

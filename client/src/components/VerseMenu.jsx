@@ -1,11 +1,13 @@
-// Menu d'un verset, ouvert par un appui long : surligner et écrire une note.
+// Menu d'un verset, ouvert par un appui long : surligner, écrire une note, copier.
 // Utilise la balise <dialog> du navigateur : fond grisé, touche Échap et focus sont gérés pour nous.
 // Affiché comme un panneau qui monte du bas de l'écran (bottom sheet), pratique au pouce sur mobile.
 
 import { useEffect, useRef, useState } from 'react';
+import { formatVerseForCopy } from '../copy/copyVerse.js';
 import './VerseMenu.css';
 
-function VerseMenu({ verseKey, isHighlighted, note, onToggleHighlight, onSaveNote, onClose }) {
+// onCopy(text) : copie le texte et renvoie une promesse (injectée par App, remplacée par un faux dans les tests)
+function VerseMenu({ verseKey, verseText, isHighlighted, note, onToggleHighlight, onSaveNote, onCopy, onClose }) {
   const dialogRef = useRef(null);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const closeOnBackdrop = useBackdropClose(dialogRef, onClose);
@@ -35,8 +37,10 @@ function VerseMenu({ verseKey, isHighlighted, note, onToggleHighlight, onSaveNot
           <VerseActions
             isHighlighted={isHighlighted}
             note={note}
+            copiedText={formatVerseForCopy(verseKey, verseText)}
             onToggleHighlight={toggleHighlightAndClose}
             onEditNote={() => setIsEditingNote(true)}
+            onCopy={onCopy}
             onClose={onClose}
           />
         )}
@@ -45,14 +49,34 @@ function VerseMenu({ verseKey, isHighlighted, note, onToggleHighlight, onSaveNot
   );
 }
 
-function VerseActions({ isHighlighted, note, onToggleHighlight, onEditNote, onClose }) {
+function VerseActions({ isHighlighted, note, copiedText, onToggleHighlight, onEditNote, onCopy, onClose }) {
   return (
     <div className="verse-menu-buttons">
       <button onClick={onToggleHighlight}>{isHighlighted ? 'Retirer le surlignage' : 'Surligner'}</button>
       <button onClick={onEditNote}>{note ? 'Modifier la note' : 'Ajouter une note'}</button>
+      <CopyButton text={copiedText} onCopy={onCopy} />
       <button onClick={onClose}>Fermer</button>
     </div>
   );
+}
+
+const COPY_LABELS = {
+  idle: 'Copier le verset',
+  copied: 'Verset copié ✓',
+  failed: 'Copie impossible',
+};
+
+// Le libellé du bouton confirme la copie (ou son échec) : le menu reste ouvert pour que l'utilisateur le voie
+function CopyButton({ text, onCopy }) {
+  const [status, setStatus] = useState('idle');
+
+  function copy() {
+    onCopy(text)
+      .then(() => setStatus('copied'))
+      .catch(() => setStatus('failed'));
+  }
+
+  return <button onClick={copy}>{COPY_LABELS[status]}</button>;
 }
 
 function NoteEditor({ note, onSave, onCancel }) {

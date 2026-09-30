@@ -1,12 +1,13 @@
 // Affiche un passage : son titre, sa référence et ses versets.
 // Reçoit un passage tel que renvoyé par l'API (un élément de GET /api/timeline).
-// Un appui long (ou un clic droit) sur un verset ouvre son menu : surligner, écrire une note.
+// Un appui long (ou un clic droit) sur un verset ouvre son menu : surligner, écrire une note, copier.
 
 import { verseKey } from '../highlights/highlights.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import './Passage.css';
 
-// annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets
+// annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets.
+// openMenu({ key, text }) reçoit la référence du verset et son texte (pour le copier).
 function Passage({ passage, annotations }) {
   return (
     <article className="passage">
@@ -37,7 +38,7 @@ function Verse({ verse, verseKey, annotations }) {
 
 // Composant séparé : un hook (useLongPress) ne peut pas être appelé après un return conditionnel
 function NumberedVerse({ verse, verseKey, annotations }) {
-  const openMenu = () => annotations.openMenu(verseKey);
+  const openMenu = () => annotations.openMenu({ key: verseKey, text: verse.text });
   const longPressHandlers = useLongPress(openMenu);
   const isHighlighted = annotations.highlights.has(verseKey);
   const note = annotations.notes.get(verseKey);
