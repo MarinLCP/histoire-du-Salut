@@ -1,5 +1,5 @@
 // Affiche un passage : son titre, sa référence et ses versets.
-// Reçoit un objet de la même forme que la réponse de GET /api/passages/:id.
+// Reçoit un passage tel que renvoyé par l'API (un élément de GET /api/timeline).
 
 import './Passage.css';
 
@@ -11,11 +11,9 @@ function Passage({ passage }) {
         <p className="passage-reference">{formatReference(passage)}</p>
       </header>
 
-      <div className="passage-text">
-        {passage.verses.map((verse, index) => (
-          <Verse key={index} verse={verse} />
-        ))}
-      </div>
+      {passage.verses.map((verse, index) => (
+        <Verse key={index} verse={verse} />
+      ))}
     </article>
   );
 }
