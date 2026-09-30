@@ -147,9 +147,9 @@ async function insertPassage(client, passage, position, bookIds) {
   await requireValidBounds(client, passage, bookId, start, end);
 
   await client.query(
-    `INSERT INTO passages (position, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [position, passage.title, bookId, ...start, ...end],
+    `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [position, passage.slug, passage.title, bookId, ...start, ...end],
   );
 }
 

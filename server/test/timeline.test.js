@@ -25,10 +25,11 @@ describe('GET /api/timeline', () => {
     expect(res.body.nextCursor).toBe(8);
   });
 
-  test('chaque passage contient ses versets', async () => {
+  test('chaque passage contient son slug et ses versets', async () => {
     const res = await request(app).get('/api/timeline?limit=1');
 
     expect(res.body.passages[0].title).toBe('La Création');
+    expect(res.body.passages[0].slug).toBe('creation');
     expect(res.body.passages[0].verses.length).toBeGreaterThan(0);
   });
 

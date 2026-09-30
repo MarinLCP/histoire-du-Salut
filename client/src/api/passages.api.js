@@ -2,10 +2,19 @@
 // Les composants passent par ces fonctions au lieu d'appeler fetch directement.
 
 // Renvoie { passages, nextCursor } : les passages qui suivent la position `after`
-export async function fetchTimeline(after) {
+export function fetchTimeline(after) {
+  return getJson(`/api/timeline?after=${after}`);
+}
+
+// Renvoie le passage qui a ce slug (ex. "creation"), avec ses versets
+export function fetchPassage(slug) {
+  return getJson(`/api/passages/${encodeURIComponent(slug)}`);
+}
+
+async function getJson(url) {
   let response;
   try {
-    response = await fetch(`/api/timeline?after=${after}`);
+    response = await fetch(url);
   } catch {
     // fetch lève une erreur seulement quand le serveur est injoignable (réseau coupé, API arrêtée)
     throw new Error('Impossible de joindre le serveur. Vérifie ta connexion.');

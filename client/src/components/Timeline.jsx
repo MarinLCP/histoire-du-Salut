@@ -11,11 +11,12 @@ import './Timeline.css';
 // On charge la suite un peu AVANT que l'utilisateur n'arrive en bas (600px avant)
 const PRELOAD_DISTANCE = '600px';
 
-// annotations : surlignages et notes de l'utilisateur, transmis tels quels aux passages
-function Timeline({ annotations }) {
+// startAfter : la timeline commence après cette position (0 = au début, plus si on arrive par un lien partagé)
+// annotations et onShare : transmis tels quels aux passages
+function Timeline({ startAfter, annotations, onShare }) {
   const [passages, setPassages] = useState([]);
   // Position après laquelle charger la page suivante ; null = on est arrivé au bout
-  const [nextCursor, setNextCursor] = useState(0);
+  const [nextCursor, setNextCursor] = useState(startAfter);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const sentinelRef = useRef(null);
@@ -54,8 +55,15 @@ function Timeline({ annotations }) {
 
   return (
     <div className="timeline">
+      {/* Arrivé par un lien partagé : on peut revenir à la Création (l'adresse sans ?passage=) */}
+      {startAfter > 0 && (
+        <a className="timeline-back" href="/">
+          ↑ Revenir au début de l'histoire
+        </a>
+      )}
+
       {passages.map((passage) => (
-        <Passage key={passage.id} passage={passage} annotations={annotations} />
+        <Passage key={passage.id} passage={passage} annotations={annotations} onShare={onShare} />
       ))}
 
       {/* Réessayer = effacer l'erreur : canLoadMore redevient vrai et l'observateur relance le chargement */}

@@ -18,3 +18,11 @@
 .timeline-end {
   font-style: italic;
 }
+
+.timeline-back {
+  display: block;
+  max-width: 38rem;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
+  color: var(--text-muted);
+}

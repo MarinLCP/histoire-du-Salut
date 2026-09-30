@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS verses (
 CREATE TABLE IF NOT EXISTS passages (
   id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   position      INTEGER NOT NULL UNIQUE, -- ordre dans le scroll
+  -- Identifiant fixe, utilisé dans les liens partagés (ex. "creation")
+  slug          TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
   title         TEXT NOT NULL,
   book_id       INTEGER NOT NULL REFERENCES books(id),
   start_chapter TEXT NOT NULL,

@@ -2,6 +2,7 @@
 
 App web de scroll infini pour lire la Bible dans l'ordre de l'histoire du salut :
 32 grands passages, de la Création à Ap 21. Un appui long sur un verset ouvre un menu : le surligner, y ajouter une note, le copier.
+Chaque passage se partage par un lien direct (`/?passage=creation`).
 
 Monorepo : `server/` (API Node + Express + PostgreSQL) et `client/` (React + Vite).
 Chaque dossier a son propre `package.json` : `npm install` se fait dans chacun.
@@ -39,7 +40,7 @@ histoire-du-Salut/
 │   │   └── bible.db                 ← source des textes (SQLite, AELF), lue par le seed
 │   ├── db/
 │   │   ├── schema.sql               ← tables books, verses, passages
-│   │   └── passages.data.js         ← les 32 passages (références uniquement) : à modifier ici
+│   │   └── passages.data.js         ← les 32 passages (slug + références) : à modifier ici
 │   ├── scripts/
 │   │   ├── create-schema.js         ← npm run db:schema
 │   │   └── seed.js                  ← npm run seed : bible.db + passages.data.js → PostgreSQL
@@ -50,11 +51,11 @@ histoire-du-Salut/
 │   │   ├── queries/
 │   │   │   └── passages.queries.js  ← tout le SQL des passages
 │   │   └── routes/
-│   │       ├── passages.routes.js   ← GET /api/passages/:id
+│   │       ├── passages.routes.js   ← GET /api/passages/:slug
 │   │       └── timeline.routes.js   ← GET /api/timeline?after=&limit=
 │   └── test/                        ← tests de l'API (supertest), un fichier par route
 │       ├── health.test.js           ← GET /api/health
-│       ├── passages.test.js         ← GET /api/passages/:id
+│       ├── passages.test.js         ← GET /api/passages/:slug
 │       └── timeline.test.js         ← GET /api/timeline (dont la fin de la timeline)
 │
 └── client/                          ← site web (React + Vite)
@@ -65,11 +66,12 @@ histoire-du-Salut/
     │   ├── App.jsx                  ← assemble tout : timeline + menu d'un verset
     │   ├── index.css                ← couleurs (clair / sombre), police
     │   ├── api/
-    │   │   └── passages.api.js      ← appels à l'API (fetch)
+    │   │   └── passages.api.js      ← appels à l'API (timeline, passage par slug)
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── TimelineStatus.jsx   ← chargement / erreur / fin de l'histoire
     │   │   ├── Passage.jsx / .css   ← un passage, ses versets et leurs notes
+    │   │   ├── ShareButton.jsx      ← le bouton "Partager" d'un passage
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier)
     │   ├── highlights/              ← surlignages
     │   │   ├── highlights.js        ← logique pure
@@ -82,6 +84,10 @@ histoire-du-Salut/
     │   ├── copy/                    ← copier un verset
     │   │   ├── copyVerse.js         ← texte copié : « verset » (Gn 1,3)
     │   │   └── clipboard.js         ← presse-papiers (+ secours hors HTTPS)
+    │   ├── share/                   ← partager un passage
+    │   │   ├── shareLink.js         ← lien direct /?passage=slug (créer / relire)
+    │   │   ├── share.js             ← feuille de partage du téléphone, ou copie du lien
+    │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien
     │   ├── hooks/                   ← appui long
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   └── useLongPress.js      ← branchement React
@@ -95,6 +101,8 @@ histoire-du-Salut/
         ├── notes.storage.test.js
         ├── longPress.test.js
         ├── copyVerse.test.js
+        ├── shareLink.test.js
+        ├── share.test.js
         ├── Passage.test.jsx         ← composants (React Testing Library + jsdom)
         └── VerseMenu.test.jsx
 ```

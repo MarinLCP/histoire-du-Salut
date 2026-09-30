@@ -1,19 +1,25 @@
 // Affiche un passage : son titre, sa référence et ses versets.
 // Reçoit un passage tel que renvoyé par l'API (un élément de GET /api/timeline).
 // Un appui long (ou un clic droit) sur un verset ouvre son menu : surligner, écrire une note, copier.
+// Le bouton "Partager" de l'en-tête partage un lien direct vers le passage.
 
+import ShareButton from './ShareButton.jsx';
 import { verseKey } from '../highlights/highlights.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import './Passage.css';
 
 // annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets.
 // openMenu({ key, text }) reçoit la référence du verset et son texte (pour le copier).
-function Passage({ passage, annotations }) {
+// onShare(passage) partage le passage (injectée par App, remplacée par un faux dans les tests).
+function Passage({ passage, annotations, onShare }) {
   return (
     <article className="passage">
-      <header>
-        <h2 className="passage-title">{passage.title}</h2>
-        <p className="passage-reference">{formatReference(passage)}</p>
+      <header className="passage-header">
+        <div>
+          <h2 className="passage-title">{passage.title}</h2>
+          <p className="passage-reference">{formatReference(passage)}</p>
+        </div>
+        <ShareButton onShare={() => onShare(passage)} />
       </header>
 
       {passage.verses.map((verse, index) => (

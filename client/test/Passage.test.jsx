@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Tests d'un passage : affichage des versets, des notes, et ouverture du menu à l'appui long.
+// Tests d'un passage : affichage des versets, des notes, menu à l'appui long, bouton Partager.
 // La ligne du dessus fait tourner ce fichier dans un faux navigateur (jsdom).
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -9,6 +9,7 @@ import { LONG_PRESS_DELAY } from '../src/hooks/longPress.js';
 
 const passage = {
   id: 1,
+  slug: 'creation',
   title: 'La Création',
   book: { code: 'Gn', title: 'La Genèse' },
   start: { chapter: '1', verse: '1' },
@@ -23,10 +24,15 @@ const passage = {
 // Ce que reçoit le menu quand on l'ouvre sur le premier verset : sa référence et son texte
 const FIRST_VERSE = { key: 'Gn 1,1', text: 'Au commencement, Dieu créa le ciel et la terre.' };
 
-function renderPassage({ highlights = new Map(), notes = new Map() } = {}) {
+function renderPassage({
+  highlights = new Map(),
+  notes = new Map(),
+  // Faux partage : par défaut, le lien a été copié
+  onShare = vi.fn().mockResolvedValue('copied'),
+} = {}) {
   const openMenu = vi.fn();
-  render(<Passage passage={passage} annotations={{ highlights, notes, openMenu }} />);
-  return { openMenu };
+  render(<Passage passage={passage} annotations={{ highlights, notes, openMenu }} onShare={onShare} />);
+  return { openMenu, onShare };
 }
 
 // Le verset "Gn 1,1", trouvé par son texte comme le ferait un utilisateur
@@ -99,7 +105,6 @@ describe('Passage', () => {
     renderPassage();
 
     expect(screen.queryByRole('button', { name: 'ELLE' })).toBeNull();
-    expect(screen.getAllByRole('button')).toHaveLength(2);
   });
 
   test('la note d\'un verset s\'affiche sous celui-ci', () => {
@@ -108,5 +113,36 @@ describe('Passage', () => {
     renderPassage({ notes });
 
     expect(screen.getByText('Avant la création : le chaos')).toBeDefined();
+  });
+});
+
+describe('Passage : bouton Partager', () => {
+  afterEach(cleanup);
+
+  test('partage le passage', async () => {
+    const { onShare } = renderPassage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Partager' }));
+
+    expect(onShare).toHaveBeenCalledWith(passage);
+    expect(await screen.findByRole('button', { name: 'Lien copié ✓' })).toBeDefined();
+  });
+
+  test('après la feuille de partage du téléphone, le bouton reste "Partager"', async () => {
+    const onShare = vi.fn().mockResolvedValue('shared');
+    renderPassage({ onShare });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Partager' }));
+
+    await vi.waitFor(() => expect(onShare).toHaveBeenCalled());
+    expect(screen.getByRole('button', { name: 'Partager' })).toBeDefined();
+  });
+
+  test('si le partage échoue, le dit', async () => {
+    renderPassage({ onShare: vi.fn().mockRejectedValue(new Error('refusé')) });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Partager' }));
+
+    expect(await screen.findByRole('button', { name: 'Partage impossible' })).toBeDefined();
   });
 });

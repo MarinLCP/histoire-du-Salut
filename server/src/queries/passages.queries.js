@@ -6,27 +6,28 @@ import { pool } from '../db.js';
 
 // Colonnes communes aux requêtes qui lisent des passages (p = passages, b = books)
 const PASSAGE_COLUMNS = `
-  p.id, p.position, p.title,
+  p.id, p.position, p.slug, p.title,
   b.code AS book_code, b.title AS book_title,
   p.start_chapter, p.start_verse, p.end_chapter, p.end_verse
 `;
 
-// Renvoie un passage avec ses versets, ou null s'il n'existe pas.
-export async function getPassageById(id) {
+// Renvoie le passage qui a ce slug (ex. "creation"), avec ses versets, ou null s'il n'existe pas.
+export async function getPassageBySlug(slug) {
   const result = await pool.query(
     `SELECT ${PASSAGE_COLUMNS}
      FROM passages p
      JOIN books b ON b.id = p.book_id
-     WHERE p.id = $1`,
-    [id],
+     WHERE p.slug = $1`,
+    [slug],
   );
 
   if (result.rows.length === 0) {
     return null;
   }
 
-  const versesByPassage = await findVersesByPassageIds([id]);
-  return toPassage(result.rows[0], versesByPassage);
+  const passage = result.rows[0];
+  const versesByPassage = await findVersesByPassageIds([passage.id]);
+  return toPassage(passage, versesByPassage);
 }
 
 // Renvoie les `limit` passages qui suivent la position `after`, avec leurs versets.
@@ -86,6 +87,7 @@ function toPassage(row, versesByPassage) {
   return {
     id: row.id,
     position: row.position,
+    slug: row.slug,
     title: row.title,
     book: { code: row.book_code, title: row.book_title },
     start: { chapter: row.start_chapter, verse: row.start_verse },
