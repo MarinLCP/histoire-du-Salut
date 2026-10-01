@@ -1,5 +1,6 @@
 # Intégration continue : à chaque push (et pull request), GitHub vérifie que tout marche.
-# Deux jobs en parallèle sur des machines neuves : le serveur (avec un PostgreSQL jetable) et le client.
+# Trois jobs en parallèle sur des machines neuves : le serveur (avec un PostgreSQL jetable), le client,
+# et les parcours de bout en bout (Playwright : vrais navigateurs, Chrome et iPhone/Safari).
 # Résultat visible dans l'onglet "Actions" du dépôt, et en ✅ / ❌ à côté de chaque commit.
 
 name: CI
@@ -68,3 +69,67 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  e2e:
+    name: Parcours de bout en bout (Playwright)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: histoire_du_salut
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/histoire_du_salut
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+            e2e/package-lock.json
+
+      - name: Installer les dépendances (serveur, client, e2e)
+        run: |
+          npm ci --prefix server
+          npm ci --prefix client
+          npm ci --prefix e2e
+
+      - name: Remplir la base de test
+        working-directory: server
+        run: |
+          npm run db:migrate
+          npm run seed
+
+      # Les navigateurs (Chrome, WebKit = Safari) et les bibliothèques système dont ils ont besoin
+      - name: Installer les navigateurs
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium webkit
+
+      # playwright.config.js démarre lui-même l'API (port 3000) et le site (port 5173)
+      - name: Lancer les parcours
+        working-directory: e2e
+        run: npx playwright test
+
+      # En cas d'échec : le rapport (captures, traces) est joint au résultat, à télécharger dans l'onglet Actions
+      - name: Joindre le rapport Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-playwright
+          path: e2e/playwright-report/
+          retention-days: 7

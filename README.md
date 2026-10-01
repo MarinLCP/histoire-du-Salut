@@ -39,7 +39,11 @@ la première fois, puis `npm test` (démarre l'API et le site s'ils ne tournent 
 À chaque `git push`, GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) lance sur des machines neuves :
 
 - **serveur** : un PostgreSQL 18 jetable, `db:migrate`, `seed`, puis les tests ;
-- **client** : lint, tests, build.
+- **client** : lint, tests, build ;
+- **e2e** : l'app complète (API + site + PostgreSQL jetable) parcourue par Playwright, sur Chrome et iPhone/Safari.
+  En cas d'échec, le rapport (captures, traces) est à télécharger en bas de la page du run (*Artifacts*).
+
+Render ne déploie que si les trois jobs sont verts.
 
 Le résultat s'affiche dans l'onglet **Actions** du dépôt et en ✅ / ❌ à côté de chaque commit (et sur le badge en haut).
 
@@ -104,7 +108,7 @@ Chaque `git push` sur `main` redéploie le site, **seulement si la CI est verte*
 ```
 histoire-du-Salut/
 ├── README.md                        ← ce fichier
-├── .github/workflows/ci.yml         ← CI : tests serveur + client à chaque push (GitHub Actions)
+├── .github/workflows/ci.yml         ← CI : serveur, client et e2e à chaque push (GitHub Actions)
 ├── .node-version                    ← version de Node utilisée par Render (24)
 │
 ├── server/                          ← API (Node + Express + PostgreSQL)
