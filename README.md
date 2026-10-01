@@ -39,12 +39,14 @@ Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
 1. Créer le fichier suivant dans `server/db/migrations/`, ex. `002_add_explanations.sql` (3 chiffres, `_`, un nom en minuscules).
 2. Y écrire le SQL du changement (`ALTER TABLE ...`, `CREATE TABLE ...`).
 3. Lancer `npm run db:migrate` : seules les nouvelles migrations sont appliquées (la table `schema_migrations` retient les autres).
+4. En ligne, rien à faire : Render lance `npm run db:migrate` à chaque démarrage, avant le serveur.
+   Si une migration échoue, le serveur ne démarre pas et Render garde l'ancienne version en ligne.
 
 ## Mise en ligne (Render)
 
 En production, un seul serveur : Express envoie l'API **et** le site React construit (`client/dist`).
 
-**1. Remplir la base Render depuis son Mac** (une fois, puis à chaque nouvelle migration)
+**1. Remplir la base Render depuis son Mac** (la première fois, puis à chaque changement de `passages.data.js`)
 
 Créer `server/.env.production` (ignoré par Git, ne jamais le commiter) avec l'**External Database URL** de Render,
 suivie de `?sslmode=verify-full` :
@@ -55,7 +57,7 @@ DATABASE_URL=postgresql://...render.com/...?sslmode=verify-full
 
 ```bash
 cd server
-npm run db:migrate:prod    # crée les tables sur Render
+npm run db:migrate:prod    # crée les tables sur Render (ensuite, Render le fait seul à chaque démarrage)
 npm run seed:prod          # remplit la base Render depuis bible.db
 ```
 
@@ -66,7 +68,7 @@ npm run seed:prod          # remplit la base Render depuis bible.db
 | Region | la même que la base |
 | Root Directory | *(vide)* |
 | Build Command | `cd client && npm ci --include=dev && npm run build && cd ../server && npm ci --omit=dev` |
-| Start Command | `cd server && npm start` |
+| Start Command | `cd server && npm run db:migrate && npm start` |
 | Health Check Path | `/api/health` |
 | Variable `DATABASE_URL` | l'**Internal Database URL** de Render (réseau privé, sans SSL) |
 | Variable `NODE_ENV` | `production` |
