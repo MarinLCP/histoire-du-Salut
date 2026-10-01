@@ -3,6 +3,7 @@
 
 import express from 'express';
 import { fileURLToPath } from 'node:url';
+import healthRouter from './routes/health.routes.js';
 import passagesRouter from './routes/passages.routes.js';
 import timelineRouter from './routes/timeline.routes.js';
 
@@ -11,11 +12,7 @@ const CLIENT_BUILD = fileURLToPath(new URL('../../client/dist', import.meta.url)
 
 const app = express();
 
-// Route de santé : permet de vérifier que le serveur tourne (Render l'appelle régulièrement)
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
+app.use('/api/health', healthRouter);
 app.use('/api/passages', passagesRouter);
 app.use('/api/timeline', timelineRouter);
 

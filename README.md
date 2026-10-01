@@ -1,5 +1,7 @@
 # L'histoire d'un Salut
 
+🌐 **En ligne : https://histoire-du-salut.onrender.com**
+
 App web de scroll infini pour lire la Bible dans l'ordre de l'histoire du salut :
 32 grands passages, de la Création à Ap 21. Un appui long sur un verset ouvre un menu : le surligner, y ajouter une note, le copier.
 Chaque passage se partage par un lien direct (`/?passage=creation`).
@@ -97,11 +99,12 @@ histoire-du-Salut/
 │   │   ├── queries/
 │   │   │   └── passages.queries.js  ← tout le SQL des passages
 │   │   └── routes/
+│   │       ├── health.routes.js     ← GET /api/health (serveur + base)
 │   │       ├── passages.routes.js   ← GET /api/passages/:slug
 │   │       └── timeline.routes.js   ← GET /api/timeline?after=&limit=
 │   └── test/                        ← tests de l'API (supertest), un fichier par route
 │       ├── migrations.test.js       ← choix des migrations à appliquer (sans base)
-│       ├── health.test.js           ← GET /api/health
+│       ├── health.test.js           ← GET /api/health (base OK / base injoignable)
 │       ├── passages.test.js         ← GET /api/passages/:slug
 │       └── timeline.test.js         ← GET /api/timeline (dont la fin de la timeline)
 │
