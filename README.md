@@ -81,11 +81,12 @@ npm run seed:prod          # remplit la base Render depuis bible.db
 | Build Command | `cd client && npm ci --include=dev && npm run build && cd ../server && npm ci --omit=dev` |
 | Start Command | `cd server && npm run db:migrate && npm start` |
 | Health Check Path | `/api/health` |
+| Auto-Deploy | `After CI Checks Pass` : Render attend que la CI soit verte pour déployer |
 | Variable `DATABASE_URL` | l'**Internal Database URL** de Render (réseau privé, sans SSL) |
 | Variable `NODE_ENV` | `production` |
 
 La version de Node est fixée par le fichier `.node-version` (24).
-Chaque `git push` sur `main` redéploie le site.
+Chaque `git push` sur `main` redéploie le site, **seulement si la CI est verte** : sinon l'ancienne version reste en ligne.
 
 ## Arborescence
 
