@@ -29,6 +29,9 @@ cd client && npm run dev   # site sur http://localhost:5173 (dev:mobile pour le 
 
 Tests : `npm test` dans `server/` (API) et dans `client/` (logique et composants).
 
+Tests de bout en bout (vrai navigateur, ordinateur + iPhone simulé) : `cd e2e && npm install && npx playwright install chromium webkit`
+la première fois, puis `npm test` (démarre l'API et le site s'ils ne tournent pas). `npm run report` montre le détail d'un échec.
+
 ## Faire évoluer la base (migrations)
 
 Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
@@ -107,6 +110,14 @@ histoire-du-Salut/
 │       ├── health.test.js           ← GET /api/health (base OK / base injoignable)
 │       ├── passages.test.js         ← GET /api/passages/:slug
 │       └── timeline.test.js         ← GET /api/timeline (dont la fin de la timeline)
+│
+├── e2e/                             ← tests de bout en bout (Playwright) : l'app complète en local
+│   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
+│   └── tests/
+│       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
+│       ├── timeline.spec.js         ← lire toute l'histoire en scrollant
+│       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
+│       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
 └── client/                          ← site web (React + Vite)
     ├── index.html                   ← la seule page HTML (app "single page")

@@ -17,3 +17,7 @@ build/
 # Logs
 *.log
 npm-debug.log*
+
+# Rapports de Playwright (tests e2e)
+test-results/
+playwright-report/
