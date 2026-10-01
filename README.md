@@ -43,6 +43,17 @@ la première fois, puis `npm test` (démarre l'API et le site s'ils ne tournent 
 
 Le résultat s'affiche dans l'onglet **Actions** du dépôt et en ✅ / ❌ à côté de chaque commit (et sur le badge en haut).
 
+## Feature flags (cacher une fonctionnalité pas finie)
+
+On commite tous les jours sur `main` (Trunk-Based Development) : une fonctionnalité en cours est cachée en ligne.
+
+- **En dev** (`npm run dev`) : tout est visible.
+- **En ligne** : seulement les fonctionnalités listées dans la variable Render **`VITE_FEATURES`** (ex. `frise,graphe`).
+
+Dans un composant : `{hasFeature('frise') && <Frise />}` (voir [client/src/features/features.js](client/src/features/features.js)).
+Pour mettre en ligne : ajouter le nom dans `VITE_FEATURES` sur Render (cela redéploie : la valeur est lue au build).
+Une fois la fonctionnalité stable, on supprime son flag du code. Jamais de secret dans une variable `VITE_` : elle finit dans le navigateur.
+
 ## Faire évoluer la base (migrations)
 
 Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
@@ -180,6 +191,8 @@ histoire-du-Salut/
     │   │   ├── shareLink.js         ← lien direct /?passage=slug (créer / relire)
     │   │   ├── share.js             ← feuille de partage du téléphone, ou copie du lien
     │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien
+    │   ├── features/
+    │   │   └── features.js          ← feature flags : hasFeature('frise')
     │   ├── hooks/                   ← appui long
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   └── useLongPress.js      ← branchement React
@@ -191,6 +204,7 @@ histoire-du-Salut/
         ├── bible/reference.test.js
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
+        ├── features/features.test.js
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/longPress.test.js
         ├── notes/                   ← notes, notes.storage
