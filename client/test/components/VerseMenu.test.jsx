@@ -5,7 +5,7 @@
 import { describe, test, expect, vi, beforeAll, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import VerseMenu from '../src/components/VerseMenu.jsx';
+import VerseMenu from '../../src/components/VerseMenu.jsx';
 
 // jsdom connaît <dialog> mais pas sa méthode showModal : on la remplace par une version minimale
 beforeAll(() => {

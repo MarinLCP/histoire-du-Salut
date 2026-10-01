@@ -1,7 +1,7 @@
 // Tests unitaires du choix des migrations à appliquer (fonction pure : pas de base de données).
 
 import { describe, test, expect } from 'vitest';
-import { pendingMigrations } from '../scripts/migrations.js';
+import { pendingMigrations } from '../../scripts/migrations.js';
 
 describe('pendingMigrations', () => {
   test('sur une base neuve, toutes les migrations sont à appliquer, dans l\'ordre', () => {

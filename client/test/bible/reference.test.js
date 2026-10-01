@@ -1,7 +1,7 @@
 // Tests unitaires des références bibliques (fonctions pures).
 
 import { describe, test, expect } from 'vitest';
-import { verseKey, passageReference } from '../src/bible/reference.js';
+import { verseKey, passageReference } from '../../src/bible/reference.js';
 
 describe('verseKey', () => {
   test('construit la référence d\'un verset', () => {

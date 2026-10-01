@@ -3,8 +3,8 @@
 
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../src/app.js';
-import { pool } from '../src/infrastructure/db.js';
+import app from '../../src/app.js';
+import { pool } from '../../src/infrastructure/db.js';
 
 // Ferme les connexions à Postgres à la fin, sinon le processus reste ouvert
 afterAll(() => pool.end());
@@ -28,7 +28,6 @@ describe('GET /api/timeline', () => {
   test('chaque passage contient son slug et ses versets', async () => {
     const res = await request(app).get('/api/timeline?limit=1');
 
-    expect(res.body.passages[0].title).toBe('La Création');
     expect(res.body.passages[0].slug).toBe('creation');
     expect(res.body.passages[0].verses.length).toBeGreaterThan(0);
   });

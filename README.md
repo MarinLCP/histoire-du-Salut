@@ -109,6 +109,7 @@ histoire-du-Salut/
 │   ├── scripts/
 │   │   ├── migrate.js               ← npm run db:migrate : applique les nouvelles migrations
 │   │   ├── migrations.js            ← règle : quelles migrations restent à appliquer
+│   │   ├── passageRules.js          ← règles d'un passage (slug, livre, bornes) : le seed s'arrête avant la base
 │   │   └── seed.js                  ← npm run seed : bible.db + passages.data.js → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
@@ -128,19 +129,22 @@ histoire-du-Salut/
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline
 │   │       │                          + site React construit (prod)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
-│   └── test/                        ← tests de l'API (supertest) + tests unitaires sans base
-│       ├── domain/                  ← PassageSlug, PageRequest
+│   └── test/                        ← en miroir de src/ et scripts/
+│       ├── domain/                  ← PassageSlug, PageRequest (unitaires, sans base)
 │       ├── application/             ← getPassage, getTimeline (avec un faux repository)
-│       ├── migrations.test.js       ← choix des migrations à appliquer (sans base)
-│       ├── health.test.js           ← GET /api/health (base OK / base injoignable)
-│       ├── passages.test.js         ← GET /api/passages/:slug
-│       └── timeline.test.js         ← GET /api/timeline (dont la fin de la timeline)
+│       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
+│       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
+│       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
+│       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
+│       └── scripts/
+│           ├── migrations.test.js   ← choix des migrations à appliquer
+│           └── passageRules.test.js ← règles de passages.data.js (vérifiées avant le seed)
 │
 ├── e2e/                             ← tests de bout en bout (Playwright) : l'app complète en local
 │   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
 │   └── tests/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
-│       ├── timeline.spec.js         ← lire toute l'histoire en scrollant
+│       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
@@ -182,19 +186,16 @@ histoire-du-Salut/
     │   └── storage/                 ← outils partagés par surlignages et notes
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
-    └── test/
-        ├── reference.test.js        ← logique pure (unitaires)
-        ├── highlights.test.js
-        ├── highlights.storage.test.js
-        ├── notes.test.js
-        ├── notes.storage.test.js
-        ├── longPress.test.js
-        ├── copyVerse.test.js
-        ├── shareLink.test.js
-        ├── share.test.js
-        ├── Passage.test.jsx         ← composants (React Testing Library + jsdom)
-        ├── StatusButton.test.jsx
-        └── VerseMenu.test.jsx
+    └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
+        ├── api/passages.api.test.js ← données et messages d'erreur de l'API
+        ├── bible/reference.test.js
+        ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
+        ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
+        ├── highlights/              ← highlights, highlights.storage
+        ├── hooks/longPress.test.js
+        ├── notes/                   ← notes, notes.storage
+        ├── share/                   ← share, shareLink
+        └── storage/versionedStorage.test.js ← mécanisme commun de sauvegarde
 ```
 
 ## Données et droits

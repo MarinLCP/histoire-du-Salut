@@ -4,8 +4,8 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import Passage from '../src/components/Passage.jsx';
-import { LONG_PRESS_DELAY } from '../src/hooks/longPress.js';
+import Passage from '../../src/components/Passage.jsx';
+import { LONG_PRESS_DELAY } from '../../src/hooks/longPress.js';
 
 const passage = {
   id: 1,

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 // Tests de la sauvegarde des notes. Le mécanisme commun (versions, erreurs, stockage bloqué)
-// est déjà testé dans highlights.storage.test.js : ici, on vérifie juste que les notes en profitent.
+// est testé dans storage/versionedStorage.test.js : ici, on vérifie ce qui est propre aux notes.
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { loadNotes, saveNotes } from '../src/notes/notes.storage.js';
-import { loadHighlights } from '../src/highlights/highlights.storage.js';
+import { loadNotes, saveNotes } from '../../src/notes/notes.storage.js';
+import { loadHighlights } from '../../src/highlights/highlights.storage.js';
 
 describe('sauvegarde des notes', () => {
   // Un stockage vide avant chaque test

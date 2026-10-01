@@ -1,7 +1,7 @@
 // Tests unitaires de la logique des notes (fonctions pures : ni React, ni navigateur).
 
 import { describe, test, expect } from 'vitest';
-import { setNote } from '../src/notes/notes.js';
+import { setNote } from '../../src/notes/notes.js';
 
 describe('setNote', () => {
   const now = new Date('2026-09-30T10:00:00.000Z');

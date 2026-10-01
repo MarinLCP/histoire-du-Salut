@@ -1,7 +1,7 @@
 // Tests unitaires des liens de partage (fonctions pures).
 
 import { describe, test, expect } from 'vitest';
-import { passageLink, readSharedSlug } from '../src/share/shareLink.js';
+import { passageLink, readSharedSlug } from '../../src/share/shareLink.js';
 
 describe('passageLink', () => {
   test('construit le lien direct vers un passage', () => {

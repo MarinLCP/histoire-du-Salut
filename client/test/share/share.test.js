@@ -2,7 +2,7 @@
 // Les tests tournent dans Node : on remplace navigator et le presse-papiers par des faux.
 
 import { describe, test, expect, vi, afterEach } from 'vitest';
-import { sharePassage } from '../src/share/share.js';
+import { sharePassage } from '../../src/share/share.js';
 
 const passage = { slug: 'creation', title: 'La Création' };
 const origin = 'https://histoire-du-salut.fr';

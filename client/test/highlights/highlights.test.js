@@ -1,7 +1,7 @@
 // Tests unitaires de la logique des surlignages (fonctions pures : ni React, ni navigateur).
 
 import { describe, test, expect } from 'vitest';
-import { toggleHighlight } from '../src/highlights/highlights.js';
+import { toggleHighlight } from '../../src/highlights/highlights.js';
 
 describe('toggleHighlight', () => {
   const now = new Date('2026-09-30T10:00:00.000Z');

@@ -7,12 +7,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { passages } from '../db/passages.data.js';
-import { PassageSlug } from '../src/domain/PassageSlug.js';
+import { validatePassages } from './passageRules.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
 
 const source = readSource();
+// Une faute dans passages.data.js arrête le seed ICI, avant de toucher à la base
+validatePassages(passages, source.verses);
 
 await withTransaction(async (client) => {
   await clearTables(client);
@@ -132,55 +134,13 @@ function placeholdersForRow(rowIndex, columnCount) {
   return `(${placeholders.join(', ')})`;
 }
 
-// Insère les passages dans l'ordre de la liste, après avoir vérifié leurs bornes.
+// Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages).
 async function insertPassages(client, passages, bookIds) {
   for (const [index, passage] of passages.entries()) {
-    await insertPassage(client, passage, index + 1, bookIds);
+    await client.query(
+      `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [index + 1, passage.slug, passage.title, bookIds.get(passage.book), ...passage.start, ...passage.end],
+    );
   }
-}
-
-async function insertPassage(client, passage, position, bookIds) {
-  // La même règle que l'API : un slug mal formé arrête le seed avec un message clair
-  const slug = new PassageSlug(passage.slug);
-  const bookId = requireBookId(passage, bookIds);
-  await requireValidBounds(client, passage, bookId);
-
-  await client.query(
-    `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [position, slug.value, passage.title, bookId, ...passage.start, ...passage.end],
-  );
-}
-
-// --- Validation des passages (le seed s'arrête à la première erreur) ---
-
-function requireBookId(passage, bookIds) {
-  const bookId = bookIds.get(passage.book);
-  if (!bookId) {
-    throw new Error(`Passage "${passage.title}" : livre ${passage.book} introuvable.`);
-  }
-  return bookId;
-}
-
-// Vérifie que le début et la fin existent, et que le début vient avant la fin.
-async function requireValidBounds(client, passage, bookId) {
-  const startPosition = await requireVersePosition(client, passage, bookId, passage.start);
-  const endPosition = await requireVersePosition(client, passage, bookId, passage.end);
-
-  if (startPosition > endPosition) {
-    throw new Error(`Passage "${passage.title}" : le début est après la fin.`);
-  }
-}
-
-// Renvoie la position du verset [chapitre, verset], ou lève une erreur s'il n'existe pas.
-async function requireVersePosition(client, passage, bookId, [chapter, verse]) {
-  const result = await client.query(
-    'SELECT position FROM verses WHERE book_id = $1 AND chapter = $2 AND verse = $3',
-    [bookId, chapter, verse],
-  );
-
-  if (result.rows.length === 0) {
-    throw new Error(`Passage "${passage.title}" : ${passage.book} ${chapter},${verse} introuvable.`);
-  }
-  return result.rows[0].position;
 }

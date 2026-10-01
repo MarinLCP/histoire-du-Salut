@@ -3,7 +3,7 @@
 
 import { describe, test, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import StatusButton from '../src/components/StatusButton.jsx';
+import StatusButton from '../../src/components/StatusButton.jsx';
 
 const labels = { idle: 'Copier', done: 'Copié ✓', failed: 'Échec' };
 

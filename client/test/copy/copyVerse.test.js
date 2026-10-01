@@ -1,7 +1,7 @@
 // Tests unitaires du texte copié quand on copie un verset.
 
 import { describe, test, expect } from 'vitest';
-import { formatVerseForCopy } from '../src/copy/copyVerse.js';
+import { formatVerseForCopy } from '../../src/copy/copyVerse.js';
 
 // Les guillemets français sont séparés du texte par une espace insécable
 const NO_BREAK_SPACE = '\u00a0';
