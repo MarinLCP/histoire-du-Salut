@@ -1,10 +1,5 @@
 // Logique des surlignages : fonctions pures (ni React, ni navigateur), faciles à tester.
-// Les surlignages sont une Map : référence du verset -> { createdAt }.
-
-// "Gn 1,3" : la référence biblique, stable même si la base ou la traduction change
-export function verseKey(bookCode, verse) {
-  return `${bookCode} ${verse.chapter},${verse.verse}`;
-}
+// Les surlignages sont une Map : référence du verset ("Gn 1,3", voir bible/reference.js) -> { createdAt }.
 
 // Renvoie une NOUVELLE Map (on ne modifie jamais celle reçue) :
 // le verset est retiré s'il était surligné, ajouté sinon.

@@ -12,13 +12,10 @@ export function fetchPassage(slug) {
 }
 
 async function getJson(url) {
-  let response;
-  try {
-    response = await fetch(url);
-  } catch {
-    // fetch lève une erreur seulement quand le serveur est injoignable (réseau coupé, API arrêtée)
+  // fetch lève une erreur seulement quand le serveur est injoignable (réseau coupé, API arrêtée)
+  const response = await fetch(url).catch(() => {
     throw new Error('Impossible de joindre le serveur. Vérifie ta connexion.');
-  }
+  });
 
   // fetch ne lève pas d'erreur sur un 404 ou un 500 : il faut vérifier nous-mêmes
   if (!response.ok) {

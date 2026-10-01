@@ -4,7 +4,7 @@
 import { describe, test, expect, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../src/app.js';
-import { pool } from '../src/db.js';
+import { pool } from '../src/infrastructure/db.js';
 
 // Ferme les connexions à Postgres à la fin, sinon le processus reste ouvert
 afterAll(() => pool.end());

@@ -1,8 +1,9 @@
 // Assemble l'app : la timeline des passages (depuis le début, ou depuis un lien partagé),
 // et le menu d'un verset (surligner, noter, copier).
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Timeline from './components/Timeline.jsx';
+import TimelineStatus from './components/TimelineStatus.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import { useHighlights } from './highlights/useHighlights.js';
 import { useNotes } from './notes/useNotes.js';
@@ -17,13 +18,15 @@ function App() {
   const [menuVerse, setMenuVerse] = useState(null);
   const startAfter = useStartPosition();
 
-  const annotations = { highlights, notes, openMenu: setMenuVerse };
+  // useMemo : le même objet tant que surlignages et notes ne changent pas.
+  // Ouvrir le menu ne redessine donc pas toute la timeline (voir memo dans Passage.jsx).
+  const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
 
   return (
     <main>
       {/* Lien partagé : on attend de savoir où commencer avant d'afficher la timeline */}
       {startAfter === null ? (
-        <p className="timeline-status">Chargement…</p>
+        <TimelineStatus isLoading />
       ) : (
         <Timeline startAfter={startAfter} annotations={annotations} onShare={sharePassage} />
       )}

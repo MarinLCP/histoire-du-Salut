@@ -1,17 +1,7 @@
 // Tests unitaires de la logique des surlignages (fonctions pures : ni React, ni navigateur).
 
 import { describe, test, expect } from 'vitest';
-import { verseKey, toggleHighlight } from '../src/highlights/highlights.js';
-
-describe('verseKey', () => {
-  test('construit la référence biblique du verset', () => {
-    expect(verseKey('Gn', { chapter: '1', verse: '3' })).toBe('Gn 1,3');
-  });
-
-  test('garde les numéros avec lettre tels quels', () => {
-    expect(verseKey('Ps', { chapter: '9A', verse: '1a' })).toBe('Ps 9A,1a');
-  });
-});
+import { toggleHighlight } from '../src/highlights/highlights.js';
 
 describe('toggleHighlight', () => {
   const now = new Date('2026-09-30T10:00:00.000Z');

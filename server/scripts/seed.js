@@ -7,6 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { passages } from '../db/passages.data.js';
+import { PassageSlug } from '../src/domain/PassageSlug.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
@@ -139,17 +140,15 @@ async function insertPassages(client, passages, bookIds) {
 }
 
 async function insertPassage(client, passage, position, bookIds) {
+  // La même règle que l'API : un slug mal formé arrête le seed avec un message clair
+  const slug = new PassageSlug(passage.slug);
   const bookId = requireBookId(passage, bookIds);
-  // Dans passages.data.js, les bornes sont des nombres ; en base, chapter et verse sont du texte
-  const start = passage.start.map(String);
-  const end = passage.end.map(String);
-
-  await requireValidBounds(client, passage, bookId, start, end);
+  await requireValidBounds(client, passage, bookId);
 
   await client.query(
     `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [position, passage.slug, passage.title, bookId, ...start, ...end],
+    [position, slug.value, passage.title, bookId, ...passage.start, ...passage.end],
   );
 }
 
@@ -164,9 +163,9 @@ function requireBookId(passage, bookIds) {
 }
 
 // Vérifie que le début et la fin existent, et que le début vient avant la fin.
-async function requireValidBounds(client, passage, bookId, start, end) {
-  const startPosition = await requireVersePosition(client, passage, bookId, start);
-  const endPosition = await requireVersePosition(client, passage, bookId, end);
+async function requireValidBounds(client, passage, bookId) {
+  const startPosition = await requireVersePosition(client, passage, bookId, passage.start);
+  const endPosition = await requireVersePosition(client, passage, bookId, passage.end);
 
   if (startPosition > endPosition) {
     throw new Error(`Passage "${passage.title}" : le début est après la fin.`);

@@ -97,17 +97,27 @@ histoire-du-Salut/
 │   │   ├── migrate.js               ← npm run db:migrate : applique les nouvelles migrations
 │   │   ├── migrations.js            ← règle : quelles migrations restent à appliquer
 │   │   └── seed.js                  ← npm run seed : bible.db + passages.data.js → PostgreSQL
-│   ├── src/
+│   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
-│   │   ├── app.js                   ← l'app Express : routes + site React construit (prod)
-│   │   ├── db.js                    ← connexion à PostgreSQL (pool)
-│   │   ├── queries/
-│   │   │   └── passages.queries.js  ← tout le SQL des passages
-│   │   └── routes/
-│   │       ├── health.routes.js     ← GET /api/health (serveur + base)
-│   │       ├── passages.routes.js   ← GET /api/passages/:slug
-│   │       └── timeline.routes.js   ← GET /api/timeline?after=&limit=
-│   └── test/                        ← tests de l'API (supertest), un fichier par route
+│   │   ├── app.js                   ← assemblage : branche PostgreSQL → use cases → Express
+│   │   ├── domain/                  ← règles métier pures (ni Express, ni PostgreSQL)
+│   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
+│   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
+│   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
+│   │   │   └── errors.js            ← ValidationError, NotFoundError
+│   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
+│   │   │   ├── getPassage.js
+│   │   │   └── getTimeline.js
+│   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
+│   │   │   ├── db.js                ← connexion (pool) + pingDatabase
+│   │   │   └── postgresPassageRepository.js ← tout le SQL des passages
+│   │   └── http/                    ← le seul endroit qui connaît Express
+│   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline
+│   │       │                          + site React construit (prod)
+│   │       └── errorHandler.js      ← erreurs métier → 400 / 404
+│   └── test/                        ← tests de l'API (supertest) + tests unitaires sans base
+│       ├── domain/                  ← PassageSlug, PageRequest
+│       ├── application/             ← getPassage, getTimeline (avec un faux repository)
 │       ├── migrations.test.js       ← choix des migrations à appliquer (sans base)
 │       ├── health.test.js           ← GET /api/health (base OK / base injoignable)
 │       ├── passages.test.js         ← GET /api/passages/:slug
@@ -130,14 +140,16 @@ histoire-du-Salut/
     │   ├── index.css                ← couleurs (clair / sombre), police
     │   ├── api/
     │   │   └── passages.api.js      ← appels à l'API (timeline, passage par slug)
+    │   ├── bible/
+    │   │   └── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── TimelineStatus.jsx   ← chargement / erreur / fin de l'histoire
     │   │   ├── Passage.jsx / .css   ← un passage, ses versets et leurs notes
-    │   │   ├── ShareButton.jsx      ← le bouton "Partager" d'un passage
+    │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier)
     │   ├── highlights/              ← surlignages
-    │   │   ├── highlights.js        ← logique pure
+    │   │   ├── highlights.js        ← logique pure (surligner / retirer)
     │   │   ├── highlights.storage.js← sauvegarde dans le navigateur
     │   │   └── useHighlights.js     ← branchement React
     │   ├── notes/                   ← notes personnelles (même découpage)
@@ -158,7 +170,8 @@ histoire-du-Salut/
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/
-        ├── highlights.test.js       ← logique pure (unitaires)
+        ├── reference.test.js        ← logique pure (unitaires)
+        ├── highlights.test.js
         ├── highlights.storage.test.js
         ├── notes.test.js
         ├── notes.storage.test.js
@@ -167,6 +180,7 @@ histoire-du-Salut/
         ├── shareLink.test.js
         ├── share.test.js
         ├── Passage.test.jsx         ← composants (React Testing Library + jsdom)
+        ├── StatusButton.test.jsx
         └── VerseMenu.test.jsx
 ```
 

@@ -1,7 +1,7 @@
 // Parcours : le menu d'un verset (appui long) pour surligner, écrire une note, copier.
 
 import { test, expect } from '@playwright/test';
-import { firstVerse, longPress } from './helpers.js';
+import { allowClipboard, firstVerse, longPress, readClipboard } from './helpers.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -40,15 +40,13 @@ test('écrire une note, la voir sous le verset, et la retrouver après avoir rec
 });
 
 test('copier un verset avec sa référence', async ({ page, context, browserName }) => {
-  // Lire le presse-papiers depuis un test n'est autorisé que dans Chromium
-  test.skip(browserName !== 'chromium', 'Lecture du presse-papiers impossible dans WebKit');
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await allowClipboard(context, browserName);
 
   await longPress(page, firstVerse(page));
   await page.getByRole('button', { name: 'Copier le verset' }).click();
   await expect(page.getByRole('button', { name: 'Verset copié ✓' })).toBeVisible();
 
-  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  const copied = await readClipboard(page);
   expect(copied).toContain('AU COMMENCEMENT');
   expect(copied).toContain('(Gn 1,1)');
 });

@@ -3,6 +3,7 @@
 // Affiché comme un panneau qui monte du bas de l'écran (bottom sheet), pratique au pouce sur mobile.
 
 import { useEffect, useRef, useState } from 'react';
+import StatusButton from './StatusButton.jsx';
 import { formatVerseForCopy } from '../copy/copyVerse.js';
 import './VerseMenu.css';
 
@@ -54,30 +55,14 @@ function VerseActions({ isHighlighted, note, copiedText, onToggleHighlight, onEd
     <div className="verse-menu-buttons">
       <button onClick={onToggleHighlight}>{isHighlighted ? 'Retirer le surlignage' : 'Surligner'}</button>
       <button onClick={onEditNote}>{note ? 'Modifier la note' : 'Ajouter une note'}</button>
-      <CopyButton text={copiedText} onCopy={onCopy} />
+      {/* Le menu reste ouvert pour que l'utilisateur voie "Verset copié ✓" */}
+      <StatusButton labels={COPY_LABELS} action={() => onCopy(copiedText).then(() => 'done')} />
       <button onClick={onClose}>Fermer</button>
     </div>
   );
 }
 
-const COPY_LABELS = {
-  idle: 'Copier le verset',
-  copied: 'Verset copié ✓',
-  failed: 'Copie impossible',
-};
-
-// Le libellé du bouton confirme la copie (ou son échec) : le menu reste ouvert pour que l'utilisateur le voie
-function CopyButton({ text, onCopy }) {
-  const [status, setStatus] = useState('idle');
-
-  function copy() {
-    onCopy(text)
-      .then(() => setStatus('copied'))
-      .catch(() => setStatus('failed'));
-  }
-
-  return <button onClick={copy}>{COPY_LABELS[status]}</button>;
-}
+const COPY_LABELS = { idle: 'Copier le verset', done: 'Verset copié ✓', failed: 'Copie impossible' };
 
 function NoteEditor({ note, onSave, onCancel }) {
   const [text, setText] = useState(note?.text ?? '');

@@ -4,7 +4,7 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../src/app.js';
-import { pool } from '../src/db.js';
+import { pool } from '../src/infrastructure/db.js';
 
 // Ferme les connexions à Postgres à la fin, sinon le processus reste ouvert
 afterAll(() => pool.end());
@@ -14,14 +14,14 @@ describe('GET /api/timeline', () => {
     const res = await request(app).get('/api/timeline');
 
     expect(res.status).toBe(200);
-    expect(res.body.passages.map((p) => p.position)).toEqual([1, 2, 3, 4, 5]);
+    expect(res.body.passages.map((passage) => passage.position)).toEqual([1, 2, 3, 4, 5]);
     expect(res.body.nextCursor).toBe(5);
   });
 
   test('?after=3&limit=5 renvoie les passages 4 à 8', async () => {
     const res = await request(app).get('/api/timeline?after=3&limit=5');
 
-    expect(res.body.passages.map((p) => p.position)).toEqual([4, 5, 6, 7, 8]);
+    expect(res.body.passages.map((passage) => passage.position)).toEqual([4, 5, 6, 7, 8]);
     expect(res.body.nextCursor).toBe(8);
   });
 
@@ -37,7 +37,7 @@ describe('GET /api/timeline', () => {
     const page1 = await request(app).get('/api/timeline?limit=3');
     const page2 = await request(app).get(`/api/timeline?after=${page1.body.nextCursor}&limit=3`);
 
-    const positions = [...page1.body.passages, ...page2.body.passages].map((p) => p.position);
+    const positions = [...page1.body.passages, ...page2.body.passages].map((passage) => passage.position);
     expect(positions).toEqual([1, 2, 3, 4, 5, 6]);
   });
 

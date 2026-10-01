@@ -1,25 +1,27 @@
-// Configuration de l'app Express : routes et middlewares.
-// Pas de app.listen ici : les tests importent l'app sans démarrer de serveur.
+// Point d'assemblage ("composition root") : le SEUL fichier qui relie toutes les couches.
+// On y choisit les vraies implémentations (PostgreSQL) et on les injecte dans les use cases,
+// puis les use cases dans l'app Express. Les tests unitaires, eux, injectent de faux repositories.
+//
+//   http/ (Express)  ──>  application/ (use cases)  ──>  domain/ (règles métier)
+//   infrastructure/ (PostgreSQL)  ──implémente──>  domain/PassageRepository.js
+//
+// Les flèches pointent toujours vers le domaine : il ne dépend de rien (règle de dépendance).
 
-import express from 'express';
+import { pool, pingDatabase } from './infrastructure/db.js';
+import { createPostgresPassageRepository } from './infrastructure/postgresPassageRepository.js';
+import { makeGetPassage } from './application/getPassage.js';
+import { makeGetTimeline } from './application/getTimeline.js';
+import { createApp } from './http/createApp.js';
 import { fileURLToPath } from 'node:url';
-import healthRouter from './routes/health.routes.js';
-import passagesRouter from './routes/passages.routes.js';
-import timelineRouter from './routes/timeline.routes.js';
 
-// Le site React une fois construit (cd client && npm run build)
-const CLIENT_BUILD = fileURLToPath(new URL('../../client/dist', import.meta.url));
+const passageRepository = createPostgresPassageRepository(pool);
 
-const app = express();
-
-app.use('/api/health', healthRouter);
-app.use('/api/passages', passagesRouter);
-app.use('/api/timeline', timelineRouter);
-
-// En production, le même serveur envoie aussi le site : index.html, le JS et le CSS.
-// Le site et l'API ont ainsi la même adresse (pas de CORS, un seul service à héberger).
-// Les liens partagés (/?passage=creation) arrivent sur "/", donc sur index.html.
-// En dev, client/dist n'existe pas forcément : c'est Vite qui sert le site (port 5173).
-app.use(express.static(CLIENT_BUILD));
+const app = createApp({
+  getPassage: makeGetPassage(passageRepository),
+  getTimeline: makeGetTimeline(passageRepository),
+  pingDatabase,
+  // Le site React une fois construit (cd client && npm run build)
+  clientBuildDirectory: fileURLToPath(new URL('../../client/dist', import.meta.url)),
+});
 
 export default app;

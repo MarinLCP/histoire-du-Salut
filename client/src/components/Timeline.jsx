@@ -2,7 +2,7 @@
 // Un élément invisible (la "sentinelle") est placé tout en bas de la liste :
 // quand il approche de l'écran, on charge la page suivante.
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import Passage from './Passage.jsx';
 import TimelineStatus from './TimelineStatus.jsx';
 import { fetchTimeline } from '../api/passages.api.js';
@@ -79,4 +79,5 @@ function Timeline({ startAfter, annotations, onShare }) {
   );
 }
 
-export default Timeline;
+// memo : ouvrir ou fermer le menu d'un verset (dans App) ne redessine pas la timeline
+export default memo(Timeline);

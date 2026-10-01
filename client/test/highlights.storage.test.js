@@ -1,19 +1,12 @@
-// Tests de la sauvegarde des surlignages dans le navigateur.
-// Les tests tournent dans Node, sans navigateur : on remplace localStorage par un faux, en mémoire.
+// @vitest-environment jsdom
+// Tests de la sauvegarde des surlignages dans le navigateur (localStorage du faux navigateur jsdom).
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadHighlights, saveHighlights } from '../src/highlights/highlights.storage.js';
 
-function createFakeStorage() {
-  const items = new Map();
-  return {
-    getItem: (key) => items.get(key) ?? null,
-    setItem: (key, value) => items.set(key, String(value)),
-  };
-}
-
 describe('sauvegarde des surlignages', () => {
-  beforeEach(() => vi.stubGlobal('localStorage', createFakeStorage()));
+  // Un stockage vide avant chaque test
+  beforeEach(() => localStorage.clear());
   afterEach(() => vi.unstubAllGlobals());
 
   test('sans rien de sauvegardé, il n\'y a aucun surlignage', () => {
