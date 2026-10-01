@@ -1,0 +1,70 @@
+# Intégration continue : à chaque push (et pull request), GitHub vérifie que tout marche.
+# Deux jobs en parallèle sur des machines neuves : le serveur (avec un PostgreSQL jetable) et le client.
+# Résultat visible dans l'onglet "Actions" du dépôt, et en ✅ / ❌ à côté de chaque commit.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  server:
+    name: Serveur (migrations, seed, tests)
+    runs-on: ubuntu-latest
+
+    # Une base PostgreSQL jetable, créée pour ce job puis détruite (même version que Render)
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: histoire_du_salut
+        ports:
+          - 5432:5432
+        # Attendre que la base accepte les connexions avant de lancer les étapes
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/histoire_du_salut
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run db:migrate
+      - run: npm run seed
+      - run: npm test
+
+  client:
+    name: Client (lint, tests, build)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

@@ -1,5 +1,7 @@
 # L'histoire d'un Salut
 
+[![CI](https://github.com/MarinLCP/histoire-du-Salut/actions/workflows/ci.yml/badge.svg)](https://github.com/MarinLCP/histoire-du-Salut/actions/workflows/ci.yml)
+
 🌐 **En ligne : https://histoire-du-salut.onrender.com**
 
 App web de scroll infini pour lire la Bible dans l'ordre de l'histoire du salut :
@@ -31,6 +33,15 @@ Tests : `npm test` dans `server/` (API) et dans `client/` (logique et composants
 
 Tests de bout en bout (vrai navigateur, ordinateur + iPhone simulé) : `cd e2e && npm install && npx playwright install chromium webkit`
 la première fois, puis `npm test` (démarre l'API et le site s'ils ne tournent pas). `npm run report` montre le détail d'un échec.
+
+## Intégration continue (CI)
+
+À chaque `git push`, GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) lance sur des machines neuves :
+
+- **serveur** : un PostgreSQL 18 jetable, `db:migrate`, `seed`, puis les tests ;
+- **client** : lint, tests, build.
+
+Le résultat s'affiche dans l'onglet **Actions** du dépôt et en ✅ / ❌ à côté de chaque commit (et sur le badge en haut).
 
 ## Faire évoluer la base (migrations)
 
@@ -81,6 +92,7 @@ Chaque `git push` sur `main` redéploie le site.
 ```
 histoire-du-Salut/
 ├── README.md                        ← ce fichier
+├── .github/workflows/ci.yml         ← CI : tests serveur + client à chaque push (GitHub Actions)
 ├── .node-version                    ← version de Node utilisée par Render (24)
 │
 ├── server/                          ← API (Node + Express + PostgreSQL)
