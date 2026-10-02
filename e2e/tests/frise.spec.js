@@ -67,10 +67,18 @@ test('Bible entière : ensembles → livres → dizaines → chapitres, et la le
   await expect(frise.getByRole('button', { name: 'Chapitre 23', exact: true })).toHaveAttribute('aria-current', 'location');
 });
 
-test('sur téléphone, pas la place : la frise est cachée', async ({ page, isMobile }) => {
-  test.skip(!isMobile, 'Sur ordinateur, la frise est visible (voir le test précédent)');
+test('sur téléphone : la frise est rangée dans un panneau, ouvert par l\'onglet « Frise »', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Sur ordinateur, la frise est toujours visible');
   await page.goto('/');
-
+  const frise = page.getByRole('navigation', { name: 'Frise' });
   await expect(page.getByRole('heading', { name: 'La Création' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Frise' })).toBeHidden();
+  await expect(frise).toBeHidden();
+
+  await page.getByRole('button', { name: 'Frise' }).click();
+  await expect(frise).toBeVisible();
+
+  // Un clic sur une époque : la lecture y saute, et le panneau se referme pour laisser lire
+  await frise.getByRole('button', { name: 'Les patriarches' }).getByText('Les patriarches').click();
+  await expect(page.getByRole('heading', { name: "L'appel d'Abraham" })).toBeInViewport();
+  await expect(frise).toBeHidden();
 });

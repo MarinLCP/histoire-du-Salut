@@ -8,7 +8,6 @@ import { memo } from 'react';
 import { Link, useLocation } from 'react-router';
 import Chapter from '../components/Chapter.jsx';
 import ListStatus from '../components/ListStatus.jsx';
-import Frise from '../frise/Frise.jsx';
 import ReadingWithFrise from '../frise/ReadingWithFrise.jsx';
 import { fetchBible, fetchChapter } from '../api/bible.api.js';
 import { readChapterLink } from '../bible/bibleLink.js';
@@ -36,7 +35,7 @@ function BiblePage({ annotations }) {
   const [jumpStart, jumpTo] = useJump(navigationKey);
 
   return (
-    <ReadingWithFrise frise={<Frise mode="bible" tabNames={TAB_NAMES} onJump={jumpTo} />}>
+    <ReadingWithFrise mode="bible" tabNames={TAB_NAMES} onJump={jumpTo}>
       <section aria-labelledby="bible-page-title">
         <h1 className="bible-page-title" id="bible-page-title">La Bible entière</h1>
         {/* key : une autre adresse (autre lien, ou retour au début) = une lecture recommencée de zéro */}

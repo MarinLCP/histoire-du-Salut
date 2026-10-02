@@ -3,7 +3,6 @@
 
 import Timeline from '../components/Timeline.jsx';
 import ListStatus from '../components/ListStatus.jsx';
-import Frise from '../frise/Frise.jsx';
 import ReadingWithFrise from '../frise/ReadingWithFrise.jsx';
 import { sharePassage } from '../share/share.js';
 import { useStartPosition } from '../share/useStartPosition.js';
@@ -22,7 +21,7 @@ function HistoryPage({ annotations }) {
   if (startAfter === null) return <ListStatus isLoading />;
 
   return (
-    <ReadingWithFrise frise={<Frise mode="history" tabNames={TAB_NAMES} onJump={jumpTo} />}>
+    <ReadingWithFrise mode="history" tabNames={TAB_NAMES} onJump={jumpTo}>
       {/* key : un autre point de départ = une timeline rechargée depuis ce passage */}
       <Timeline key={startAfter} startAfter={startAfter} annotations={annotations} onShare={sharePassage} />
     </ReadingWithFrise>

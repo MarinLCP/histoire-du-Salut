@@ -1,18 +1,74 @@
-/* La frise à gauche, la lecture à droite (écran large : pages Histoire du salut et Bible entière).
-   Sous 1100 px, pas la place : la frise est cachée
-   (V7.7 : un onglet « Frise » au bord gauche l'ouvrira dans un panneau glissant). */
+/* La frise à gauche, la lecture à droite (écran large : pages Histoire du salut et Bible entière). */
 
 .with-frise {
   display: grid;
   grid-template-columns: 22rem minmax(0, 1fr);
 }
 
+/* L'onglet « Frise » n'existe que sur écran étroit */
+.frise-drawer-tab {
+  display: none;
+}
+
+/* Écran étroit (la même limite que dans ReadingWithFrise.jsx) : pas la place pour deux colonnes.
+   La frise devient un panneau qui glisse depuis le bord gauche, ouvert par l'onglet « Frise ». */
 @media (max-width: 1099px) {
   .with-frise {
     display: block;
   }
 
-  .with-frise .frise {
+  .frise-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(22rem, 92vw);
+    background: var(--background);
+    /* Fermé : hors de l'écran, et invisible une fois le glissement fini (pas un pixel ne dépasse) */
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform .25s ease, visibility 0s linear .25s;
+  }
+
+  .frise-drawer.open {
+    visibility: visible;
+    transform: none;
+    box-shadow: 8px 0 24px rgb(0 0 0 / .25);
+    transition: transform .25s ease;
+  }
+
+  /* Dans le panneau, la frise prend toute la hauteur de l'écran */
+  .frise-drawer .frise {
+    position: static;
+    height: 100dvh;
+  }
+
+  .frise-drawer-tab {
+    display: block;
+    position: fixed;
+    top: 40%;
+    left: 0;
+    z-index: 40;
+    padding: .9rem .45rem;
+    border: 0;
+    border-radius: 8px 0 0 8px;
+    background: #4f6fae;
+    color: #fff;
+    font: 600 .75rem/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    /* Écrit à la verticale, de bas en haut, comme les bandes de la frise */
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    cursor: pointer;
+  }
+
+  .frise-drawer-tab[aria-expanded="true"] {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frise-drawer {
+    transition: none;
   }
 }

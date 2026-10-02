@@ -192,7 +192,7 @@ histoire-du-Salut/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
-│       ├── frise.spec.js            ← la frise (ordinateur) : zoom, lecture, saut au clic, mode Bible ; cachée sur téléphone
+│       ├── frise.spec.js            ← la frise : zoom, lecture, saut au clic, mode Bible ; panneau sur téléphone
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -249,7 +249,7 @@ histoire-du-Salut/
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
-    │   │   ├── ReadingWithFrise.jsx / .css ← mise en page : frise à gauche, lecture à droite (flag "frise")
+    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche, lecture à droite ; < 1100 px : panneau « Frise »
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
@@ -257,11 +257,12 @@ histoire-du-Salut/
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
     │   ├── features/
     │   │   └── features.js          ← feature flags : hasFeature('frise')
-    │   ├── hooks/                   ← appui long, chargement au fil du défilement
+    │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
     │   │   ├── useCursorPagination.js ← liste chargée page par page (timeline et Bible)
-    │   │   └── useStartCursor.js    ← où commencer une liste ouverte par un lien (passage, chapitre)
+    │   │   ├── useStartCursor.js    ← où commencer une liste ouverte par un lien (passage, chapitre)
+    │   │   └── useMediaQuery.js     ← une règle de taille d'écran est-elle vraie (ex. écran étroit)
     │   └── storage/                 ← outils partagés par surlignages et notes
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
