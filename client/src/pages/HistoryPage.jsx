@@ -9,6 +9,8 @@ import { useStartPosition } from '../share/useStartPosition.js';
 import { hasFeature } from '../features/features.js';
 import './HistoryPage.css';
 
+const TAB_NAMES = ["Vue d'ensemble", 'Épisodes', 'Chapitres'];
+
 // annotations : surlignages, notes et ouverture du menu d'un verset (partagés par toutes les pages)
 function HistoryPage({ annotations }) {
   const startAfter = useStartPosition();
@@ -20,7 +22,7 @@ function HistoryPage({ annotations }) {
 
   return (
     <div className="with-frise">
-      <Frise mode="history" />
+      <Frise mode="history" tabNames={TAB_NAMES} />
       <div className="with-frise-reading">{timeline}</div>
     </div>
   );

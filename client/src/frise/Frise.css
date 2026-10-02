@@ -8,17 +8,47 @@
   --level-4: #24335a;
   --ink-on-light: #0d1630;
   --ink-on-dark: #ffffff;
+  --ui-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Le glissement d'un niveau à l'autre (zoom) */
+  --morph: .6s cubic-bezier(.5, 0, .2, 1);
 
   /* Sous la barre de navigation, la vue d'ensemble tient entière à l'écran ; elle y reste pendant la lecture */
   position: sticky;
   top: 0;
+  display: flex;
+  flex-direction: column;
   height: calc(100dvh - var(--nav-height));
   border-right: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
 }
 
+/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin */
+.frise-tabs {
+  display: flex;
+  margin: .5rem .7rem .6rem;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.frise-tabs button {
+  flex: 1;
+  padding: .55rem .2rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: 600 .74rem/1 var(--ui-font);
+  cursor: pointer;
+}
+
+.frise-tabs button[aria-pressed="true"] {
+  background: var(--level-2);
+  color: #fff;
+}
+
 .frise-stage {
   position: relative;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -27,8 +57,13 @@
   box-sizing: border-box;
   display: flex;
   align-items: flex-start;
+  margin: 0;
   padding: .7rem .75rem;
-  font: 600 .8rem/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  border: 0;
+  text-align: left;
+  font: 600 .8rem/1.2 var(--ui-font);
+  transition: left var(--morph), top var(--morph), width var(--morph), height var(--morph),
+    border-radius var(--morph), filter .2s ease;
   /* De fines rayures verticales et un liseré clair en haut : l'eau qui tombe en cascade */
   background-image: repeating-linear-gradient(90deg, transparent 0 1.5rem, #ffffff1f 1.5rem calc(1.5rem + 1px));
   box-shadow: inset 0 2px 0 #ffffff59, inset 0 -1px 0 #0d16301f, 0 -2px 0 #0d163024;
@@ -55,4 +90,70 @@
   flex: none;
   width: 1.05rem;
   height: 1.05rem;
+}
+
+/* Les bandes et les blocs de l'escalier se cliquent ; les petites marches, non */
+button.frise-block {
+  cursor: pointer;
+}
+
+button.frise-block:hover {
+  filter: brightness(1.08);
+}
+
+button.frise-block:focus-visible {
+  outline: 2px solid #f0b429;
+  outline-offset: -3px;
+}
+
+/* Le titre apparaît une fois le bloc arrivé à sa place */
+.frise-label {
+  animation: frise-label-in .3s ease .25s both;
+}
+
+.frise-label small {
+  display: block;
+  margin-top: .15rem;
+  font-weight: 500;
+  font-size: .72rem;
+  opacity: .85;
+}
+
+@keyframes frise-label-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Une bande de gauche : son nom écrit à la verticale, de bas en haut */
+.frise-block.strip {
+  justify-content: center;
+  padding: .9rem 0;
+}
+
+.frise-block.strip .frise-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: .74rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 100%;
+}
+
+.frise-block.strip .frise-icon {
+  transform: rotate(90deg);
+}
+
+.frise-block.strip small {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frise-block {
+    transition: none;
+  }
+
+  .frise-label {
+    animation: none;
+  }
 }

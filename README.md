@@ -192,7 +192,7 @@ histoire-du-Salut/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
-│       ├── frise.spec.js            ← la frise à gauche du texte (ordinateur), cachée sur téléphone
+│       ├── frise.spec.js            ← la frise à gauche du texte (ordinateur), zoom, cachée sur téléphone
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -242,8 +242,9 @@ histoire-du-Salut/
     │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien
     │   ├── frise/                   ← la frise : cascade de blocs à gauche du texte (maquette V7.1)
     │   │   ├── staircase.js         ← le grand escalier en fonction pure (rectangles, sans navigateur)
-    │   │   ├── cascadeLayout.js     ← où va chaque bloc (vue d'ensemble), au pixel près
-    │   │   ├── Frise.jsx / .css     ← le composant : charge l'arbre, mesure la zone, dessine les blocs
+    │   │   ├── cascadeLayout.js     ← où va chaque bloc (bandes à gauche, escalier, marches), au pixel près
+    │   │   ├── cascadeNavigation.js ← où mène un clic (descendre / remonter) et chaque onglet
+    │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement d'un niveau à l'autre
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
@@ -266,7 +267,7 @@ histoire-du-Salut/
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, ouverte par un lien
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── features/features.test.js
-        ├── frise/                   ← escalier, disposition, pictogrammes (vs fichiers de données), composant
+        ├── frise/                   ← escalier, disposition, navigation, pictogrammes (vs fichiers de données), composant
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/longPress.test.js
         ├── notes/                   ← notes, notes.storage
