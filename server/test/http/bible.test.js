@@ -1,4 +1,4 @@
-// Tests de l'API de la Bible entière : GET /api/books et GET /api/bible (supertest + base de dev).
+// Tests de l'API de la Bible entière : GET /api/bible et la position d'un chapitre (supertest + base de dev).
 // Ces tests lisent la base de dev : lancer npm run db:migrate et npm run seed avant si elle est vide.
 
 import { describe, test, expect, afterAll } from 'vitest';
@@ -20,21 +20,6 @@ async function readWholeBible() {
   return chapters;
 }
 
-describe('GET /api/books', () => {
-  test('les 74 livres, de la Genèse à l\'Apocalypse, avec les Psaumes juste après Job', async () => {
-    const res = await request(app).get('/api/books');
-    const codes = res.body.map((book) => book.code);
-
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveLength(74);
-    expect(codes[0]).toBe('Gn');
-    expect(codes.at(-1)).toBe('Ap');
-    expect(codes[codes.indexOf('Jb') + 1]).toBe('Ps');
-    expect(res.body[0]).toMatchObject({ code: 'Gn', title: 'La Genèse' });
-    expect(res.body[0].chapterCount).toBeGreaterThan(0);
-  });
-});
-
 describe('GET /api/bible', () => {
   test('commence au premier chapitre de la Genèse, avec ses versets', async () => {
     const res = await request(app).get('/api/bible');
@@ -53,15 +38,22 @@ describe('GET /api/bible', () => {
   });
 
   test('en lisant jusqu\'au bout : tous les chapitres, une seule fois, dans l\'ordre des livres', async () => {
-    const [books, chapters] = await Promise.all([request(app).get('/api/books'), readWholeBible()]);
-    const totalChapters = books.body.reduce((sum, book) => sum + book.chapterCount, 0);
+    const [{ rows: [{ count }] }, chapters] = await Promise.all([
+      pool.query('SELECT count(*)::int AS count FROM chapters'), readWholeBible(),
+    ]);
     const keys = chapters.map((chapter) => `${chapter.book.code} ${chapter.chapter}`);
 
-    expect(chapters).toHaveLength(totalChapters);
+    expect(chapters).toHaveLength(count);
     expect(new Set(keys).size).toBe(keys.length);
-    const bookOrder = [...new Set(chapters.map((chapter) => chapter.book.code))];
-    expect(bookOrder).toEqual(books.body.map((book) => book.code));
     expect(keys).toContain('Ps 9A');
+  });
+
+  test('les 74 livres, de la Genèse à l\'Apocalypse, avec les Psaumes juste après Job', async () => {
+    const bookOrder = [...new Set((await readWholeBible()).map((chapter) => chapter.book.code))];
+
+    expect(bookOrder).toHaveLength(74);
+    expect([bookOrder[0], bookOrder.at(-1)]).toEqual(['Gn', 'Ap']);
+    expect(bookOrder[bookOrder.indexOf('Jb') + 1]).toBe('Ps');
   });
 
   test('après le dernier chapitre : une page vide, et ce n\'est pas une erreur', async () => {

@@ -1,7 +1,6 @@
-// Tests unitaires des use cases de la Bible entière, avec un faux repository (sans base).
+// Tests unitaires du use case de la Bible entière (lecture en continu), avec un faux repository (sans base).
 
 import { describe, test, expect } from 'vitest';
-import { makeListBooks } from '../../src/application/listBooks.js';
 import { makeReadBible } from '../../src/application/readBible.js';
 import { ValidationError } from '../../src/domain/errors.js';
 
@@ -9,7 +8,6 @@ import { ValidationError } from '../../src/domain/errors.js';
 const allChapters = Array.from({ length: 7 }, (_, index) => ({ position: index + 1 }));
 
 const fakeRepository = {
-  findBooks: async () => [{ code: 'Gn', title: 'La Genèse', chapterCount: 50 }],
   findChapterPageAfter: async (after, limit) => {
     const following = allChapters.filter((chapter) => chapter.position > after);
     return { chapters: following.slice(0, limit), hasMore: following.length > limit };
@@ -17,12 +15,6 @@ const fakeRepository = {
 };
 
 const positionsOf = (page) => page.chapters.map((chapter) => chapter.position);
-
-describe('listBooks', () => {
-  test('renvoie les livres du repository', async () => {
-    await expect(makeListBooks(fakeRepository)()).resolves.toEqual([{ code: 'Gn', title: 'La Genèse', chapterCount: 50 }]);
-  });
-});
 
 describe('readBible', () => {
   const readBible = makeReadBible(fakeRepository);

@@ -10,7 +10,6 @@ import { errorHandler } from './errorHandler.js';
  * @param {object} dependencies
  * @param {(slug: string) => Promise<object>} dependencies.getPassage
  * @param {(query: object) => Promise<object>} dependencies.getTimeline
- * @param {() => Promise<object[]>} dependencies.listBooks
  * @param {(query: object) => Promise<object>} dependencies.readBible
  * @param {(bookCode: string, label: string) => Promise<object>} dependencies.findChapter
  * @param {() => Promise<object[]>} dependencies.getHistoryOverview
@@ -19,7 +18,7 @@ import { errorHandler } from './errorHandler.js';
  * @param {string} dependencies.clientBuildDirectory - le site React construit (client/dist)
  */
 export function createApp({
-  getPassage, getTimeline, listBooks, readBible, findChapter, getHistoryOverview, getBibleOverview,
+  getPassage, getTimeline, readBible, findChapter, getHistoryOverview, getBibleOverview,
   pingDatabase, clientBuildDirectory,
 }) {
   const app = express();
@@ -36,10 +35,7 @@ export function createApp({
     res.json(await getTimeline(req.query));
   });
 
-  // La Bible entière : les livres, puis les chapitres en continu (ex. /api/bible?after=0&limit=2)
-  app.get('/api/books', async (req, res) => {
-    res.json(await listBooks());
-  });
+  // La Bible entière : les chapitres en continu (ex. /api/bible?after=0&limit=2)
   app.get('/api/bible', async (req, res) => {
     res.json(await readBible(req.query));
   });

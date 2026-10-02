@@ -47,18 +47,6 @@ Render ne déploie que si les trois jobs sont verts.
 
 Le résultat s'affiche dans l'onglet **Actions** du dépôt et en ✅ / ❌ à côté de chaque commit (et sur le badge en haut).
 
-## Feature flags (cacher une fonctionnalité pas finie)
-
-On commite tous les jours sur `main` (Trunk-Based Development) : une fonctionnalité en cours est cachée en ligne.
-
-- **En dev** (`npm run dev`) : tout est visible.
-- **En ligne** : seulement les fonctionnalités listées dans la variable Render **`VITE_FEATURES`** (ex. `personnages,graphe`).
-
-Dans un composant : `{hasFeature('personnages') && <Personnages />}` (voir [client/src/features/features.js](client/src/features/features.js)).
-Aucun flag n'est utilisé en ce moment (« bible » et « frise » ont été retirés en V7.8, une fois en ligne).
-Pour mettre en ligne : ajouter le nom dans `VITE_FEATURES` sur Render (cela redéploie : la valeur est lue au build).
-Une fois la fonctionnalité stable, on supprime son flag du code. Jamais de secret dans une variable `VITE_` : elle finit dans le navigateur.
-
 ## Faire évoluer la base (migrations)
 
 Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
@@ -152,7 +140,6 @@ histoire-du-Salut/
 │   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
 │   │   │   ├── getPassage.js
 │   │   │   ├── getTimeline.js
-│   │   │   ├── listBooks.js         ← les 74 livres
 │   │   │   ├── readBible.js         ← la Bible en continu, chapitre après chapitre
 │   │   │   ├── findChapter.js       ← position d'un chapitre (ouvrir la Bible au bon endroit)
 │   │   │   ├── getHistoryOverview.js ← vue d'ensemble de la frise, mode Histoire du salut
@@ -163,7 +150,7 @@ histoire-du-Salut/
 │   │   │   ├── postgresBibleRepository.js   ← tout le SQL de la Bible entière
 │   │   │   └── verseColumns.js      ← les colonnes d'un verset, partagées par les deux repositories
 │   │   └── http/                    ← le seul endroit qui connaît Express
-│   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/books, /api/bible,
+│   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/bible,
 │   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
@@ -174,7 +161,7 @@ histoire-du-Salut/
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
 │       │   ├── spaFallback.test.js  ← les adresses du site renvoient index.html, pas l'API
-│       │   ├── bible.test.js        ← GET /api/books, GET /api/bible (sans trou ni doublon), position d'un chapitre
+│       │   ├── bible.test.js        ← GET /api/bible (74 livres, sans trou ni doublon), position d'un chapitre
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
@@ -256,8 +243,6 @@ histoire-du-Salut/
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
-    │   ├── features/
-    │   │   └── features.js          ← feature flags : hasFeature('...') (aucun en ce moment)
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
@@ -274,7 +259,6 @@ histoire-du-Salut/
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, lien, frise
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
-        ├── features/features.test.js
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/longPress.test.js

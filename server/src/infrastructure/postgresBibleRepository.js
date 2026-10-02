@@ -8,17 +8,6 @@ import { VERSE_COLUMNS } from './verseColumns.js';
  */
 export function createPostgresBibleRepository(pool) {
   return {
-    async findBooks() {
-      const result = await pool.query(
-        `SELECT b.code, b.title, b.position, count(c.id)::int AS chapter_count
-         FROM books b
-         JOIN chapters c ON c.book_id = b.id
-         GROUP BY b.id
-         ORDER BY b.position`,
-      );
-      return result.rows.map((row) => ({ code: row.code, title: row.title, position: row.position, chapterCount: row.chapter_count }));
-    },
-
     async findChapter(bookCode, label) {
       const result = await pool.query(
         `SELECT c.position FROM chapters c JOIN books b ON b.id = c.book_id WHERE b.code = $1 AND c.label = $2`,

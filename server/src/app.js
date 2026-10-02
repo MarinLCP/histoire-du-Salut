@@ -12,7 +12,6 @@ import { createPostgresPassageRepository } from './infrastructure/postgresPassag
 import { createPostgresBibleRepository } from './infrastructure/postgresBibleRepository.js';
 import { makeGetPassage } from './application/getPassage.js';
 import { makeGetTimeline } from './application/getTimeline.js';
-import { makeListBooks } from './application/listBooks.js';
 import { makeReadBible } from './application/readBible.js';
 import { makeFindChapter } from './application/findChapter.js';
 import { makeGetHistoryOverview } from './application/getHistoryOverview.js';
@@ -26,7 +25,6 @@ const bibleRepository = createPostgresBibleRepository(pool);
 const app = createApp({
   getPassage: makeGetPassage(passageRepository),
   getTimeline: makeGetTimeline(passageRepository),
-  listBooks: makeListBooks(bibleRepository),
   readBible: makeReadBible(bibleRepository),
   findChapter: makeFindChapter(bibleRepository),
   getHistoryOverview: makeGetHistoryOverview(passageRepository),
