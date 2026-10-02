@@ -22,3 +22,11 @@ export function chaptersInReadingOrder(books, verses) {
   }
   return books.flatMap((book) => labelsByBook.get(book.code).map((label) => ({ code: book.code, label })));
 }
+
+// Les versets dans l'ordre de lecture : les livres dans l'ordre donné, et dans chaque livre l'ordre de la source.
+// (La source range les Psaumes après l'Apocalypse : leurs versets doivent suivre ceux de Job, comme leurs chapitres.)
+export function versesInReadingOrder(books, verses) {
+  const versesByBook = new Map(books.map((book) => [book.code, []]));
+  for (const verse of verses) versesByBook.get(verse.code)?.push(verse);
+  return books.flatMap((book) => versesByBook.get(book.code));
+}

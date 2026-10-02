@@ -14,7 +14,7 @@ import { passages } from '../db/passages.data.js';
 import { validatePassages } from './passageRules.js';
 import { validateEpochs } from './epochRules.js';
 import { assignBookGroups } from './bibleGroupRules.js';
-import { canonicalBookOrder, chaptersInReadingOrder } from './bibleOrder.js';
+import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from './bibleOrder.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
@@ -22,6 +22,7 @@ const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
 const source = readSource();
 const books = canonicalBookOrder(source.books);
 const chapters = chaptersInReadingOrder(books, source.verses);
+const verses = versesInReadingOrder(books, source.verses);
 // Une faute dans un fichier de données arrête le seed ICI, avant de toucher à la base
 validatePassages(passages, source.verses);
 validateEpochs(epochs, passages);
@@ -31,7 +32,7 @@ await withTransaction(async (client) => {
   await clearTables(client);
   const groupIds = await insertSlugList(client, 'bible_groups', bibleGroups);
   const bookIds = await insertBooks(client, books, groupOfBook, groupIds);
-  await insertVerses(client, source.verses, bookIds);
+  await insertVerses(client, verses, bookIds);
   await insertChapters(client, chapters, bookIds);
   const epochIds = await insertSlugList(client, 'epochs', epochs);
   await insertPassages(client, passages, bookIds, epochIds);

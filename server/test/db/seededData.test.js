@@ -56,4 +56,15 @@ describe('base remplie par le seed', () => {
 
     expect(rows.map((row) => [row.code, row.slug])).toEqual([...expected]);
   });
+
+  test('les versets sont rangés dans l\'ordre de lecture du site (comme les chapitres : Psaumes après Job)', async () => {
+    const { rows } = await pool.query(
+      `SELECT MIN(v.position) AS first_verse
+       FROM chapters c JOIN verses v ON v.book_id = c.book_id AND v.chapter = c.label
+       GROUP BY c.position ORDER BY c.position`,
+    );
+    const firsts = rows.map((row) => row.first_verse);
+
+    expect(firsts).toEqual([...firsts].sort((a, b) => a - b));
+  });
 });

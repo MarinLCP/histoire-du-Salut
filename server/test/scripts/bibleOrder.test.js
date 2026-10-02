@@ -2,7 +2,7 @@
 // et la liste des chapitres dans l'ordre de lecture.
 
 import { describe, test, expect } from 'vitest';
-import { canonicalBookOrder, chaptersInReadingOrder } from '../../scripts/bibleOrder.js';
+import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from '../../scripts/bibleOrder.js';
 
 const codes = (books) => books.map((book) => book.code);
 
@@ -42,5 +42,18 @@ describe('chaptersInReadingOrder', () => {
       { code: 'Ps', label: '9A' },
       { code: 'Ps', label: '9B' },
     ]);
+  });
+});
+
+describe('versesInReadingOrder', () => {
+  test('les versets suivent l\'ordre des livres donné (Psaumes après Job), sans changer l\'ordre dans un livre', () => {
+    const books = ['Jb', 'Ps', 'Ap'].map((code) => ({ code }));
+    const verses = [
+      { code: 'Jb', chapter: '42', verse: '17' }, { code: 'Ap', chapter: '22', verse: '21' },
+      { code: 'Ps', chapter: '1', verse: '1' }, { code: 'Ps', chapter: '1', verse: '2' },
+    ];
+
+    expect(versesInReadingOrder(books, verses).map((verse) => `${verse.code} ${verse.chapter},${verse.verse}`))
+      .toEqual(['Jb 42,17', 'Ps 1,1', 'Ps 1,2', 'Ap 22,21']);
   });
 });

@@ -123,7 +123,7 @@ histoire-du-Salut/
 │   │   ├── epochRules.js            ← règles des époques (chaque époque a ses épisodes, à la suite, dans l'ordre)
 │   │   ├── bibleGroupRules.js       ← grands ensembles : à la suite, sans trou ni chevauchement, tous les livres
 │   │   ├── dataIdentifier.js        ← listes des fichiers de données : slugs et pictogrammes bien formés, uniques
-│   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job) et des chapitres
+│   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job), des chapitres et des versets
 │   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
@@ -173,7 +173,7 @@ histoire-du-Salut/
 │           ├── epochRules.test.js   ← règles de epochs.data.js et de leur lien avec les passages
 │           ├── bibleGroupRules.test.js ← découpage de la Bible en grands ensembles
 │           ├── dataIdentifier.test.js ← slugs et pictogrammes d'une liste de données (bien formés, uniques)
-│           └── bibleOrder.test.js   ← ordre des livres et des chapitres
+│           └── bibleOrder.test.js   ← ordre des livres, des chapitres et des versets
 │
 ├── e2e/                             ← tests de bout en bout (Playwright) : l'app complète en local
 │   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
