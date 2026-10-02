@@ -4,9 +4,12 @@
 // Le bouton "Partager" de l'en-tête partage un lien direct vers le passage.
 
 import { memo } from 'react';
+import { Link } from 'react-router';
 import StatusButton from './StatusButton.jsx';
 import VerseList from './VerseList.jsx';
 import { passageReference } from '../bible/reference.js';
+import { chapterLink } from '../bible/bibleLink.js';
+import { hasFeature } from '../features/features.js';
 import './Passage.css';
 
 const SHARE_LABELS = { idle: 'Partager', done: 'Lien copié ✓', failed: 'Partage impossible' };
@@ -24,6 +27,12 @@ function Passage({ passage, annotations, onShare }) {
         <div>
           <h2 className="passage-title">{passage.title}</h2>
           <p className="passage-reference">{passageReference(passage)}</p>
+          {/* L'épisode n'est qu'un extrait : on peut lire tout le chapitre où il commence */}
+          {hasFeature('bible') && (
+            <Link className="passage-chapter-link" to={chapterLink(passage.book.code, passage.start.chapter)}>
+              Lire tout le chapitre
+            </Link>
+          )}
         </div>
         <StatusButton className="share-button" labels={SHARE_LABELS} action={share} />
       </header>

@@ -28,3 +28,12 @@
 body {
   margin: 0;
 }
+
+/* « Revenir au début » : en tête d'une liste ouverte depuis un lien (histoire du salut, Bible entière) */
+.list-back {
+  display: block;
+  max-width: var(--reading-width);
+  margin: 1rem auto 0;
+  padding: 0 1rem;
+  color: var(--text-muted);
+}

@@ -21,7 +21,7 @@ function Timeline({ startAfter, annotations, onShare }) {
     <div className="timeline">
       {/* Arrivé par un lien partagé : on peut revenir à la Création (l'adresse sans ?passage=) */}
       {startAfter > 0 && (
-        <a className="timeline-back" href="/">
+        <a className="list-back" href="/">
           ↑ Revenir au début de l'histoire
         </a>
       )}

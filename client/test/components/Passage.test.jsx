@@ -4,6 +4,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import Passage from '../../src/components/Passage.jsx';
 import { LONG_PRESS_DELAY } from '../../src/hooks/longPress.js';
 
@@ -31,7 +32,11 @@ function renderPassage({
   onShare = vi.fn().mockResolvedValue('copied'),
 } = {}) {
   const openMenu = vi.fn();
-  render(<Passage passage={passage} annotations={{ highlights, notes, openMenu }} onShare={onShare} />);
+  render(
+    <MemoryRouter>
+      <Passage passage={passage} annotations={{ highlights, notes, openMenu }} onShare={onShare} />
+    </MemoryRouter>,
+  );
   return { openMenu, onShare };
 }
 
@@ -144,5 +149,17 @@ describe('Passage : bouton Partager', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Partager' }));
 
     expect(await screen.findByRole('button', { name: 'Partage impossible' })).toBeDefined();
+  });
+});
+
+describe('Passage : lire tout le chapitre', () => {
+  afterEach(cleanup);
+
+  test('un lien ouvre la Bible entière au chapitre où commence l\'épisode', () => {
+    renderPassage();
+
+    const link = screen.getByRole('link', { name: 'Lire tout le chapitre' });
+
+    expect(link.getAttribute('href')).toBe('/bible?livre=Gn&chapitre=1');
   });
 });

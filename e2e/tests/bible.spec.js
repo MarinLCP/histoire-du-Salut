@@ -30,3 +30,14 @@ test('un verset surligné dans la Bible l\'est aussi dans l\'histoire du salut (
   await expect(page.getByRole('heading', { name: 'La Création' })).toBeVisible();
   await expect(firstVerse(page)).toHaveClass(/verse-highlighted/);
 });
+
+test('depuis un épisode, « Lire tout le chapitre » ouvre la Bible entière à ce chapitre', async ({ page }) => {
+  await page.goto('/?passage=chute');
+  await expect(page.getByRole('heading', { name: 'La chute' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Lire tout le chapitre' }).first().click();
+
+  await expect(page).toHaveURL(/\/bible\?livre=Gn&chapitre=3$/);
+  await expect(page.getByRole('heading', { name: 'Chapitre 3' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chapitre 1' })).toHaveCount(0);
+});

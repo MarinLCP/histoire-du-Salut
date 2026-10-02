@@ -77,3 +77,25 @@ describe('GET /api/bible', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('GET /api/books/:code/chapters/:chapter', () => {
+  test('donne la position d\'un chapitre : la lecture continue peut commencer juste avant', async () => {
+    const first = await request(app).get('/api/books/Gn/chapters/1');
+    const third = await request(app).get('/api/books/Gn/chapters/3');
+
+    expect(first.status).toBe(200);
+    expect(third.body.position).toBe(first.body.position + 2);
+  });
+
+  test('trouve aussi les chapitres aux numéros spéciaux (Ps 9A)', async () => {
+    const res = await request(app).get('/api/books/Ps/chapters/9A');
+
+    expect(res.status).toBe(200);
+  });
+
+  test.each(['/api/books/Gn/chapters/999', '/api/books/Xx/chapters/1'])('renvoie 404 pour %s', async (address) => {
+    const res = await request(app).get(address);
+
+    expect(res.status).toBe(404);
+  });
+});

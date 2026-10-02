@@ -20,6 +20,8 @@
 /**
  * @typedef {object} BibleRepository
  * @property {() => Promise<Book[]>} findBooks - dans l'ordre de la Bible
+ * @property {(bookCode: string, label: string) => Promise<{ position: number } | null>} findChapter
+ *   - la position d'un chapitre dans la lecture continue, ou null s'il n'existe pas
  * @property {(after: number, limit: number) => Promise<{ chapters: Chapter[], hasMore: boolean }>} findChapterPageAfter
  *   - au plus `limit` chapitres de position > after, dans l'ordre de lecture, et s'il en reste d'autres après
  */

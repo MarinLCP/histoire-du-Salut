@@ -34,3 +34,15 @@
   margin: 0.25rem 0 1.5rem;
   color: var(--text-muted);
 }
+
+.passage-chapter-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Référence suivie du lien : le lien se colle sous la référence (l'espace passe sous le lien) */
+.passage-reference:has(+ .passage-chapter-link) {
+  margin-bottom: 0.25rem;
+}

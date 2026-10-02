@@ -12,10 +12,11 @@ import { errorHandler } from './errorHandler.js';
  * @param {(query: object) => Promise<object>} dependencies.getTimeline
  * @param {() => Promise<object[]>} dependencies.listBooks
  * @param {(query: object) => Promise<object>} dependencies.readBible
+ * @param {(bookCode: string, label: string) => Promise<object>} dependencies.findChapter
  * @param {() => Promise<void>} dependencies.pingDatabase
  * @param {string} dependencies.clientBuildDirectory - le site React construit (client/dist)
  */
-export function createApp({ getPassage, getTimeline, listBooks, readBible, pingDatabase, clientBuildDirectory }) {
+export function createApp({ getPassage, getTimeline, listBooks, readBible, findChapter, pingDatabase, clientBuildDirectory }) {
   const app = express();
 
   app.get('/api/health', healthHandler(pingDatabase));
@@ -36,6 +37,10 @@ export function createApp({ getPassage, getTimeline, listBooks, readBible, pingD
   });
   app.get('/api/bible', async (req, res) => {
     res.json(await readBible(req.query));
+  });
+  // La position d'un chapitre, pour ouvrir la Bible à cet endroit (ex. /api/books/Gn/chapters/3)
+  app.get('/api/books/:code/chapters/:chapter', async (req, res) => {
+    res.json(await findChapter(req.params.code, req.params.chapter));
   });
 
   serveClient(app, clientBuildDirectory);

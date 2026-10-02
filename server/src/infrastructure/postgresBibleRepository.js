@@ -19,6 +19,14 @@ export function createPostgresBibleRepository(pool) {
       return result.rows.map((row) => ({ code: row.code, title: row.title, position: row.position, chapterCount: row.chapter_count }));
     },
 
+    async findChapter(bookCode, label) {
+      const result = await pool.query(
+        `SELECT c.position FROM chapters c JOIN books b ON b.id = c.book_id WHERE b.code = $1 AND c.label = $2`,
+        [bookCode, label],
+      );
+      return result.rows[0] ?? null;
+    },
+
     async findChapterPageAfter(after, limit) {
       // Un chapitre de plus que demandé : s'il existe, il reste une page après (ses versets ne sont pas chargés)
       const result = await pool.query(

@@ -6,3 +6,8 @@ import { getJson } from './http.js';
 export function fetchBible(after) {
   return getJson(`/api/bible?after=${after}`);
 }
+
+// Renvoie { position } : la place d'un chapitre dans la lecture continue (ex. Gn 3)
+export function fetchChapter(bookCode, chapter) {
+  return getJson(`/api/books/${encodeURIComponent(bookCode)}/chapters/${encodeURIComponent(chapter)}`);
+}

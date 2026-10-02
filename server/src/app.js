@@ -14,6 +14,7 @@ import { makeGetPassage } from './application/getPassage.js';
 import { makeGetTimeline } from './application/getTimeline.js';
 import { makeListBooks } from './application/listBooks.js';
 import { makeReadBible } from './application/readBible.js';
+import { makeFindChapter } from './application/findChapter.js';
 import { createApp } from './http/createApp.js';
 import { fileURLToPath } from 'node:url';
 
@@ -25,6 +26,7 @@ const app = createApp({
   getTimeline: makeGetTimeline(passageRepository),
   listBooks: makeListBooks(bibleRepository),
   readBible: makeReadBible(bibleRepository),
+  findChapter: makeFindChapter(bibleRepository),
   pingDatabase,
   // Le site React une fois construit (cd client && npm run build)
   clientBuildDirectory: fileURLToPath(new URL('../../client/dist', import.meta.url)),
