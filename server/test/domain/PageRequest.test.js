@@ -34,4 +34,12 @@ describe('PageRequest', () => {
       page.limit = 1000;
     }).toThrow();
   });
+
+  test('accepte d\'autres limites (ex. la Bible : 2 chapitres par défaut, 5 au plus)', () => {
+    const limits = { defaultLimit: 2, maxLimit: 5 };
+
+    expect(PageRequest.from({}, limits).limit).toBe(2);
+    expect(PageRequest.from({ limit: '5' }, limits).limit).toBe(5);
+    expect(() => PageRequest.from({ limit: '6' }, limits)).toThrow('`limit` doit être un entier entre 1 et 5.');
+  });
 });

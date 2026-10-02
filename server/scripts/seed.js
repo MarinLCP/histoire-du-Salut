@@ -1,5 +1,6 @@
-// Remplit les tables books et verses à partir de data/bible.db (SQLite, AELF),
+// Remplit les tables books, verses et chapters à partir de data/bible.db (SQLite, AELF),
 // puis la table passages à partir de db/passages.data.js.
+// Les livres sont rangés dans l'ordre d'une Bible catholique (Psaumes après Job : voir bibleOrder.js).
 // Rejouable : on vide les tables avant de les remplir, dans une transaction.
 // Usage : npm run seed
 
@@ -8,23 +9,27 @@ import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { passages } from '../db/passages.data.js';
 import { validatePassages } from './passageRules.js';
+import { canonicalBookOrder, chaptersInReadingOrder } from './bibleOrder.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
 
 const source = readSource();
+const books = canonicalBookOrder(source.books);
+const chapters = chaptersInReadingOrder(books, source.verses);
 // Une faute dans passages.data.js arrête le seed ICI, avant de toucher à la base
 validatePassages(passages, source.verses);
 
 await withTransaction(async (client) => {
   await clearTables(client);
-  const bookIds = await insertBooks(client, source.books);
+  const bookIds = await insertBooks(client, books);
   await insertVerses(client, source.verses, bookIds);
+  await insertChapters(client, chapters, bookIds);
   await insertPassages(client, passages, bookIds);
 });
 
 console.log(
-  `Seed terminé : ${source.books.length} livres, ${source.verses.length} versets, ${passages.length} passages.`,
+  `Seed terminé : ${books.length} livres, ${chapters.length} chapitres, ${source.verses.length} versets, ${passages.length} passages.`,
 );
 
 // --- Lecture de la source ---
@@ -69,7 +74,7 @@ async function withTransaction(work) {
 // Pas de CASCADE : si une autre table pointe un jour vers ces tables
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
 async function clearTables(client) {
-  await client.query('TRUNCATE passages, verses, books RESTART IDENTITY');
+  await client.query('TRUNCATE passages, chapters, verses, books RESTART IDENTITY');
 }
 
 // Insère les livres (seulement 74, un par un) et renvoie une Map : code du livre -> id.
@@ -111,6 +116,12 @@ async function insertVerseBatch(client, batch, firstPosition, bookIds) {
     `INSERT INTO verses (book_id, chapter, verse, kind, text, position) VALUES ${placeholdersFor(rows)}`,
     rows.flat(),
   );
+}
+
+// Les chapitres, dans l'ordre de lecture (position 1, 2, 3...), en une seule requête (1 332 lignes)
+async function insertChapters(client, chapters, bookIds) {
+  const rows = chapters.map((chapter, index) => [bookIds.get(chapter.code), chapter.label, index + 1]);
+  await client.query(`INSERT INTO chapters (book_id, label, position) VALUES ${placeholdersFor(rows)}`, rows.flat());
 }
 
 // Quelques lignes de la source n'ont pas de numéro (ex. "ELLE" dans le Cantique)

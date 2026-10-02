@@ -119,12 +119,14 @@ histoire-du-Salut/
 │   │   └── bible.db                 ← source des textes (SQLite, AELF), lue par le seed
 │   ├── db/
 │   │   ├── migrations/              ← l'historique du schéma, appliqué dans l'ordre
-│   │   │   └── 001_initial_schema.sql ← tables books, verses, passages
+│   │   │   ├── 001_initial_schema.sql ← tables books, verses, passages
+│   │   │   └── 002_chapters.sql     ← les chapitres dans l'ordre de lecture (Bible entière en continu)
 │   │   └── passages.data.js         ← les 32 passages (slug + références) : à modifier ici
 │   ├── scripts/
 │   │   ├── migrate.js               ← npm run db:migrate : applique les nouvelles migrations
 │   │   ├── migrations.js            ← règle : quelles migrations restent à appliquer
 │   │   ├── passageRules.js          ← règles d'un passage (slug, livre, bornes) : le seed s'arrête avant la base
+│   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job) et des chapitres
 │   │   └── seed.js                  ← npm run seed : bible.db + passages.data.js → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
@@ -133,28 +135,34 @@ histoire-du-Salut/
 │   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
 │   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
 │   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
+│   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   └── errors.js            ← ValidationError, NotFoundError
 │   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
 │   │   │   ├── getPassage.js
-│   │   │   └── getTimeline.js
+│   │   │   ├── getTimeline.js
+│   │   │   ├── listBooks.js         ← les 74 livres
+│   │   │   └── readBible.js         ← la Bible en continu, chapitre après chapitre
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
-│   │   │   └── postgresPassageRepository.js ← tout le SQL des passages
+│   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
+│   │   │   └── postgresBibleRepository.js   ← tout le SQL de la Bible entière
 │   │   └── http/                    ← le seul endroit qui connaît Express
-│   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline
+│   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/books, /api/bible
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
 │   └── test/                        ← en miroir de src/ et scripts/
 │       ├── domain/                  ← PassageSlug, PageRequest (unitaires, sans base)
-│       ├── application/             ← getPassage, getTimeline (avec un faux repository)
+│       ├── application/             ← getPassage, getTimeline, readBible (avec un faux repository)
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
 │       │   ├── spaFallback.test.js  ← les adresses du site renvoient index.html, pas l'API
+│       │   ├── bible.test.js        ← GET /api/books, GET /api/bible (toute la Bible, sans trou ni doublon)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       └── scripts/
 │           ├── migrations.test.js   ← choix des migrations à appliquer
-│           └── passageRules.test.js ← règles de passages.data.js (vérifiées avant le seed)
+│           ├── passageRules.test.js ← règles de passages.data.js (vérifiées avant le seed)
+│           └── bibleOrder.test.js   ← ordre des livres et des chapitres
 │
 ├── e2e/                             ← tests de bout en bout (Playwright) : l'app complète en local
 │   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
