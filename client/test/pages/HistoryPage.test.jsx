@@ -11,7 +11,8 @@ import HistoryPage from '../../src/pages/HistoryPage.jsx';
 const passage = (position, slug, title) => ({
   position, slug, title, book: { code: 'Gn', title: 'La Genèse' },
   start: { chapter: '1', verse: '1' }, end: { chapter: '1', verse: '1' },
-  verses: [{ chapter: '1', verse: '1', kind: 'verse', text: `Texte de ${title}` }],
+  verses: [{ chapter: '1', verse: '1', kind: 'verse', text: `Texte de ${title}`, sectionTitle: null }],
+  characters: [],
 });
 
 // La timeline : la Création (1), puis la chute (2)

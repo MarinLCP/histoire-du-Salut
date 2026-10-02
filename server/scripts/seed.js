@@ -1,7 +1,8 @@
 // Remplit les tables books, verses et chapters à partir de data/bible.db (SQLite, AELF),
 // bible_groups à partir de db/bible-groups.data.js,
 // puis les tables epochs et passages à partir de db/epochs.data.js et db/passages.data.js,
-// et les sous-chapitres (db/sections.data.js).
+// les sous-chapitres (db/sections.data.js) et les personnages (db/characters.data.js), dont les apparitions
+// dans les épisodes sont calculées ici, en cherchant leurs noms dans le texte.
 // Les données proposées par Claude (status 'proposé') ne sont écrites qu'en local et dans la CI :
 // en ligne (npm run seed:prod, option --production), seules les données validées par Marin le sont.
 // Les livres sont rangés dans l'ordre d'une Bible catholique (Psaumes après Job : voir bibleOrder.js).
@@ -14,10 +15,13 @@ import { bibleGroups } from '../db/bible-groups.data.js';
 import { epochs } from '../db/epochs.data.js';
 import { passages } from '../db/passages.data.js';
 import { sections } from '../db/sections.data.js';
+import { characters } from '../db/characters.data.js';
 import { validatePassages } from './passageRules.js';
 import { validateEpochs } from './epochRules.js';
 import { assignBookGroups } from './bibleGroupRules.js';
 import { validateSections } from './sectionRules.js';
+import { validateCharacters, characterAppearances } from './characterRules.js';
+import { passageTexts } from './verseIndex.js';
 import { publishable } from './dataStatus.js';
 import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from './bibleOrder.js';
 import { withClient, inTransaction } from './database.js';
@@ -37,6 +41,9 @@ validatePassages(passages, source.verses);
 validateEpochs(epochs, passages);
 validateSections(sections, source.verses);
 const sectionsToWrite = publishable(sections, { withProposals });
+validateCharacters(characters, { passageSlugs: passages.map((passage) => passage.slug), bookCodes: books.map((book) => book.code) });
+const charactersToWrite = publishable(characters, { withProposals });
+const appearances = characterAppearances(charactersToWrite, passageTexts(passages, source.verses));
 const groupOfBook = assignBookGroups(bibleGroups, books.map((book) => book.code));
 
 // Soit tout est écrit, soit rien (une erreur au milieu annule tout)
@@ -47,14 +54,17 @@ await withClient((client) => inTransaction(client, async () => {
   await insertVerses(client, verses, bookIds);
   await insertChapters(client, chapters, bookIds);
   const epochIds = await insertSlugList(client, 'epochs', epochs);
-  await insertPassages(client, passages, bookIds, epochIds);
+  const passageIds = await insertPassages(client, passages, bookIds, epochIds);
   await insertSections(client, sectionsToWrite, bookIds);
+  const characterIds = await insertCharacters(client, charactersToWrite);
+  await insertAppearances(client, appearances, passageIds, characterIds);
 }));
 
 console.log(
   `Seed terminé : ${bibleGroups.length} ensembles, ${books.length} livres, ${chapters.length} chapitres, `
   + `${source.verses.length} versets, ${epochs.length} époques, ${passages.length} passages, `
-  + `${sectionsToWrite.length} sous-chapitres${withProposals ? ' (propositions comprises)' : ' (validés seulement)'}.`,
+  + `${sectionsToWrite.length} sous-chapitres, ${charactersToWrite.length} personnages (${appearances.length} apparitions)`
+  + `${withProposals ? ', propositions comprises.' : ', validés seulement.'}`,
 );
 
 // --- Lecture de la source ---
@@ -82,7 +92,9 @@ function readSource() {
 // Pas de CASCADE : si une autre table pointe un jour vers ces tables
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
 async function clearTables(client) {
-  await client.query('TRUNCATE sections, passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY');
+  await client.query(
+    'TRUNCATE passage_characters, characters, sections, passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY',
+  );
 }
 
 // Insère une liste des fichiers de données (slug, titre, pictogramme), dans l'ordre, une ligne à la fois
@@ -150,20 +162,25 @@ async function insertChapters(client, chapters, bookIds) {
   await client.query(`INSERT INTO chapters (book_id, label, position) VALUES ${placeholdersFor(rows)}`, rows.flat());
 }
 
-// Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages et validateEpochs).
+// Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages et validateEpochs),
+// et renvoie une Map : slug du passage -> id.
 // Les id des versets de début et de fin sont retrouvés par la base elle-même (sous-requêtes) :
 // $6 = le livre, $7/$8 = chapitre et verset de début, $9/$10 = chapitre et verset de fin.
 async function insertPassages(client, passages, bookIds, epochIds) {
+  const passageIds = new Map();
   for (const [index, passage] of passages.entries()) {
-    await client.query(
+    const result = await client.query(
       `INSERT INTO passages (position, slug, title, epoch_id, icon, start_verse_id, end_verse_id)
        VALUES ($1, $2, $3, $4, $5,
                (SELECT id FROM verses WHERE book_id = $6 AND chapter = $7 AND verse = $8),
-               (SELECT id FROM verses WHERE book_id = $6 AND chapter = $9 AND verse = $10))`,
+               (SELECT id FROM verses WHERE book_id = $6 AND chapter = $9 AND verse = $10))
+       RETURNING id`,
       [index + 1, passage.slug, passage.title, epochIds.get(passage.epoch), passage.icon,
         bookIds.get(passage.book), ...passage.start, ...passage.end],
     );
+    passageIds.set(passage.slug, result.rows[0].id);
   }
+  return passageIds;
 }
 
 // Insère les sous-chapitres (déjà vérifiés par validateSections). L'id du verset de début est retrouvé
@@ -176,4 +193,29 @@ async function insertSections(client, sections, bookIds) {
       [bookIds.get(section.book), ...section.start, section.title],
     );
   }
+}
+
+// Insère les personnages dans l'ordre de la liste (l'ordre d'affichage) et renvoie une Map : slug -> id
+async function insertCharacters(client, characters) {
+  const characterIds = new Map();
+  for (const [index, character] of characters.entries()) {
+    const result = await client.query(
+      'INSERT INTO characters (slug, name, position) VALUES ($1, $2, $3) RETURNING id',
+      [character.slug, character.name, index + 1],
+    );
+    characterIds.set(character.slug, result.rows[0].id);
+  }
+  return characterIds;
+}
+
+// Insère les apparitions calculées (characterAppearances), en une seule requête
+async function insertAppearances(client, appearances, passageIds, characterIds) {
+  if (appearances.length === 0) return;
+  const rows = appearances.map((appearance) => [
+    passageIds.get(appearance.passage), characterIds.get(appearance.character), appearance.mentions,
+  ]);
+  await client.query(
+    `INSERT INTO passage_characters (passage_id, character_id, mentions) VALUES ${placeholdersFor(rows)}`,
+    rows.flat(),
+  );
 }

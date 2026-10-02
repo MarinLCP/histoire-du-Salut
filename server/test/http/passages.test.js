@@ -41,6 +41,16 @@ describe('GET /api/passages/:slug', () => {
     expect(res.body.verses.every((verse) => 'sectionTitle' in verse)).toBe(true);
   });
 
+  test('chaque passage a la liste de ses personnages (calculée par le seed), avec leur slug et leur nom', async () => {
+    const slugs = await allSlugs();
+    const passages = await Promise.all(slugs.map(async (slug) => (await request(app).get(`/api/passages/${slug}`)).body));
+
+    expect(passages.every((passage) => Array.isArray(passage.characters))).toBe(true);
+    const named = passages.flatMap((passage) => passage.characters);
+    expect(named.length).toBeGreaterThan(0);
+    expect(Object.keys(named[0]).sort()).toEqual(['name', 'slug']);
+  });
+
   test('l\'id interne de la base n\'est pas envoyé : il change à chaque seed (le slug, lui, ne change jamais)', async () => {
     const res = await request(app).get('/api/passages/creation');
 

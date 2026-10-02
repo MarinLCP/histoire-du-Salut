@@ -1,6 +1,7 @@
 // Implémentation PostgreSQL du port BibleRepository (domain/BibleRepository.js) : tout le SQL de la Bible entière.
 
-import { VERSE_COLUMNS, VERSE_SECTION, versesByOwner } from './verseColumns.js';
+import { VERSE_COLUMNS, VERSE_SECTION } from './verseColumns.js';
+import { rowsByOwner } from './rowsByOwner.js';
 
 /**
  * @param {import('pg').Pool} pool
@@ -74,7 +75,7 @@ async function findVersesByChapterIds(pool, ids) {
      ORDER BY c.position, v.position`,
     [ids],
   );
-  return versesByOwner(ids, result.rows, 'chapter_id');
+  return rowsByOwner(ids, result.rows, 'chapter_id');
 }
 
 // Les sous-chapitres, chacun avec son chapitre et où il commence dans ce chapitre

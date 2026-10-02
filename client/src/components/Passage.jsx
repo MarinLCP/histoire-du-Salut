@@ -1,4 +1,4 @@
-// Affiche un passage : son titre, sa référence et ses versets.
+// Affiche un passage : son titre, sa référence, ses personnages et ses versets.
 // Reçoit un passage tel que renvoyé par l'API (un élément de GET /api/timeline).
 // Un appui long (ou un clic droit) sur un verset ouvre son menu (voir VerseList.jsx).
 // Le bouton "Partager" de l'en-tête partage un lien direct vers le passage.
@@ -27,6 +27,11 @@ function Passage({ passage, annotations, onShare }) {
         <div>
           <h2 className="passage-title">{passage.title}</h2>
           <p className="passage-reference">{passageReference(passage)}</p>
+          {passage.characters.length > 0 && (
+            <p className="passage-characters">
+              Personnages : {passage.characters.map((character) => character.name).join(', ')}
+            </p>
+          )}
           {/* L'épisode n'est qu'un extrait : on peut lire tout le chapitre où il commence */}
           <Link className="passage-chapter-link" to={chapterLink(passage.book.code, passage.start.chapter)}>
             Lire tout le chapitre

@@ -16,3 +16,15 @@ export function indexVerses(sourceVerses) {
 function verseKey(bookCode, chapter, verse) {
   return `${bookCode}|${chapter}|${verse}`;
 }
+
+// Le texte de chaque passage (ses versets, du début à la fin, joints par une espace), pour y chercher des noms.
+// passages : [{ slug, book, start: [chapitre, verset], end }] déjà vérifiés (leurs versets existent).
+export function passageTexts(passages, sourceVerses) {
+  const index = indexVerses(sourceVerses);
+  return passages.map((passage) => {
+    const first = index.positionOf(passage.book, ...passage.start);
+    const last = index.positionOf(passage.book, ...passage.end);
+    const text = sourceVerses.slice(first, last + 1).map((verse) => verse.text).join(' ');
+    return { slug: passage.slug, book: passage.book, text };
+  });
+}

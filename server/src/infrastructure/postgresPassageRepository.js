@@ -2,7 +2,8 @@
 // C'est le SEUL endroit qui contient le SQL des passages : si la source des données change
 // un jour, on écrit un autre repository qui respecte le même contrat, sans toucher au reste.
 
-import { VERSE_COLUMNS, VERSE_SECTION, versesByOwner } from './verseColumns.js';
+import { VERSE_COLUMNS, VERSE_SECTION } from './verseColumns.js';
+import { rowsByOwner } from './rowsByOwner.js';
 
 // Les versets d'un passage (p) : s = son verset de début, e = son verset de fin, v = tous les versets entre
 // les deux. La colonne position gère les passages sur plusieurs chapitres.
@@ -35,7 +36,7 @@ export function createPostgresPassageRepository(pool) {
         `${SELECT_PASSAGES} WHERE p.slug = $1`,
         [slug.value],
       );
-      const [passage] = await withVerses(pool, result.rows);
+      const [passage] = await withDetails(pool, result.rows);
       return passage ?? null;
     },
 
@@ -47,7 +48,7 @@ export function createPostgresPassageRepository(pool) {
         [after, limit + 1],
       );
       return {
-        passages: await withVerses(pool, result.rows.slice(0, limit)),
+        passages: await withDetails(pool, result.rows.slice(0, limit)),
         hasMore: result.rows.length > limit,
       };
     },
@@ -126,12 +127,28 @@ const HISTORY_SECTIONS = `
   ORDER BY p.position, start_verse.position
 `;
 
-// Ajoute leurs versets à des lignes de passages. Toujours UNE requête, quel que soit le nombre de passages.
-async function withVerses(pool, rows) {
+// Ajoute leurs versets et leurs personnages à des lignes de passages : toujours DEUX requêtes (en parallèle),
+// quel que soit le nombre de passages.
+async function withDetails(pool, rows) {
   if (rows.length === 0) return [];
 
-  const versesByPassage = await findVersesByPassageIds(pool, rows.map((row) => row.id));
-  return rows.map((row) => toPassage(row, versesByPassage.get(row.id)));
+  const ids = rows.map((row) => row.id);
+  const [versesByPassage, charactersByPassage] = await Promise.all([
+    findVersesByPassageIds(pool, ids), findCharactersByPassageIds(pool, ids),
+  ]);
+  return rows.map((row) => toPassage(row, versesByPassage.get(row.id), charactersByPassage.get(row.id)));
+}
+
+// Renvoie une Map : id du passage -> ses personnages { slug, name }, dans l'ordre d'affichage
+async function findCharactersByPassageIds(pool, ids) {
+  const result = await pool.query(
+    `SELECT pc.passage_id, c.slug, c.name
+     FROM passage_characters pc JOIN characters c ON c.id = pc.character_id
+     WHERE pc.passage_id = ANY($1)
+     ORDER BY c.position`,
+    [ids],
+  );
+  return rowsByOwner(ids, result.rows, 'passage_id');
 }
 
 // Renvoie une Map : id du passage -> liste de ses versets (dans l'ordre de lecture).
@@ -144,12 +161,12 @@ async function findVersesByPassageIds(pool, ids) {
      ORDER BY p.position, v.position`,
     [ids],
   );
-  return versesByOwner(ids, result.rows, 'passage_id');
+  return rowsByOwner(ids, result.rows, 'passage_id');
 }
 
 // Transforme une ligne SQL (colonnes à plat) en passage (objets imbriqués).
 // L'id de la base reste ici (il sert à regrouper les versets) : il change à chaque seed, le slug non.
-function toPassage(row, verses) {
+function toPassage(row, verses, characters) {
   return {
     position: row.position,
     slug: row.slug,
@@ -158,5 +175,6 @@ function toPassage(row, verses) {
     start: { chapter: row.start_chapter, verse: row.start_verse },
     end: { chapter: row.end_chapter, verse: row.end_verse },
     verses,
+    characters,
   };
 }

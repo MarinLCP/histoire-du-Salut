@@ -42,7 +42,15 @@
   color: var(--text-muted);
 }
 
-/* Référence suivie du lien : le lien se colle sous la référence (l'espace passe sous le lien) */
-.passage-reference:has(+ .passage-chapter-link) {
+/* Les personnages de l'épisode, juste sous la référence */
+.passage-characters {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Référence suivie des personnages ou du lien : ils se collent sous elle (l'espace passe en dessous) */
+.passage-reference:has(+ .passage-chapter-link),
+.passage-reference:has(+ .passage-characters) {
   margin-bottom: 0.25rem;
 }

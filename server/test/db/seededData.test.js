@@ -8,6 +8,7 @@ import { passages } from '../../db/passages.data.js';
 import { bibleGroups } from '../../db/bible-groups.data.js';
 import { assignBookGroups } from '../../scripts/bibleGroupRules.js';
 import { sections } from '../../db/sections.data.js';
+import { characters } from '../../db/characters.data.js';
 
 afterAll(() => pool.end());
 
@@ -78,5 +79,11 @@ describe('base remplie par le seed', () => {
     const key = ({ book, chapter, verse, title }) => `${book} ${chapter},${verse} ${title}`;
 
     expect(rows.map(key).sort()).toEqual(sections.map(({ book, start, title }) => key({ book, chapter: start[0], verse: start[1], title })).sort());
+  });
+
+  test('les personnages (en dev et en CI : propositions comprises), dans l\'ordre du fichier de données', async () => {
+    const { rows } = await pool.query('SELECT slug, name FROM characters ORDER BY position');
+
+    expect(rows).toEqual(characters.map(({ slug, name }) => ({ slug, name })));
   });
 });

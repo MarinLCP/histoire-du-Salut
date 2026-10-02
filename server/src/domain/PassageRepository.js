@@ -21,6 +21,7 @@
  * @property {{ chapter: string, verse: string }} start
  * @property {{ chapter: string, verse: string }} end
  * @property {Verse[]} verses
+ * @property {{ slug: string, name: string }[]} characters - ses personnages, dans l'ordre d'affichage
  */
 
 /**

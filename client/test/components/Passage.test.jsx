@@ -14,6 +14,7 @@ const passage = {
   book: { code: 'Gn', title: 'La Genèse' },
   start: { chapter: '1', verse: '1' },
   end: { chapter: '1', verse: '2' },
+  characters: [{ slug: 'adam', name: 'Adam' }, { slug: 'eve', name: 'Ève' }],
   verses: [
     { chapter: '1', verse: '1', kind: 'verse', text: 'Au commencement, Dieu créa le ciel et la terre.', sectionTitle: 'La lumière' },
     { chapter: '1', verse: null, kind: 'unnumbered', text: 'ELLE', sectionTitle: null },
@@ -169,5 +170,11 @@ describe('Passage : lire tout le chapitre', () => {
     const firstVerse = screen.getByText('Au commencement, Dieu créa le ciel et la terre.');
     expect(title.compareDocumentPosition(firstVerse) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getAllByRole('heading')).toHaveLength(2);
+  });
+
+  test('les personnages de l\'épisode, sous sa référence', () => {
+    renderPassage();
+
+    expect(screen.getByText('Personnages : Adam, Ève')).toBeDefined();
   });
 });
