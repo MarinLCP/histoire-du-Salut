@@ -1,13 +1,13 @@
-// Remplit les tables books, verses et chapters à partir de data/bible.db (SQLite, AELF),
-// bible_groups à partir de db/bible-groups.data.js,
-// puis les tables epochs et passages à partir de db/epochs.data.js et db/passages.data.js,
-// les sous-chapitres (db/sections.data.js) et les personnages (db/characters.data.js), dont les apparitions
-// dans les épisodes sont calculées ici, en cherchant leurs noms dans le texte.
-// Les données proposées par Claude (status 'proposé') ne sont écrites qu'en local et dans la CI :
-// en ligne (npm run seed:prod, option --production), seules les données validées par Marin le sont.
-// Les livres sont rangés dans l'ordre d'une Bible catholique (Psaumes après Job : voir bibleOrder.js).
-// Rejouable : on vide les tables avant de les remplir, dans une transaction.
-// Usage : npm run seed (en ligne : npm run seed:prod)
+// Remplit toute la base (npm run seed ; en ligne : npm run seed:prod) :
+// - la Bible : books, verses et chapters depuis data/bible.db (SQLite, AELF), dans l'ordre d'une Bible
+//   catholique (Psaumes après Job : voir bibleOrder.js), et bible_groups (db/bible-groups.data.js) ;
+// - l'histoire du salut : epochs et passages (db/epochs.data.js, db/passages.data.js) ;
+// - les sous-chapitres (db/sections.data.js) et les personnages (db/characters.data.js), dont les apparitions
+//   dans les épisodes sont calculées ici, en cherchant leurs noms dans le texte.
+// Les fichiers de données sont vérifiés AVANT de toucher à la base. Les données proposées par Claude
+// (status 'proposé') ne sont écrites qu'en local et dans la CI : en ligne (option --production), seules
+// les données validées par Marin le sont.
+// Rejouable : on vide les tables avant de les remplir, dans une transaction (tout ou rien).
 
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
