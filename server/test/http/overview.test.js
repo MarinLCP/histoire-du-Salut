@@ -37,6 +37,26 @@ describe('GET /api/overview/history', () => {
     });
   });
 
+  test('les chapitres d\'un épisode ont chacun leur position, dans l\'ordre, à l\'intérieur de l\'épisode', async () => {
+    const res = await request(app).get('/api/overview/history');
+    const episodes = res.body.flatMap((epoch) => epoch.children);
+
+    episodes.forEach((episode) => {
+      const positions = episode.children.map((chapter) => chapter.position);
+      expect(positions[0]).toBe(episode.position);
+      expect(positions).toEqual([...positions].sort((a, b) => a - b));
+      expect(new Set(positions).size).toBe(positions.length);
+      expect(positions.at(-1)).toBeLessThan(episode.position + 1);
+    });
+  });
+
+  test('aucun détail de chapitre ne contient « null » (une ligne sans numéro n\'est pas un verset)', async () => {
+    const res = await request(app).get('/api/overview/history');
+    const details = res.body.flatMap((epoch) => epoch.children).flatMap((episode) => episode.children.map((c) => c.detail));
+
+    expect(details.filter((detail) => detail.includes('null'))).toEqual([]);
+  });
+
   test('un épisode qui commence en cours de chapitre le dit (« à partir du v. 13 », ou « v. 13-... »)', async () => {
     const res = await request(app).get('/api/overview/history');
     const episodes = res.body.flatMap((epoch) => epoch.children);

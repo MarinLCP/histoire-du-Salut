@@ -29,13 +29,19 @@ function lastIndexAbove(items, line) {
   return low;
 }
 
-// Saute (sans long défilement) à l'élément de cette position, avec un léger fondu. Il s'arrête sous la barre
-// de navigation (scroll-margin-top, voir index.css). Renvoie false s'il n'est pas encore chargé dans la page.
+// Saute (sans long défilement) à une position de lecture, avec un léger fondu : l'inverse de la mesure.
+// 20.47 = à 47 % de la hauteur de l'élément n° 20 (ex. le début d'un chapitre dans un épisode).
+// Il s'arrête sous la barre de navigation (scroll-margin-top, voir index.css).
+// Renvoie false si l'élément n'est pas encore chargé dans la page.
 export function jumpToReadingPosition(position) {
-  const target = document.querySelector(`[data-reading-position="${position}"]`);
+  const index = Math.floor(position);
+  const target = document.querySelector(`[data-reading-position="${index}"]`);
   if (!target) return false;
 
-  target.scrollIntoView({ block: 'start', behavior: 'instant' });
+  const box = target.getBoundingClientRect();
+  const navigationMargin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+  const top = window.scrollY + box.top + (position - index) * box.height - navigationMargin;
+  window.scrollTo({ top, behavior: 'instant' });
   target.parentElement.animate?.([{ opacity: 0.35 }, { opacity: 1 }], { duration: 250, easing: 'ease' });
   return true;
 }

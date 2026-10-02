@@ -62,13 +62,19 @@ export function createPostgresPassageRepository(pool) {
 }
 
 // Les chapitres couverts par chaque passage : pour chacun, le premier et le dernier verset du passage DANS
-// ce chapitre, et s'il part du début du chapitre / va jusqu'à sa fin (comparaison avec les bornes du chapitre).
-//   covered : les versets du passage, regroupés par chapitre (première et dernière position)
+// ce chapitre, s'il part du début du chapitre / va jusqu'à sa fin (comparaison avec les bornes du chapitre),
+// et où il commence dans le passage (startShare : part du texte du passage AVANT ce chapitre, de 0 à 1).
+//   covered : les versets du passage, regroupés par chapitre (positions, numéros, nombre de caractères)
 //   bounds  : la première et la dernière position de chaque chapitre couvert
+// Les numéros affichés ne viennent que des vrais versets (kind = 'verse') : une ligne sans numéro
+// (ex. « ELLE » dans le Cantique) compte pour les bornes, pas pour le « v. ... ».
 const COVERED_CHAPTERS = `
   WITH covered AS (
     SELECT p.position AS passage_position, v.book_id, v.chapter,
-           MIN(v.position) AS first_position, MAX(v.position) AS last_position
+           MIN(v.position) AS first_position, MAX(v.position) AS last_position,
+           MIN(v.position) FILTER (WHERE v.kind = 'verse') AS first_numbered,
+           MAX(v.position) FILTER (WHERE v.kind = 'verse') AS last_numbered,
+           SUM(length(v.text)) AS characters
     FROM passages p
     JOIN verses s ON s.id = p.start_verse_id
     JOIN verses e ON e.id = p.end_verse_id
@@ -84,13 +90,17 @@ const COVERED_CHAPTERS = `
   SELECT covered.passage_position AS "passagePosition", b.title AS "bookTitle", c.label,
          first_verse.verse AS "fromVerse", last_verse.verse AS "toVerse",
          covered.first_position = bounds.first_position AS "startsChapter",
-         covered.last_position = bounds.last_position AS "endsChapter"
+         covered.last_position = bounds.last_position AS "endsChapter",
+         (SUM(covered.characters) OVER passage_so_far - covered.characters)::float
+           / SUM(covered.characters) OVER whole_passage AS "startShare"
   FROM covered
   JOIN bounds USING (book_id, chapter)
   JOIN books b ON b.id = covered.book_id
   JOIN chapters c ON c.book_id = covered.book_id AND c.label = covered.chapter
-  JOIN verses first_verse ON first_verse.position = covered.first_position
-  JOIN verses last_verse ON last_verse.position = covered.last_position
+  JOIN verses first_verse ON first_verse.position = covered.first_numbered
+  JOIN verses last_verse ON last_verse.position = covered.last_numbered
+  WINDOW passage_so_far AS (PARTITION BY covered.passage_position ORDER BY covered.first_position),
+         whole_passage AS (PARTITION BY covered.passage_position)
   ORDER BY covered.passage_position, c.position
 `;
 

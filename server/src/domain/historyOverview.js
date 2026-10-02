@@ -27,7 +27,7 @@ function episodeNode(episode, chapters) {
 
 /**
  * Un chapitre couvert par un épisode : ses versets de début et de fin DANS ce chapitre,
- * et si l'épisode part du début du chapitre / va jusqu'à sa fin.
+ * si l'épisode part du début du chapitre / va jusqu'à sa fin, et où le chapitre commence dans l'épisode.
  * @typedef {object} CoveredChapter
  * @property {number} passagePosition
  * @property {string} bookTitle
@@ -36,6 +36,7 @@ function episodeNode(episode, chapters) {
  * @property {string} toVerse
  * @property {boolean} startsChapter
  * @property {boolean} endsChapter
+ * @property {number} startShare - part du texte de l'épisode avant ce chapitre (0 pour le premier, de 0 à 1)
  */
 
 /** @param {CoveredChapter} chapter */
@@ -43,7 +44,8 @@ function chapterNode(chapter) {
   return leafNode({
     title: chapter.bookTitle,
     icon: 'page',
-    position: chapter.passagePosition,
+    // Sa propre position de lecture (ex. 20.47 : le chapitre commence à 47 % de l'épisode n° 20)
+    position: chapter.passagePosition + chapter.startShare,
     detail: `chapitre ${chapter.label} · ${coverage(chapter)}`,
   });
 }

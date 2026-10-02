@@ -65,6 +65,23 @@ test('clic sur un bloc : la lecture y saute, même s\'il n\'est pas encore charg
   await expect(frise.getByRole('button', { name: 'Annonciation et Nativité' })).toHaveAttribute('aria-current', 'location');
 });
 
+test('histoire : un clic sur un chapitre d\'un épisode y saute (pas au début de l\'épisode)', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
+  await page.goto('/');
+  const frise = page.getByRole('navigation', { name: 'Frise' });
+  const clickBlock = (name) => frise.getByRole('button', { name }).getByText(name, { exact: true }).click();
+
+  await clickBlock('La royauté');
+  await clickBlock("David, l'onction et Goliath");
+  // En haut à gauche du bloc : la partie toujours visible d'un bloc de l'escalier
+  await frise.getByRole('button', { name: /chapitre 17/ }).click({ position: { x: 20, y: 12 } });
+
+  // 1 S 17,1 est à l'écran (et pas le début de l'épisode, en 1 S 16)
+  await expect(page.getByText('Les Philistins rassemblèrent leurs armées')).toBeInViewport();
+  await expect(frise.getByRole('button', { name: /chapitre 17/ })).toHaveAttribute('aria-current', 'location');
+  await expect(frise.getByRole('button', { name: /chapitre 16/ })).not.toHaveAttribute('aria-current');
+});
+
 test('Bible entière : ensembles → livres → dizaines → chapitres, et la lecture saute au Psaume 23', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Sur téléphone, la frise est cachée');
   await page.goto('/bible');

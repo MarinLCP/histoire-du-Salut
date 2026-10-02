@@ -4,8 +4,9 @@ import { describe, test, expect } from 'vitest';
 import { buildHistoryTree } from '../../src/domain/historyOverview.js';
 
 // Un chapitre couvert par un épisode, tel que le repository le renvoie
-const covered = (passagePosition, label, fromVerse, toVerse, startsChapter, endsChapter) =>
-  ({ passagePosition, bookTitle: 'La Genèse', label, fromVerse, toVerse, startsChapter, endsChapter });
+// startShare : où le chapitre commence dans l'épisode (0 = au début, 0.6 = après 60 % de son texte)
+const covered = (passagePosition, label, fromVerse, toVerse, startsChapter, endsChapter, startShare = 0) =>
+  ({ passagePosition, bookTitle: 'La Genèse', label, fromVerse, toVerse, startsChapter, endsChapter, startShare });
 
 const outline = {
   epochs: [
@@ -19,7 +20,7 @@ const outline = {
   ],
   chapters: [
     covered(1, '1', '1', '31', true, true),
-    covered(1, '2', '1', '4a', true, false),
+    covered(1, '2', '1', '4a', true, false, 0.75),
     covered(2, '3', '1', '24', true, true),
     covered(3, '12', '1', '9', true, true),
   ],
@@ -36,13 +37,13 @@ describe('buildHistoryTree', () => {
     ]);
   });
 
-  test('chaque nœud mène à la lecture de son premier épisode (position dans la timeline)', () => {
+  test('chaque nœud mène à sa lecture : l\'époque à son premier épisode, un chapitre à l\'endroit où il commence dans l\'épisode', () => {
     const [origins, patriarchs] = buildHistoryTree(outline);
 
     expect(origins.position).toBe(1);
     expect(patriarchs.position).toBe(3);
     expect(origins.children[1].position).toBe(2);
-    expect(origins.children[0].children.map((chapter) => chapter.position)).toEqual([1, 1]);
+    expect(origins.children[0].children.map((chapter) => chapter.position)).toEqual([1, 1.75]);
   });
 
   test('le détail d\'un chapitre dit quelle partie l\'épisode en couvre', () => {

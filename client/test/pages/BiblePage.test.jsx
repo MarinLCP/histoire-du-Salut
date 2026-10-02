@@ -56,8 +56,6 @@ describe('BiblePage', () => {
       disconnect() {}
     });
     vi.stubGlobal('scrollTo', vi.fn());
-    // jsdom ne fait défiler rien : le saut vers un chapitre déjà chargé est remplacé par un faux
-    Element.prototype.scrollIntoView = vi.fn();
     // Le bas de page est toujours « visible » : chaque page chargée déclenche la suivante, jusqu'à la fin
     vi.stubGlobal('IntersectionObserver', class {
       constructor(callback) { this.callback = callback; }

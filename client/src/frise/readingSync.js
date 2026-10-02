@@ -1,8 +1,8 @@
 // Le lien entre la lecture et la frise (fonctions pures).
 // x : la position de lecture continue. Ex. 12.4 = on a lu 40 % du passage n° 12 (ou du chapitre n° 12 de la Bible).
-// Chaque nœud couvre un intervalle [début, fin) de positions : de sa position à celle de son frère suivant.
-// Des frères qui partagent la même position (les chapitres couverts par un même épisode) se partagent
-// l'intervalle de leur parent à parts égales.
+// Chaque nœud couvre un intervalle [début, fin) de positions : de sa position à celle de son frère suivant
+// (le dernier va jusqu'à la fin de son parent). Les chapitres d'un épisode ont une position fractionnaire
+// (ex. 20.47 : le chapitre commence à 47 % de l'épisode n° 20), calculée par le serveur.
 
 // Le chemin du nœud lu, à chaque niveau (ex. [1, 0, 2]) ; [] si rien n'est lu
 export function readingPath(roots, x) {
@@ -43,7 +43,9 @@ export function followReading(path, readingNodePath) {
 // Les nœuds du premier niveau ; le dernier va jusqu'après la dernière position de l'arbre
 function rootLevel(roots) {
   if (roots.length === 0) return [];
-  return withSpans(roots, [roots[0].position, lastPosition(roots) + 1]);
+  // La lecture finit avec le dernier élément (passage ou chapitre) : la partie entière de la dernière
+  // position (un chapitre peut commencer en 32.6 : il est dans le passage n° 32, qui finit en 33)
+  return withSpans(roots, [roots[0].position, Math.floor(lastPosition(roots)) + 1]);
 }
 
 function childLevel({ node, span }) {
@@ -51,16 +53,8 @@ function childLevel({ node, span }) {
 }
 
 // Des frères avec leur intervalle [début, fin), à l'intérieur de celui de leur parent
-function withSpans(nodes, [start, end]) {
-  const sharePosition = nodes.every((node) => node.position === nodes[0].position);
-  const share = (end - start) / nodes.length;
-
-  return nodes.map((node, index) => ({
-    node,
-    span: sharePosition
-      ? [start + index * share, start + (index + 1) * share]
-      : [node.position, nodes[index + 1]?.position ?? end],
-  }));
+function withSpans(nodes, [, end]) {
+  return nodes.map((node, index) => ({ node, span: [node.position, nodes[index + 1]?.position ?? end] }));
 }
 
 function lastPosition(nodes) {

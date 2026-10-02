@@ -11,7 +11,7 @@ describe('getHistoryOverview', () => {
         epochs: [{ slug: 'origines', title: 'Les origines', icon: 'sun' }],
         episodes: [{ position: 1, title: 'La Création', icon: 'sun', epoch: 'origines' }],
         chapters: [{ passagePosition: 1, bookTitle: 'La Genèse', label: '1', fromVerse: '1', toVerse: '31',
-          startsChapter: true, endsChapter: true }],
+          startsChapter: true, endsChapter: true, startShare: 0 }],
       }),
     };
 

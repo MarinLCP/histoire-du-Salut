@@ -7,10 +7,11 @@ import { readingPath, currentStair, followReading } from '../../src/frise/readin
 // Un nœud de l'API : sa position est celle de son premier élément de lecture
 const node = (position, children = []) => ({ title: 't', detail: null, icon: 'sun', position, children });
 
-// Histoire : 2 époques ; épisodes (positions 1, 2, 3) ; chaque épisode couvre des chapitres qui partagent SA position
+// Histoire : 2 époques ; épisodes (positions 1, 2, 3) ; les chapitres d'un épisode commencent à l'intérieur
+// de lui (ex. 1.75 : le 2e chapitre commence à 75 % de l'épisode n° 1)
 const history = [
-  node(1, [node(1, [node(1), node(1)]), node(2, [node(2)])]),
-  node(3, [node(3, [node(3), node(3), node(3)])]),
+  node(1, [node(1, [node(1), node(1.75)]), node(2, [node(2)])]),
+  node(3, [node(3, [node(3), node(3.2), node(3.5)])]),
 ];
 
 // Bible : un ensemble, deux livres ; des chapitres aux positions distinctes (1 à 5)
@@ -27,9 +28,10 @@ describe('readingPath : le nœud en cours de lecture, à chaque niveau', () => {
     expect(readingPath(history, 3.1).slice(0, 2)).toEqual([1, 0]);
   });
 
-  test('des chapitres qui partagent la position de leur épisode se partagent sa lecture, à parts égales', () => {
-    expect(readingPath(history, 1.2)).toEqual([0, 0, 0]);
-    expect(readingPath(history, 1.7)).toEqual([0, 0, 1]);
+  test('les chapitres d\'un épisode : chacun de sa position à celle du suivant (selon leur vraie longueur)', () => {
+    expect(readingPath(history, 1.7)).toEqual([0, 0, 0]);
+    expect(readingPath(history, 1.8)).toEqual([0, 0, 1]);
+    expect(readingPath(history, 3.3)).toEqual([1, 0, 1]);
     expect(readingPath(history, 3.9)).toEqual([1, 0, 2]);
   });
 
