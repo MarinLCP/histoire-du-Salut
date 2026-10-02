@@ -28,10 +28,9 @@ const TAB_NAMES = ["Vue d'ensemble", 'Livres', 'Chapitres'];
 
 // annotations : surlignages, notes et ouverture du menu d'un verset (partagés par toutes les pages)
 function BiblePage({ annotations }) {
-  // location.key change à chaque navigation, même vers la même adresse (ex. « Revenir au début » depuis /bible)
-  const { search, key: navigationKey } = useLocation();
+  const { search } = useLocation();
   // Un clic dans la frise vers un chapitre pas encore chargé : la lecture recommence à ce chapitre
-  const [jumpStart, jumpTo] = useJump(navigationKey);
+  const [jumpStart, jumpTo] = useJump();
 
   return (
     <ReadingWithFrise mode="bible" tabNames={TAB_NAMES} onJump={jumpTo}>

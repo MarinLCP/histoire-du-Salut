@@ -2,6 +2,7 @@
 // (même mécanisme que la Bible entière : useCursorPagination).
 
 import { memo } from 'react';
+import { Link } from 'react-router';
 import Passage from './Passage.jsx';
 import ListStatus from './ListStatus.jsx';
 import { fetchTimeline } from '../api/passages.api.js';
@@ -21,9 +22,9 @@ function Timeline({ startAfter, annotations, onShare }) {
     <div className="timeline">
       {/* Arrivé par un lien partagé : on peut revenir à la Création (l'adresse sans ?passage=) */}
       {startAfter > 0 && (
-        <a className="list-back" href="/">
+        <Link className="list-back" to="/">
           ↑ Revenir au début de l'histoire
-        </a>
+        </Link>
       )}
 
       {passages.map((passage) => (

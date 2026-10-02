@@ -227,7 +227,7 @@ histoire-du-Salut/
     │   ├── share/                   ← partager un passage
     │   │   ├── shareLink.js         ← lien direct /?passage=slug (créer / relire)
     │   │   ├── share.js             ← feuille de partage du téléphone, ou copie du lien
-    │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien
+    │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien (adresse lue par le routeur)
     │   ├── frise/                   ← la frise : cascade de blocs à gauche du texte (maquette V7.1)
     │   │   ├── staircase.js         ← le grand escalier en fonction pure (rectangles, sans navigateur)
     │   │   ├── cascadeLayout.js     ← où va chaque bloc (bandes à gauche, escalier, marches), au pixel près
@@ -258,6 +258,7 @@ histoire-du-Salut/
         ├── bible/                   ← reference, bibleLink
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, lien, frise
+        ├── pages/HistoryPage.test.jsx ← point de départ (lien partagé) et retour au début, sans rechargement
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
         ├── highlights/              ← highlights, highlights.storage
