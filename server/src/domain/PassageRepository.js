@@ -13,7 +13,6 @@
 
 /**
  * @typedef {object} Passage
- * @property {number} id
  * @property {number} position - ordre dans la timeline
  * @property {string} slug
  * @property {string} title

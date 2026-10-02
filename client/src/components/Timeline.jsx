@@ -28,7 +28,7 @@ function Timeline({ startAfter, annotations, onShare }) {
       )}
 
       {passages.map((passage) => (
-        <Passage key={passage.id} passage={passage} annotations={annotations} onShare={onShare} />
+        <Passage key={passage.slug} passage={passage} annotations={annotations} onShare={onShare} />
       ))}
 
       <ListStatus isLoading={isLoading} error={error} isFinished={isFinished} onRetry={retry}

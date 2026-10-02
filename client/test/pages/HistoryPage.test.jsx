@@ -9,7 +9,7 @@ import NavBar from '../../src/components/NavBar.jsx';
 import HistoryPage from '../../src/pages/HistoryPage.jsx';
 
 const passage = (position, slug, title) => ({
-  id: position, position, slug, title, book: { code: 'Gn', title: 'La Genèse' },
+  position, slug, title, book: { code: 'Gn', title: 'La Genèse' },
   start: { chapter: '1', verse: '1' }, end: { chapter: '1', verse: '1' },
   verses: [{ chapter: '1', verse: '1', kind: 'verse', text: `Texte de ${title}` }],
 });

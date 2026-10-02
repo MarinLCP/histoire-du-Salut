@@ -9,7 +9,6 @@ import Passage from '../../src/components/Passage.jsx';
 import { LONG_PRESS_DELAY } from '../../src/hooks/longPress.js';
 
 const passage = {
-  id: 1,
   slug: 'creation',
   title: 'La Création',
   book: { code: 'Gn', title: 'La Genèse' },

@@ -136,10 +136,10 @@ async function findVersesByPassageIds(pool, ids) {
   return versesByPassage;
 }
 
-// Transforme une ligne SQL (colonnes à plat) en passage (objets imbriqués)
+// Transforme une ligne SQL (colonnes à plat) en passage (objets imbriqués).
+// L'id de la base reste ici (il sert à regrouper les versets) : il change à chaque seed, le slug non.
 function toPassage(row, verses) {
   return {
-    id: row.id,
     position: row.position,
     slug: row.slug,
     title: row.title,

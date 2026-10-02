@@ -33,6 +33,12 @@ describe('GET /api/passages/:slug', () => {
     expect(res.body.verses.length).toBeGreaterThan(0);
   });
 
+  test('l\'id interne de la base n\'est pas envoyé : il change à chaque seed (le slug, lui, ne change jamais)', async () => {
+    const res = await request(app).get('/api/passages/creation');
+
+    expect(res.body).not.toHaveProperty('id');
+  });
+
   test('chaque passage commence et finit exactement à ses bornes (même sur plusieurs chapitres)', async () => {
     for (const slug of await allSlugs()) {
       const { body: passage } = await request(app).get(`/api/passages/${slug}`);
