@@ -10,4 +10,8 @@ export default defineConfig({
       '/api': 'http://localhost:3000',
     },
   },
+  // Tests (Vitest) : une préparation commune à tous les fichiers de tests
+  test: {
+    setupFiles: ['./test/setup.js'],
+  },
 });

@@ -187,7 +187,7 @@ histoire-du-Salut/
 │
 └── client/                          ← site web (React + Vite)
     ├── index.html                   ← la seule page HTML (app "single page")
-    ├── vite.config.js               ← proxy /api → localhost:3000 en dev
+    ├── vite.config.js               ← proxy /api → localhost:3000 en dev ; préparation des tests (test/setup.js)
     ├── src/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
     │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
@@ -200,7 +200,7 @@ histoire-du-Salut/
     │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
     │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
     │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre)
-    │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode)
+    │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode, gardé en mémoire)
     │   ├── bible/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   │   └── bibleLink.js         ← lien vers un chapitre : /bible?livre=Gn&chapitre=3 (créer / relire)
@@ -254,7 +254,8 @@ histoire-du-Salut/
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
         ├── App.test.jsx             ← routage : chaque adresse affiche sa page (et la frise sur /)
-        ├── api/passages.api.test.js ← données et messages d'erreur de l'API
+        ├── setup.js                 ← préparation commune à tous les tests (vide le cache de la frise)
+        ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, lien, frise
