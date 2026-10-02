@@ -2,7 +2,7 @@
 // C'est le SEUL endroit qui contient le SQL des passages : si la source des données change
 // un jour, on écrit un autre repository qui respecte le même contrat, sans toucher au reste.
 
-import { VERSE_COLUMNS, versesByOwner } from './verseColumns.js';
+import { VERSE_COLUMNS, VERSE_SECTION, versesByOwner } from './verseColumns.js';
 
 // Les versets d'un passage (p) : s = son verset de début, e = son verset de fin, v = tous les versets entre
 // les deux. La colonne position gère les passages sur plusieurs chapitres.
@@ -55,7 +55,7 @@ export function createPostgresPassageRepository(pool) {
     // Trois listes à plat, sans texte, chacune dans l'ordre (trois requêtes en parallèle).
     // Les noms entre guillemets sont déjà ceux attendus par le domaine (buildHistoryTree).
     async findHistoryOutline() {
-      const [epochs, episodes, chapters] = await Promise.all([
+      const [epochs, episodes, chapters, sections] = await Promise.all([
         pool.query('SELECT slug, title, icon FROM epochs ORDER BY position'),
         pool.query(
           `SELECT p.position, p.title, p.icon, e.slug AS epoch
@@ -63,8 +63,9 @@ export function createPostgresPassageRepository(pool) {
            ORDER BY p.position`,
         ),
         pool.query(COVERED_CHAPTERS),
+        pool.query(HISTORY_SECTIONS),
       ]);
-      return { epochs: epochs.rows, episodes: episodes.rows, chapters: chapters.rows };
+      return { epochs: epochs.rows, episodes: episodes.rows, chapters: chapters.rows, sections: sections.rows };
     },
   };
 }
@@ -109,6 +110,22 @@ const COVERED_CHAPTERS = `
   ORDER BY covered.passage_position, c.position
 `;
 
+// Les sous-chapitres qui commencent dans chaque passage : leur chapitre, et où ils commencent dans le passage
+// (startShare : part du texte du passage AVANT le verset où ils commencent, de 0 à 1 ; la même mesure que
+// celle des chapitres dans COVERED_CHAPTERS)
+const HISTORY_SECTIONS = `
+  SELECT p.position AS "passagePosition", start_verse.chapter AS "chapterLabel", start_verse.verse, sec.title,
+         COALESCE((SELECT SUM(length(v.text)) FROM verses v
+                   WHERE v.position >= s.position AND v.position < start_verse.position), 0)::float
+         / (SELECT SUM(length(v.text)) FROM verses v WHERE v.position BETWEEN s.position AND e.position) AS "startShare"
+  FROM passages p
+  JOIN verses s ON s.id = p.start_verse_id
+  JOIN verses e ON e.id = p.end_verse_id
+  JOIN verses start_verse ON start_verse.position BETWEEN s.position AND e.position
+  JOIN sections sec ON sec.start_verse_id = start_verse.id
+  ORDER BY p.position, start_verse.position
+`;
+
 // Ajoute leurs versets à des lignes de passages. Toujours UNE requête, quel que soit le nombre de passages.
 async function withVerses(pool, rows) {
   if (rows.length === 0) return [];
@@ -122,7 +139,7 @@ async function findVersesByPassageIds(pool, ids) {
   // = ANY($1) : "l'id fait partie de ce tableau", comme un IN (...) avec un tableau JS
   const result = await pool.query(
     `SELECT p.id AS passage_id, ${VERSE_COLUMNS}
-     FROM passages p ${PASSAGE_VERSES}
+     FROM passages p ${PASSAGE_VERSES} ${VERSE_SECTION}
      WHERE p.id = ANY($1)
      ORDER BY p.position, v.position`,
     [ids],

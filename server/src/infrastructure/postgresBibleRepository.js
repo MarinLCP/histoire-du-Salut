@@ -1,6 +1,6 @@
 // Implémentation PostgreSQL du port BibleRepository (domain/BibleRepository.js) : tout le SQL de la Bible entière.
 
-import { VERSE_COLUMNS, versesByOwner } from './verseColumns.js';
+import { VERSE_COLUMNS, VERSE_SECTION, versesByOwner } from './verseColumns.js';
 
 /**
  * @param {import('pg').Pool} pool
@@ -44,7 +44,7 @@ export function createPostgresBibleRepository(pool) {
     // Trois listes à plat, sans texte, chacune dans l'ordre (trois requêtes en parallèle sur des tables entières).
     // Les noms entre guillemets ("group") sont déjà ceux attendus par le domaine (buildBibleTree).
     async findBibleOutline() {
-      const [groups, books, chapters] = await Promise.all([
+      const [groups, books, chapters, sections] = await Promise.all([
         pool.query('SELECT slug, title, icon FROM bible_groups ORDER BY position'),
         pool.query(
           `SELECT b.code, b.title, g.slug AS "group"
@@ -56,8 +56,9 @@ export function createPostgresBibleRepository(pool) {
            FROM chapters c JOIN books b ON b.id = c.book_id
            ORDER BY c.position`,
         ),
+        pool.query(BIBLE_SECTIONS),
       ]);
-      return { groups: groups.rows, books: books.rows, chapters: chapters.rows };
+      return { groups: groups.rows, books: books.rows, chapters: chapters.rows, sections: sections.rows };
     },
   };
 }
@@ -68,9 +69,25 @@ async function findVersesByChapterIds(pool, ids) {
     `SELECT c.id AS chapter_id, ${VERSE_COLUMNS}
      FROM chapters c
      JOIN verses v ON v.book_id = c.book_id AND v.chapter = c.label
+     ${VERSE_SECTION}
      WHERE c.id = ANY($1)
      ORDER BY c.position, v.position`,
     [ids],
   );
   return versesByOwner(ids, result.rows, 'chapter_id');
 }
+
+// Les sous-chapitres, chacun avec son chapitre et où il commence dans ce chapitre
+// (startShare : part du texte du chapitre AVANT le verset où il commence, de 0 à 1)
+const BIBLE_SECTIONS = `
+  SELECT c.position AS "chapterPosition", start_verse.verse, sec.title,
+         COALESCE((SELECT SUM(length(v.text)) FROM verses v
+                   WHERE v.book_id = start_verse.book_id AND v.chapter = start_verse.chapter
+                     AND v.position < start_verse.position), 0)::float
+         / (SELECT SUM(length(v.text)) FROM verses v
+            WHERE v.book_id = start_verse.book_id AND v.chapter = start_verse.chapter) AS "startShare"
+  FROM sections sec
+  JOIN verses start_verse ON start_verse.id = sec.start_verse_id
+  JOIN chapters c ON c.book_id = start_verse.book_id AND c.label = start_verse.chapter
+  ORDER BY start_verse.position
+`;

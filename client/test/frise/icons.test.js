@@ -20,7 +20,7 @@ describe('pictogrammes', () => {
     expect(missing).toEqual([]);
   });
 
-  test('les pictogrammes des livres et des chapitres existent aussi', () => {
-    expect(ICON_NAMES).toEqual(expect.arrayContaining(['book', 'pages', 'page']));
+  test('les pictogrammes des livres, des dizaines, des chapitres et des sous-chapitres existent aussi', () => {
+    expect(ICON_NAMES).toEqual(expect.arrayContaining(['book', 'pages', 'page', 'lines']));
   });
 });

@@ -15,9 +15,9 @@ const passage = {
   start: { chapter: '1', verse: '1' },
   end: { chapter: '1', verse: '2' },
   verses: [
-    { chapter: '1', verse: '1', kind: 'verse', text: 'Au commencement, Dieu créa le ciel et la terre.' },
-    { chapter: '1', verse: null, kind: 'unnumbered', text: 'ELLE' },
-    { chapter: '1', verse: '2', kind: 'verse', text: 'La terre était informe et vide.' },
+    { chapter: '1', verse: '1', kind: 'verse', text: 'Au commencement, Dieu créa le ciel et la terre.', sectionTitle: 'La lumière' },
+    { chapter: '1', verse: null, kind: 'unnumbered', text: 'ELLE', sectionTitle: null },
+    { chapter: '1', verse: '2', kind: 'verse', text: 'La terre était informe et vide.', sectionTitle: null },
   ],
 };
 
@@ -160,5 +160,14 @@ describe('Passage : lire tout le chapitre', () => {
     const link = screen.getByRole('link', { name: 'Lire tout le chapitre' });
 
     expect(link.getAttribute('href')).toBe('/bible?livre=Gn&chapitre=1');
+  });
+
+  test('un sous-chapitre : son intertitre, juste avant le verset où il commence', () => {
+    renderPassage();
+
+    const title = screen.getByRole('heading', { name: 'La lumière' });
+    const firstVerse = screen.getByText('Au commencement, Dieu créa le ciel et la terre.');
+    expect(title.compareDocumentPosition(firstVerse) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByRole('heading')).toHaveLength(2);
   });
 });

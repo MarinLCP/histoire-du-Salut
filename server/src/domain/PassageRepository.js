@@ -9,6 +9,7 @@
  * @property {string | null} verse - null pour une ligne sans numéro (ex. "ELLE")
  * @property {'verse' | 'unnumbered'} kind
  * @property {string} text
+ * @property {string | null} sectionTitle - l'intertitre du sous-chapitre qui commence à ce verset, ou null
  */
 
 /**
@@ -36,6 +37,7 @@
  * @property {{ slug: string, title: string, icon: string }[]} epochs
  * @property {{ position: number, title: string, icon: string, epoch: string }[]} episodes - epoch : slug de l'époque
  * @property {import('./historyOverview.js').CoveredChapter[]} chapters
+ * @property {import('./historyOverview.js').HistorySection[]} sections
  */
 
 export {};

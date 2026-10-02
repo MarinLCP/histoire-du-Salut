@@ -24,6 +24,8 @@
  * @property {{ slug: string, title: string, icon: string }[]} groups
  * @property {{ code: string, title: string, group: string }[]} books - group : slug de son grand ensemble
  * @property {{ position: number, book: string, label: string }[]} chapters - book : code du livre
+ * @property {{ chapterPosition: number, verse: string, title: string, startShare: number }[]} sections
+ *   - les sous-chapitres ; startShare : part du texte du chapitre avant le verset où ils commencent
  */
 
 export {};

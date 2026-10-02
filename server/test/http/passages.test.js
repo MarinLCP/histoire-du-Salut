@@ -33,6 +33,14 @@ describe('GET /api/passages/:slug', () => {
     expect(res.body.verses.length).toBeGreaterThan(0);
   });
 
+  test('un verset où commence un sous-chapitre porte son intertitre ; les autres, null', async () => {
+    const res = await request(app).get('/api/passages/creation');
+    const titles = res.body.verses.filter((verse) => verse.sectionTitle !== null).map((verse) => verse.sectionTitle);
+
+    expect(titles.length).toBeGreaterThan(0);
+    expect(res.body.verses.every((verse) => 'sectionTitle' in verse)).toBe(true);
+  });
+
   test('l\'id interne de la base n\'est pas envoyé : il change à chaque seed (le slug, lui, ne change jamais)', async () => {
     const res = await request(app).get('/api/passages/creation');
 

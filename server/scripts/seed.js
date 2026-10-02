@@ -1,24 +1,32 @@
 // Remplit les tables books, verses et chapters à partir de data/bible.db (SQLite, AELF),
 // bible_groups à partir de db/bible-groups.data.js,
-// puis les tables epochs et passages à partir de db/epochs.data.js et db/passages.data.js.
+// puis les tables epochs et passages à partir de db/epochs.data.js et db/passages.data.js,
+// et les sous-chapitres (db/sections.data.js).
+// Les données proposées par Claude (status 'proposé') ne sont écrites qu'en local et dans la CI :
+// en ligne (npm run seed:prod, option --production), seules les données validées par Marin le sont.
 // Les livres sont rangés dans l'ordre d'une Bible catholique (Psaumes après Job : voir bibleOrder.js).
 // Rejouable : on vide les tables avant de les remplir, dans une transaction.
-// Usage : npm run seed
+// Usage : npm run seed (en ligne : npm run seed:prod)
 
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { bibleGroups } from '../db/bible-groups.data.js';
 import { epochs } from '../db/epochs.data.js';
 import { passages } from '../db/passages.data.js';
+import { sections } from '../db/sections.data.js';
 import { validatePassages } from './passageRules.js';
 import { validateEpochs } from './epochRules.js';
 import { assignBookGroups } from './bibleGroupRules.js';
+import { validateSections } from './sectionRules.js';
+import { publishable } from './dataStatus.js';
 import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from './bibleOrder.js';
 import { withClient, inTransaction } from './database.js';
 import { placeholdersFor, verseKind } from './sqlRows.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
+// En ligne, seulement ce que Marin a validé (voir dataStatus.js)
+const withProposals = !process.argv.includes('--production');
 
 const source = readSource();
 const books = canonicalBookOrder(source.books);
@@ -27,6 +35,8 @@ const verses = versesInReadingOrder(books, source.verses);
 // Une faute dans un fichier de données arrête le seed ICI, avant de toucher à la base
 validatePassages(passages, source.verses);
 validateEpochs(epochs, passages);
+validateSections(sections, source.verses);
+const sectionsToWrite = publishable(sections, { withProposals });
 const groupOfBook = assignBookGroups(bibleGroups, books.map((book) => book.code));
 
 // Soit tout est écrit, soit rien (une erreur au milieu annule tout)
@@ -38,11 +48,13 @@ await withClient((client) => inTransaction(client, async () => {
   await insertChapters(client, chapters, bookIds);
   const epochIds = await insertSlugList(client, 'epochs', epochs);
   await insertPassages(client, passages, bookIds, epochIds);
+  await insertSections(client, sectionsToWrite, bookIds);
 }));
 
 console.log(
   `Seed terminé : ${bibleGroups.length} ensembles, ${books.length} livres, ${chapters.length} chapitres, `
-  + `${source.verses.length} versets, ${epochs.length} époques, ${passages.length} passages.`,
+  + `${source.verses.length} versets, ${epochs.length} époques, ${passages.length} passages, `
+  + `${sectionsToWrite.length} sous-chapitres${withProposals ? ' (propositions comprises)' : ' (validés seulement)'}.`,
 );
 
 // --- Lecture de la source ---
@@ -70,7 +82,7 @@ function readSource() {
 // Pas de CASCADE : si une autre table pointe un jour vers ces tables
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
 async function clearTables(client) {
-  await client.query('TRUNCATE passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY');
+  await client.query('TRUNCATE sections, passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY');
 }
 
 // Insère une liste des fichiers de données (slug, titre, pictogramme), dans l'ordre, une ligne à la fois
@@ -150,6 +162,18 @@ async function insertPassages(client, passages, bookIds, epochIds) {
                (SELECT id FROM verses WHERE book_id = $6 AND chapter = $9 AND verse = $10))`,
       [index + 1, passage.slug, passage.title, epochIds.get(passage.epoch), passage.icon,
         bookIds.get(passage.book), ...passage.start, ...passage.end],
+    );
+  }
+}
+
+// Insère les sous-chapitres (déjà vérifiés par validateSections). L'id du verset de début est retrouvé
+// par la base elle-même (sous-requête) : $1 = le livre, $2 / $3 = chapitre et verset.
+async function insertSections(client, sections, bookIds) {
+  for (const section of sections) {
+    await client.query(
+      `INSERT INTO sections (start_verse_id, title)
+       VALUES ((SELECT id FROM verses WHERE book_id = $1 AND chapter = $2 AND verse = $3), $4)`,
+      [bookIds.get(section.book), ...section.start, section.title],
     );
   }
 }

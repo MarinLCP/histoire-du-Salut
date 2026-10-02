@@ -1,10 +1,11 @@
 // Où va chaque bloc de la frise (fonction pure) : à partir de l'arbre de l'API, du chemin dans lequel on est
 // entré et de la taille de la zone, une liste de blocs
-// { key, nodePath, node, kind, depth, left, top, width, height, layer, radius, small, foam }.
+// { key, nodePath, node, role, depth, left, top, width, height, layer, radius, small, foam }.
+// role : la place du bloc dans le dessin (à ne pas confondre avec node.kind : ce qu'est le nœud).
 //   - path = [] (vue d'ensemble) : les nœuds du premier niveau en grand escalier ;
-//   - path = [1, 0] : les nœuds du chemin deviennent des bandes verticales à gauche (kind 'strip', clic = remonter),
-//     les enfants du dernier forment l'escalier (kind 'stair', clic = descendre),
-//     et leurs propres enfants de petites marches sans titre (kind 'step', pas cliquables).
+//   - path = [1, 0] : les nœuds du chemin deviennent des bandes verticales à gauche (role 'strip', clic = remonter),
+//     les enfants du dernier forment l'escalier (role 'stair', clic = descendre),
+//     et leurs propres enfants de petites marches sans titre (role 'step', pas cliquables).
 // La clé d'un bloc est son chemin dans l'arbre : d'un niveau à l'autre, le même nœud garde sa clé,
 // et le navigateur le fait glisser vers sa nouvelle place (transition CSS).
 
@@ -45,8 +46,8 @@ export function layoutCascade(roots, path, box) {
 }
 
 // Un bloc : sa clé vient de son chemin ; les options non données (small, foam) restent fausses
-function makeBlock({ nodePath, node, kind, depth, rect, layer, radius, small = false, foam = null }) {
-  return { key: pathKey(nodePath), nodePath, node, kind, depth, ...rect, layer, radius, small, foam };
+function makeBlock({ nodePath, node, role, depth, rect, layer, radius, small = false, foam = null }) {
+  return { key: pathKey(nodePath), nodePath, node, role, depth, ...rect, layer, radius, small, foam };
 }
 
 // Les nœuds du chemin, en bandes verticales côte à côte, chacune un peu plus bas que la précédente
@@ -59,7 +60,7 @@ function layoutStrips(roots, path, box) {
     const width = STRIP_WIDTHS[Math.min(rank, STRIP_WIDTHS.length - 1)];
     const top = rank * STRIP_STEP;
     const strip = makeBlock({
-      nodePath: path.slice(0, rank + 1), node, kind: 'strip', depth: rank + 1,
+      nodePath: path.slice(0, rank + 1), node, role: 'strip', depth: rank + 1,
       rect: { left, top, width, height: box.height - top }, layer: STRIPS_LAYER + rank, radius: STRIP_RADIUS,
     });
     children = node.children;
@@ -93,11 +94,11 @@ function layoutStairs(items, path, box, left) {
 function blocksOfStair(item, nodePath, stair, depth) {
   const rank = nodePath.at(-1);
   const block = makeBlock({
-    nodePath, node: item, kind: 'stair', depth, rect: stair.rect, layer: 2 * rank, radius: stair.radius,
+    nodePath, node: item, role: 'stair', depth, rect: stair.rect, layer: 2 * rank, radius: stair.radius,
     small: stair.rowHeight < SMALL_ROW, foam: stair.foam,
   });
   const steps = stair.steps.map((step, childRank) => makeBlock({
-    nodePath: [...nodePath, childRank], node: item.children[childRank], kind: 'step', depth: depth + 1,
+    nodePath: [...nodePath, childRank], node: item.children[childRank], role: 'step', depth: depth + 1,
     rect: step, layer: 2 * rank + 1, radius: STEP_RADIUS,
   }));
   return [block, ...steps];
@@ -105,7 +106,7 @@ function blocksOfStair(item, nodePath, stair, depth) {
 
 // Où poser le bateau : entre le bloc lu de l'escalier et le suivant, selon la part déjà lue (fraction, de 0 à 1)
 export function boatPlace(blocks, { rank, fraction }) {
-  const stairs = blocks.filter((block) => block.kind === 'stair');
+  const stairs = blocks.filter((block) => block.role === 'stair');
   const from = boatAnchor(stairs[rank]);
   const to = stairs[rank + 1] ? boatAnchor(stairs[rank + 1]) : from;
 

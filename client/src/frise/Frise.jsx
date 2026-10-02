@@ -39,7 +39,7 @@ function Frise({ mode, tabNames, onJump }) {
   const goTo = useCallback((path) => setView((current) => viewAt(current, path)), []);
 
   const openBlock = useCallback((block) => {
-    if (block.kind !== 'strip') onJump(block.node.position);
+    if (block.role !== 'strip') onJump(block.node.position);
     const next = pathAfterClick(tree, block);
     if (next) goTo(next);
   }, [tree, onJump, goTo]);
@@ -91,14 +91,14 @@ const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
     ...(block.foam && { '--foam-x': `${block.foam.x}px`, '--foam-w': `${block.foam.width}px` }),
   };
   const className = [
-    'frise-block', `depth-${Math.min(block.depth, 4)}`, block.kind,
-    block.small && 'small', block.foam && 'foamy', isRead && READ_CLASS[block.kind],
+    'frise-block', `depth-${Math.min(block.depth, 4)}`, block.role,
+    block.small && 'small', block.foam && 'foamy', isRead && READ_CLASS[block.role],
   ].filter(Boolean).join(' ');
 
-  if (block.kind === 'step') return <div className={className} style={style} aria-hidden="true" />;
+  if (block.role === 'step') return <div className={className} style={style} aria-hidden="true" />;
   return (
     <button type="button" className={className} style={style} onClick={() => onOpen(block)}
-      aria-current={isRead && block.kind === 'stair' ? 'location' : undefined}>
+      aria-current={isRead && block.role === 'stair' ? 'location' : undefined}>
       <span className="frise-label">
         <Icon name={block.node.icon} />
         <span>

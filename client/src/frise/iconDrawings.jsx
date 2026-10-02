@@ -1,6 +1,6 @@
 // Les dessins des pictogrammes au trait de la frise (grille 24 × 24), rangés par nom. Le nom est choisi dans
-// les fichiers de données du serveur (époques, épisodes, grands ensembles) ; 'book', 'pages' et 'page' servent
-// aux livres et aux chapitres. Affichés par le composant Icon.jsx.
+// les fichiers de données du serveur (époques, épisodes, grands ensembles) ; 'book', 'pages', 'page' et 'lines'
+// servent aux livres, aux dizaines, aux chapitres et aux sous-chapitres. Affichés par le composant Icon.jsx.
 
 export const ICONS = {
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" /></>,
@@ -38,4 +38,5 @@ export const ICONS = {
   page: <><path d="M6 3h9l3 3v15H6z" /><path d="M15 3v3h3M9 11h6M9 15h6" /></>,
   book: <><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z" /></>,
   pages: <><path d="M8 3h9l3 3v13H8z" /><path d="M5 6v15h11" /></>,
+  lines: <><path d="M4 6h16M4 11h11M4 16h14M4 21h8" /></>,
 };

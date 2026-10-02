@@ -73,7 +73,7 @@ DATABASE_URL=postgresql://...render.com/...?sslmode=verify-full
 ```bash
 cd server
 npm run db:migrate:prod    # crée les tables sur Render (ensuite, Render le fait seul à chaque démarrage)
-npm run seed:prod          # remplit la base Render depuis bible.db
+npm run seed:prod          # remplit la base Render (seulement les données « validé »)
 ```
 
 **2. Créer le Web Service sur Render** (New → Web Service → ce dépôt GitHub)
@@ -112,9 +112,11 @@ histoire-du-Salut/
 │   │   │   ├── 002_chapters.sql     ← les chapitres dans l'ordre de lecture (Bible entière en continu)
 │   │   │   ├── 003_epochs_and_verse_links.sql ← époques, pictogrammes, passages reliés à leurs versets (expand)
 │   │   │   ├── 004_bible_groups.sql ← les grands ensembles de la Bible, et celui de chaque livre (expand)
-│   │   │   └── 005_contract_passages.sql ← fin du changement : passages = versets de début et de fin (contract)
+│   │   │   ├── 005_contract_passages.sql ← fin du changement : passages = versets de début et de fin (contract)
+│   │   │   └── 006_sections.sql     ← les sous-chapitres (intertitres posés sur un verset)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
+│   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
 │   │   └── passages.data.js         ← les 32 passages (slug, références, époque, pictogramme) : à modifier ici
 │   ├── scripts/
 │   │   ├── migrate.js               ← npm run db:migrate : applique les nouvelles migrations
@@ -123,6 +125,9 @@ histoire-du-Salut/
 │   │   ├── epochRules.js            ← règles des époques (chaque époque a ses épisodes, à la suite, dans l'ordre)
 │   │   ├── bibleGroupRules.js       ← grands ensembles : à la suite, sans trou ni chevauchement, tous les livres
 │   │   ├── dataIdentifier.js        ← listes des fichiers de données : slugs et pictogrammes bien formés, uniques
+│   │   ├── dataStatus.js            ← statut « proposé » / « validé » : en ligne, seulement le validé
+│   │   ├── sectionRules.js          ← règles des sous-chapitres (verset de début qui existe, titre, pas de doublon)
+│   │   ├── verseIndex.js            ← retrouver un verset de la source par sa référence (règles des données)
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job), des chapitres et des versets
 │   │   ├── database.js              ← connexion et transaction des scripts (seed, migrations)
 │   │   ├── sqlRows.js               ← petites règles d'écriture du seed ($1, $2... ; verset sans numéro)
@@ -134,9 +139,9 @@ histoire-du-Salut/
 │   │   │   ├── identifier.js        ← règle commune des identifiants (slugs, pictogrammes)
 │   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
 │   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
-│   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux), groupBy
-│   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts (« à partir du v. 13 »)
-│   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres
+│   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux, avec son kind)
+│   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts → sous-chapitres
+│   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres → sous-chapitres
 │   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   └── errors.js            ← ValidationError, NotFoundError
@@ -151,7 +156,7 @@ histoire-du-Salut/
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
 │   │   │   ├── postgresBibleRepository.js   ← tout le SQL de la Bible entière
-│   │   │   └── verseColumns.js      ← les colonnes d'un verset, partagées par les deux repositories
+│   │   │   └── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les deux repositories
 │   │   └── http/                    ← le seul endroit qui connaît Express
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/bible,
 │   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible
@@ -175,6 +180,9 @@ histoire-du-Salut/
 │           ├── sqlRows.test.js      ← numérotation des paramètres, verset sans numéro
 │           ├── passageRules.test.js ← règles de passages.data.js (vérifiées avant le seed)
 │           ├── epochRules.test.js   ← règles de epochs.data.js et de leur lien avec les passages
+│           ├── sectionRules.test.js ← règles des sous-chapitres
+│           ├── dataStatus.test.js   ← seules les données validées partent en ligne
+│           ├── verseIndex.test.js   ← index des versets de la source
 │           ├── bibleGroupRules.test.js ← découpage de la Bible en grands ensembles
 │           ├── dataIdentifier.test.js ← slugs et pictogrammes d'une liste de données (bien formés, uniques)
 │           └── bibleOrder.test.js   ← ordre des livres, des chapitres et des versets
@@ -185,7 +193,7 @@ histoire-du-Salut/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
-│       ├── frise.spec.js            ← la frise : zoom, lecture, saut au clic, mode Bible ; panneau sur téléphone
+│       ├── frise.spec.js            ← la frise : zoom, lecture, saut au clic, sous-chapitres, mode Bible ; téléphone
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -215,7 +223,7 @@ histoire-du-Salut/
     │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
     │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, « Lire tout le chapitre », Partager, ses versets
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
-    │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes), pour passages et chapitres
+    │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier)
     │   ├── highlights/              ← surlignages

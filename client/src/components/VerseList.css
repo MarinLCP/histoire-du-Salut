@@ -53,3 +53,12 @@
   color: var(--text-muted);
   white-space: pre-line;
 }
+
+/* L'intertitre d'un sous-chapitre, juste avant le verset où il commence : discret, comme dans une Bible imprimée */
+.verse-section {
+  margin: 1.6rem 0 .6rem;
+  font: 600 .8rem/1.3 var(--ui-font);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

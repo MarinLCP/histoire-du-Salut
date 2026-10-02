@@ -9,11 +9,14 @@ import { pool } from '../../src/infrastructure/db.js';
 import { epochs } from '../../db/epochs.data.js';
 import { passages } from '../../db/passages.data.js';
 import { bibleGroups } from '../../db/bible-groups.data.js';
+import { sections } from '../../db/sections.data.js';
 
 afterAll(() => pool.end());
 
 // Les feuilles de l'arbre (les nœuds sans enfants), dans l'ordre
 const leavesOf = (nodes) => nodes.flatMap((node) => (node.children.length ? leavesOf(node.children) : [node]));
+// Tous les nœuds d'une sorte (ex. 'chapter'), à n'importe quelle profondeur
+const nodesOfKind = (nodes, kind) => nodes.flatMap((node) => [...(node.kind === kind ? [node] : []), ...nodesOfKind(node.children, kind)]);
 
 describe('GET /api/overview/history', () => {
   test('les époques, puis leurs épisodes, dans l\'ordre des fichiers de données', async () => {
@@ -69,6 +72,29 @@ describe('GET /api/overview/history', () => {
   });
 });
 
+describe('sous-chapitres dans la frise (en dev et en CI, les propositions sont dans la base)', () => {
+  test('histoire : chaque sous-chapitre est sous le chapitre où il commence, à une position dans l\'épisode', async () => {
+    const res = await request(app).get('/api/overview/history');
+    const chapters = nodesOfKind(res.body, 'chapter');
+
+    expect(nodesOfKind(res.body, 'section')).toHaveLength(sections.length);
+    chapters.forEach((chapter) => chapter.children.forEach((section) => {
+      expect(section.position).toBeGreaterThanOrEqual(chapter.position);
+    }));
+  });
+
+  test('Bible : chaque sous-chapitre est sous son chapitre, entre lui et le chapitre suivant', async () => {
+    const res = await request(app).get('/api/overview/bible');
+    const chapters = nodesOfKind(res.body, 'chapter');
+
+    expect(nodesOfKind(res.body, 'section')).toHaveLength(sections.length);
+    chapters.forEach((chapter) => chapter.children.forEach((section) => {
+      expect(section.position).toBeGreaterThanOrEqual(chapter.position);
+      expect(section.position).toBeLessThan(chapter.position + 1);
+    }));
+  });
+});
+
 describe('GET /api/overview/bible', () => {
   test('les grands ensembles, dans l\'ordre du fichier de données, et les 74 livres', async () => {
     const res = await request(app).get('/api/overview/bible');
@@ -80,7 +106,7 @@ describe('GET /api/overview/bible', () => {
 
   test('chaque chapitre de la Bible apparaît une fois, dans l\'ordre de lecture', async () => {
     const res = await request(app).get('/api/overview/bible');
-    const positions = leavesOf(res.body).map((chapter) => chapter.position);
+    const positions = nodesOfKind(res.body, 'chapter').map((chapter) => chapter.position);
 
     expect(positions).toEqual(positions.map((_, index) => index + 1));
     expect(positions.length).toBeGreaterThan(1300);

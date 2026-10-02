@@ -91,4 +91,22 @@ describe('buildBibleTree', () => {
   test('base encore vide (pas d\'ensemble) : un arbre vide', () => {
     expect(buildBibleTree({ groups: [], books: [], chapters: [] })).toEqual([]);
   });
+
+  test('chaque nœud dit ce qu\'il est : ensemble, livre, dizaine, chapitre', () => {
+    const [historical, wisdom] = buildBibleTree(small);
+    const job = wisdom.children[0];
+
+    expect([historical.kind, historical.children[0].kind, historical.children[0].children[0].kind]).toEqual(['group', 'book', 'chapter']);
+    expect([job.children[0].kind, job.children[0].children[0].kind]).toEqual(['tens', 'chapter']);
+  });
+
+  test('les sous-chapitres d\'un chapitre : sous lui, chacun à sa position de lecture dans le chapitre', () => {
+    const sections = [{ chapterPosition: 2, verse: '5', title: 'Ruth glane', startShare: 0.25 }];
+    const ruth = buildBibleTree({ ...small, sections })[0].children[0];
+
+    expect(ruth.children[1].children).toEqual([
+      { kind: 'section', title: 'Ruth glane', detail: 'v. 5', icon: 'lines', position: 2.25, children: [] },
+    ]);
+    expect(ruth.children[1].position).toBe(2);
+  });
 });

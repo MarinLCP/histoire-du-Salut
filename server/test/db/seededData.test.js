@@ -7,6 +7,7 @@ import { epochs } from '../../db/epochs.data.js';
 import { passages } from '../../db/passages.data.js';
 import { bibleGroups } from '../../db/bible-groups.data.js';
 import { assignBookGroups } from '../../scripts/bibleGroupRules.js';
+import { sections } from '../../db/sections.data.js';
 
 afterAll(() => pool.end());
 
@@ -66,5 +67,16 @@ describe('base remplie par le seed', () => {
     const firsts = rows.map((row) => row.first_verse);
 
     expect(firsts).toEqual([...firsts].sort((a, b) => a - b));
+  });
+
+  test('les sous-chapitres (en dev et en CI : propositions comprises), chacun sur son verset de début', async () => {
+    const { rows } = await pool.query(
+      `SELECT b.code AS book, v.chapter, v.verse, sec.title
+       FROM sections sec JOIN verses v ON v.id = sec.start_verse_id JOIN books b ON b.id = v.book_id
+       ORDER BY v.position`,
+    );
+    const key = ({ book, chapter, verse, title }) => `${book} ${chapter},${verse} ${title}`;
+
+    expect(rows.map(key).sort()).toEqual(sections.map(({ book, start, title }) => key({ book, chapter: start[0], verse: start[1], title })).sort());
   });
 });

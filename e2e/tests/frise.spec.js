@@ -78,8 +78,23 @@ test('histoire : un clic sur un chapitre d\'un épisode y saute (pas au début d
 
   // 1 S 17,1 est à l'écran (et pas le début de l'épisode, en 1 S 16)
   await expect(page.getByText('Les Philistins rassemblèrent leurs armées')).toBeInViewport();
-  await expect(frise.getByRole('button', { name: /chapitre 17/ })).toHaveAttribute('aria-current', 'location');
-  await expect(frise.getByRole('button', { name: /chapitre 16/ })).not.toHaveAttribute('aria-current');
+  // Le chapitre 17 a des sous-chapitres : on est descendu dedans, et le premier est celui qu'on lit
+  await expect(frise.getByRole('button', { name: 'Le défi de Goliath' })).toHaveAttribute('aria-current', 'location');
+});
+
+test('sous-chapitres : un clic dans la frise amène à son intertitre dans le texte', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
+  await page.goto('/');
+  const frise = page.getByRole('navigation', { name: 'Frise' });
+  const clickBlock = (name) => frise.getByRole('button', { name }).getByText(name, { exact: true }).click();
+
+  await clickBlock('La royauté');
+  await clickBlock("David, l'onction et Goliath");
+  await frise.getByRole('button', { name: /chapitre 17/ }).click({ position: { x: 20, y: 12 } });
+  await frise.getByRole('button', { name: 'Le combat' }).click({ position: { x: 20, y: 12 } });
+
+  await expect(page.getByRole('heading', { name: 'Le combat', level: 4 })).toBeInViewport();
+  await expect(frise.getByRole('button', { name: 'Le combat' })).toHaveAttribute('aria-current', 'location');
 });
 
 test('Bible entière : ensembles → livres → dizaines → chapitres, et la lecture saute au Psaume 23', async ({ page, isMobile }) => {

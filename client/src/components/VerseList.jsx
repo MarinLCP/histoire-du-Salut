@@ -2,8 +2,9 @@
 // sur un verset ouvre son menu : surligner, écrire une note, copier.
 // La référence d'un verset ("Gn 1,3") est la même partout : un verset surligné dans la Bible entière
 // l'est aussi dans l'histoire du salut.
+// Un verset où commence un sous-chapitre est précédé de son intertitre (verse.sectionTitle).
 
-import { memo } from 'react';
+import { Fragment, memo } from 'react';
 import { verseKey } from '../bible/reference.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import './VerseList.css';
@@ -12,7 +13,10 @@ import './VerseList.css';
 // openMenu({ key, text }) reçoit la référence du verset et son texte (pour le copier).
 function VerseList({ verses, bookCode, annotations }) {
   return verses.map((verse, index) => (
-    <Verse key={index} verse={verse} bookCode={bookCode} annotations={annotations} />
+    <Fragment key={index}>
+      {verse.sectionTitle && <h4 className="verse-section">{verse.sectionTitle}</h4>}
+      <Verse verse={verse} bookCode={bookCode} annotations={annotations} />
+    </Fragment>
   ));
 }
 

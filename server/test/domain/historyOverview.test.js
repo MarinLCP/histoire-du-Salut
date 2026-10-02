@@ -80,4 +80,24 @@ describe('buildHistoryTree', () => {
   test('base encore vide (pas d\'époque) : un arbre vide', () => {
     expect(buildHistoryTree({ epochs: [], episodes: [], chapters: [] })).toEqual([]);
   });
+
+  test('chaque nœud dit ce qu\'il est : époque, épisode, chapitre', () => {
+    const [origins] = buildHistoryTree(outline);
+
+    expect([origins.kind, origins.children[0].kind, origins.children[0].children[0].kind]).toEqual(['epoch', 'episode', 'chapter']);
+  });
+
+  test('les sous-chapitres d\'un chapitre : sous lui, chacun à sa position de lecture dans l\'épisode', () => {
+    const sections = [
+      { passagePosition: 1, chapterLabel: '1', verse: '1', title: 'La lumière', startShare: 0 },
+      { passagePosition: 1, chapterLabel: '1', verse: '14', title: 'Les étoiles', startShare: 0.3 },
+    ];
+    const [origins] = buildHistoryTree({ ...outline, sections });
+    const [chapter1, chapter2] = origins.children[0].children;
+
+    expect(chapter1.children.map((section) => [section.kind, section.title, section.detail, section.position]))
+      .toEqual([['section', 'La lumière', 'v. 1', 1], ['section', 'Les étoiles', 'v. 14', 1.3]]);
+    expect(chapter1.position).toBe(1);
+    expect(chapter2.children).toEqual([]);
+  });
 });
