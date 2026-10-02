@@ -13,6 +13,7 @@ import { Boat } from './Boat.jsx';
 import { layoutCascade, boatPlace } from './cascadeLayout.js';
 import { pathAfterClick, pathOfTab, pressedTab } from './cascadeNavigation.js';
 import { readingPath, currentStair, followReading } from './readingSync.js';
+import { pathKey, startsWith } from './nodePath.js';
 import { useElementSize } from './useElementSize.js';
 import { useOverview } from './useOverview.js';
 import { useReadingPosition } from './useReadingPosition.js';
@@ -30,7 +31,7 @@ function Frise({ mode, tabNames, onJump }) {
   // La lecture a changé de nœud : la frise la suit, au même niveau de zoom
   // (mise à jour pendant l'affichage : React recommence aussitôt, sans effet ni affichage intermédiaire)
   const reading = readingPath(tree, readingAt);
-  const readingKey = reading.join('.');
+  const readingKey = pathKey(reading);
   if (readingKey !== view.readingKey) {
     const followed = followReading(view.path, reading);
     setView({ path: followed ?? view.path, changes: view.changes + (followed ? 1 : 0), readingKey });
@@ -88,7 +89,7 @@ const READ_CLASS = { stair: 'current', step: 'reading-here', strip: null };
 // memo : un bloc ne se redessine que si sa place ou son état de lecture change
 const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
   const style = {
-    left: block.left, top: block.top, width: block.width, height: block.height, zIndex: block.z,
+    left: block.left, top: block.top, width: block.width, height: block.height, zIndex: block.layer,
     borderRadius: `0 ${block.radius}px 0 0`,
     ...(block.foam && { '--foam-x': `${block.foam.x}px`, '--foam-w': `${block.foam.width}px` }),
   };
@@ -111,11 +112,6 @@ const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
     </button>
   );
 });
-
-// Le chemin `path` commence-t-il par `prefix` ? (ex. [1, 0, 2] commence par [1, 0])
-function startsWith(path, prefix) {
-  return prefix.length <= path.length && prefix.every((index, rank) => path[rank] === index);
-}
 
 // memo : la frise ne se redessine pas quand la page change à côté (surlignage, menu d'un verset...)
 export default memo(Frise);

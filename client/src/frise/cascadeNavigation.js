@@ -1,6 +1,8 @@
 // Navigation dans la frise (fonctions pures) : où mène un clic sur un bloc, et où mènent les onglets.
 // path : le chemin des nœuds dans lesquels on est entré ([] = vue d'ensemble, [1, 0] = 1er enfant du 2e nœud).
 
+import { nodeAt, pathKey } from './nodePath.js';
+
 // Le nouveau chemin après un clic sur un bloc, ou null si le clic ne change pas de niveau.
 //   - une bande : on remonte au niveau où ce nœud est dans l'escalier ;
 //   - un bloc de l'escalier qui a des enfants : on descend dedans.
@@ -23,11 +25,7 @@ export function pathOfTab(roots, focusPath, tab) {
 // L'onglet allumé : celui qui mène exactement au niveau affiché, ou -1 si aucun
 // (ex. les dizaines d'un long livre, entre « Livres » et « Chapitres »)
 export function pressedTab(roots, path) {
-  return TABS.findIndex((tab) => pathOfTab(roots, path, tab).join('.') === path.join('.'));
-}
-
-function nodeAt(roots, path) {
-  return path.reduce((node, index) => node.children[index], { children: roots });
+  return TABS.findIndex((tab) => pathKey(pathOfTab(roots, path, tab)) === pathKey(path));
 }
 
 // Descend depuis focusPath jusqu'au dernier niveau qui a encore des enfants à montrer en escalier

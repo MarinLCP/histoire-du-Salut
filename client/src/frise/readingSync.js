@@ -4,6 +4,8 @@
 // (le dernier va jusqu'à la fin de son parent). Les chapitres d'un épisode ont une position fractionnaire
 // (ex. 20.47 : le chapitre commence à 47 % de l'épisode n° 20), calculée par le serveur.
 
+import { startsWith } from './nodePath.js';
+
 // Le chemin du nœud lu, à chaque niveau (ex. [1, 0, 2]) ; [] si rien n'est lu
 export function readingPath(roots, x) {
   const path = [];
@@ -31,11 +33,11 @@ export function currentStair(roots, path, x) {
 }
 
 // La frise suit la lecture au même niveau de zoom : le nouveau chemin, ou null si rien ne doit bouger
+// (en vue d'ensemble, quand rien n'est lu à ce niveau, ou quand on regarde déjà ce qu'on lit)
 export function followReading(path, readingNodePath) {
   if (path.length === 0 || readingNodePath.length < path.length) return null;
-  const followed = readingNodePath.slice(0, path.length);
-  if (followed.join('.') === path.join('.')) return null;
-  return followed;
+  if (startsWith(readingNodePath, path)) return null;
+  return readingNodePath.slice(0, path.length);
 }
 
 // --- Les intervalles de lecture ---

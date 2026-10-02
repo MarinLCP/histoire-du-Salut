@@ -233,6 +233,7 @@ histoire-du-Salut/
     │   │   ├── staircase.js         ← le grand escalier en fonction pure (rectangles, sans navigateur)
     │   │   ├── cascadeLayout.js     ← où va chaque bloc (bandes à gauche, escalier, marches), au pixel près
     │   │   ├── cascadeNavigation.js ← où mène un clic (descendre / remonter) et chaque onglet
+    │   │   ├── nodePath.js          ← chemins dans l'arbre de la frise (clé, préfixe, nœud au bout)
     │   │   ├── readingSync.js       ← lecture ↔ frise : nœud lu, place du bateau, la frise suit la lecture
     │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu)
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement

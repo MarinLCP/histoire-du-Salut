@@ -16,12 +16,12 @@ const roots = [node('Les origines', 3), node('Les patriarches', 5)];
 describe('layoutCascade : vue d\'ensemble', () => {
   test('un bloc avec titre par époque, et un petit bloc sans titre par épisode', () => {
     const blocks = layoutCascade(roots, [], box);
-    const labelled = blocks.filter((block) => block.labelled);
+    const withTitle = blocks.filter((block) => block.kind !== 'step');
 
-    expect(labelled.map((block) => block.node.title)).toEqual(['Les origines', 'Les patriarches']);
+    expect(withTitle.map((block) => block.node.title)).toEqual(['Les origines', 'Les patriarches']);
     expect(blocks).toHaveLength(2 + 3 + 5);
-    expect(labelled.map((block) => block.depth)).toEqual([1, 1]);
-    expect(blocks.filter((block) => !block.labelled).every((block) => block.depth === 2)).toBe(true);
+    expect(withTitle.map((block) => block.depth)).toEqual([1, 1]);
+    expect(blocks.filter((block) => block.kind === 'step').every((block) => block.depth === 2)).toBe(true);
   });
 
   test('chaque bloc a une clé stable : son chemin dans l\'arbre', () => {
@@ -37,21 +37,21 @@ describe('layoutCascade : vue d\'ensemble', () => {
     const patriarchs = rest.find((block) => block.key === '1');
 
     originsSteps.forEach((step) => {
-      expect(step.z).toBeGreaterThan(origins.z);
-      expect(step.z).toBeLessThan(patriarchs.z);
+      expect(step.layer).toBeGreaterThan(origins.layer);
+      expect(step.layer).toBeLessThan(patriarchs.layer);
     });
   });
 
   test(`au plus ${MAX_STEPS} marches par bloc : au-delà, l'escalier serait illisible`, () => {
     const blocks = layoutCascade([node('Les Psaumes', 40)], [], box);
 
-    expect(blocks.filter((block) => !block.labelled)).toHaveLength(MAX_STEPS);
+    expect(blocks.filter((block) => block.kind === 'step')).toHaveLength(MAX_STEPS);
   });
 
   test('beaucoup d\'éléments dans peu de hauteur : des blocs « petits » (titre plus serré)', () => {
     const many = Array.from({ length: 20 }, (_, index) => node(`Époque ${index}`, 1));
 
-    expect(layoutCascade(many, [], { width: 400, height: 600 }).find((block) => block.labelled).small).toBe(true);
+    expect(layoutCascade(many, [], { width: 400, height: 600 }).find((block) => block.kind === 'stair').small).toBe(true);
     expect(layoutCascade(roots, [], box)[0].small).toBe(false);
   });
 });
@@ -89,7 +89,7 @@ describe('layoutCascade : zoom', () => {
     expect([epoch.kind, episode.kind]).toEqual(['strip', 'strip']);
     expect(episode.left).toBe(epoch.left + epoch.width);
     expect(episode.top).toBeGreaterThan(epoch.top);
-    expect(blocks.get('1.0.0')).toMatchObject({ kind: 'stair', depth: 3, labelled: true });
+    expect(blocks.get('1.0.0')).toMatchObject({ kind: 'stair', depth: 3 });
     // Les chapitres n'ont pas d'enfants : pas de petites marches
     expect([...blocks.values()].filter((block) => block.kind === 'step')).toEqual([]);
   });
@@ -103,12 +103,6 @@ describe('layoutCascade : zoom', () => {
     expect(zoomed.get('1.0').width).toBeGreaterThan(overview.get('1.0').width);
   });
 
-  test('une bande a son titre (écrit à la verticale), comme les blocs de l\'escalier', () => {
-    const blocks = byKey(layoutCascade(deep, [1, 0], box));
-
-    expect(blocks.get('1').labelled).toBe(true);
-    expect(blocks.get('1.0.0').labelled).toBe(true);
-  });
 });
 
 describe('boatPlace : le bateau glisse d\'un bloc de l\'escalier au suivant, au fil de la lecture', () => {
