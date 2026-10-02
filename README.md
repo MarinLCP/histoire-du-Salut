@@ -263,6 +263,7 @@ histoire-du-Salut/
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
         ├── App.test.jsx             ← routage : chaque adresse affiche sa page (et la frise sur /)
         ├── setup.js                 ← préparation commune à tous les tests (vide le cache de la frise)
+        ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)

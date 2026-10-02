@@ -6,6 +6,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import BiblePage from '../../src/pages/BiblePage.jsx';
+import { stubResizeObserver } from '../helpers/stubResizeObserver.js';
 
 const chapter = (position, code, title, label, text) => ({
   position, book: { code, title }, chapter: label,
@@ -50,11 +51,7 @@ describe('BiblePage', () => {
       const after = Number(new URL(url, 'http://test').searchParams.get('after'));
       return new Response(JSON.stringify(pages[after]));
     }));
-    vi.stubGlobal('ResizeObserver', class {
-      constructor(callback) { this.callback = callback; }
-      observe() { this.callback([{ contentRect: { width: 400, height: 600 } }]); }
-      disconnect() {}
-    });
+    stubResizeObserver(400, 600);
     vi.stubGlobal('scrollTo', vi.fn());
     // Le bas de page est toujours « visible » : chaque page chargée déclenche la suivante, jusqu'à la fin
     vi.stubGlobal('IntersectionObserver', class {

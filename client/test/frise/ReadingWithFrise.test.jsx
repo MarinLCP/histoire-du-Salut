@@ -5,6 +5,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import ReadingWithFrise from '../../src/frise/ReadingWithFrise.jsx';
+import { stubResizeObserver } from '../helpers/stubResizeObserver.js';
 
 const overview = [{ title: 'Les origines', detail: null, icon: 'sun', position: 1, children: [] }];
 const TAB_NAMES = ["Vue d'ensemble", 'Épisodes', 'Chapitres'];
@@ -24,11 +25,7 @@ describe('ReadingWithFrise sur écran étroit', () => {
     vi.stubGlobal('matchMedia', (query) => ({
       matches: query === '(max-width: 1099px)', addEventListener() {}, removeEventListener() {},
     }));
-    vi.stubGlobal('ResizeObserver', class {
-      constructor(callback) { this.callback = callback; }
-      observe() { this.callback([{ contentRect: { width: 360, height: 700 } }]); }
-      disconnect() {}
-    });
+    stubResizeObserver(360, 700);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(overview))));
   });
 

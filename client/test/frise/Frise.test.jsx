@@ -5,6 +5,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Frise from '../../src/frise/Frise.jsx';
+import { stubResizeObserver } from '../helpers/stubResizeObserver.js';
 
 const node = (title, icon, position, children = [], detail = null) => ({ title, detail, icon, position, children });
 const chapter = (label, position) => node('La Genèse', 'page', position, [], `chapitre ${label} · en entier`);
@@ -27,11 +28,7 @@ const pressedTab = () => screen.getAllByRole('button', { pressed: true }).map((b
 
 describe('Frise', () => {
   beforeEach(() => {
-    vi.stubGlobal('ResizeObserver', class {
-      constructor(callback) { this.callback = callback; }
-      observe() { this.callback([{ contentRect: { width: 400, height: 600 } }]); }
-      disconnect() {}
-    });
+    stubResizeObserver(400, 600);
   });
 
   afterEach(() => {
