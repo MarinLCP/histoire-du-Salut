@@ -4,14 +4,16 @@
 
 import { VERSE_COLUMNS } from './verseColumns.js';
 
-// Début commun des requêtes qui lisent des passages (p = passages, b = books) :
-// chaque requête n'ajoute que son WHERE / ORDER BY
+// Début commun des requêtes qui lisent des passages (p = passages, s / e = versets de début et de fin,
+// b = livre du verset de début) : chaque requête n'ajoute que son WHERE / ORDER BY
 const SELECT_PASSAGES = `
   SELECT p.id, p.position, p.slug, p.title,
          b.code AS book_code, b.title AS book_title,
-         p.start_chapter, p.start_verse, p.end_chapter, p.end_verse
+         s.chapter AS start_chapter, s.verse AS start_verse, e.chapter AS end_chapter, e.verse AS end_verse
   FROM passages p
-  JOIN books b ON b.id = p.book_id
+  JOIN verses s ON s.id = p.start_verse_id
+  JOIN verses e ON e.id = p.end_verse_id
+  JOIN books b ON b.id = s.book_id
 `;
 
 /**
@@ -108,8 +110,8 @@ async function findVersesByPassageIds(pool, ids) {
   const result = await pool.query(
     `SELECT p.id AS passage_id, ${VERSE_COLUMNS}
      FROM passages p
-     JOIN verses s ON s.book_id = p.book_id AND s.chapter = p.start_chapter AND s.verse = p.start_verse
-     JOIN verses e ON e.book_id = p.book_id AND e.chapter = p.end_chapter AND e.verse = p.end_verse
+     JOIN verses s ON s.id = p.start_verse_id
+     JOIN verses e ON e.id = p.end_verse_id
      JOIN verses v ON v.position BETWEEN s.position AND e.position
      WHERE p.id = ANY($1)
      ORDER BY p.position, v.position`,

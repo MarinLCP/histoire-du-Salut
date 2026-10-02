@@ -25,16 +25,21 @@ describe('base remplie par le seed', () => {
     expect(rows).toEqual(passages.map(({ slug, epoch, icon }) => ({ slug, epoch, icon })));
   });
 
-  test('chaque passage est relié à ses versets de début et de fin (les mêmes que les colonnes texte)', async () => {
+  test('chaque passage est relié à ses versets de début et de fin (ceux du fichier de données)', async () => {
     const { rows } = await pool.query(
-      `SELECT p.slug FROM passages p
+      `SELECT start_book.code AS book, s.chapter AS "startChapter", s.verse AS "startVerse",
+              end_book.code AS "endBook", e.chapter AS "endChapter", e.verse AS "endVerse"
+       FROM passages p
        JOIN verses s ON s.id = p.start_verse_id
        JOIN verses e ON e.id = p.end_verse_id
-       WHERE s.book_id = p.book_id AND s.chapter = p.start_chapter AND s.verse = p.start_verse
-         AND e.book_id = p.book_id AND e.chapter = p.end_chapter AND e.verse = p.end_verse`,
+       JOIN books start_book ON start_book.id = s.book_id
+       JOIN books end_book ON end_book.id = e.book_id
+       ORDER BY p.position`,
     );
 
-    expect(rows).toHaveLength(passages.length);
+    expect(rows).toEqual(passages.map(({ book, start, end }) => ({
+      book, startChapter: start[0], startVerse: start[1], endBook: book, endChapter: end[0], endVerse: end[1],
+    })));
   });
 
   test('les grands ensembles de la Bible, dans l\'ordre du fichier de données', async () => {
