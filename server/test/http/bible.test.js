@@ -44,6 +44,14 @@ describe('GET /api/bible', () => {
     expect(res.body.chapters[0].verses.length).toBeGreaterThan(0);
   });
 
+  test('chaque verset porte son chapitre (comme dans /api/passages) : sa référence en dépend (ex. "Gn 1,1")', async () => {
+    const res = await request(app).get('/api/bible?limit=2');
+
+    for (const chapter of res.body.chapters) {
+      expect(chapter.verses.every((verse) => verse.chapter === chapter.chapter)).toBe(true);
+    }
+  });
+
   test('en lisant jusqu\'au bout : tous les chapitres, une seule fois, dans l\'ordre des livres', async () => {
     const [books, chapters] = await Promise.all([request(app).get('/api/books'), readWholeBible()]);
     const totalChapters = books.body.reduce((sum, book) => sum + book.chapterCount, 0);

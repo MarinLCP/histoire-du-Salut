@@ -1,0 +1,15 @@
+.list-status {
+  margin: 1rem 0 3rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.list-retry {
+  padding: 0.5rem 1.2rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.list-end {
+  font-style: italic;
+}

@@ -24,6 +24,14 @@ export async function scrollToBottom(page) {
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 }
 
+// Défile jusqu'à ce que `locator` soit visible (garde-fou : au plus `maxAttempts` défilements)
+export async function scrollUntilVisible(page, locator, maxAttempts = 50) {
+  for (let attempt = 0; attempt < maxAttempts && !(await locator.isVisible()); attempt++) {
+    await scrollToBottom(page);
+    await page.waitForTimeout(300);
+  }
+}
+
 // Le titre du premier passage affiché
 export function firstTitle(page) {
   return page.getByRole('heading', { level: 2 }).first();

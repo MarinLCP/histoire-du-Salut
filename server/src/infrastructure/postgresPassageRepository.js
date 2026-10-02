@@ -2,6 +2,8 @@
 // C'est le SEUL endroit qui contient le SQL des passages : si la source des données change
 // un jour, on écrit un autre repository qui respecte le même contrat, sans toucher au reste.
 
+import { VERSE_COLUMNS } from './verseColumns.js';
+
 // Début commun des requêtes qui lisent des passages (p = passages, b = books) :
 // chaque requête n'ajoute que son WHERE / ORDER BY
 const SELECT_PASSAGES = `
@@ -56,7 +58,7 @@ async function findVersesByPassageIds(pool, ids) {
   // La colonne position gère les passages sur plusieurs chapitres.
   // = ANY($1) : "l'id fait partie de ce tableau", comme un IN (...) avec un tableau JS
   const result = await pool.query(
-    `SELECT p.id AS passage_id, v.chapter, v.verse, v.kind, v.text
+    `SELECT p.id AS passage_id, ${VERSE_COLUMNS}
      FROM passages p
      JOIN verses s ON s.book_id = p.book_id AND s.chapter = p.start_chapter AND s.verse = p.start_verse
      JOIN verses e ON e.book_id = p.book_id AND e.chapter = p.end_chapter AND e.verse = p.end_verse

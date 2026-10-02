@@ -26,7 +26,7 @@ function App() {
   const [menuVerse, setMenuVerse] = useState(null);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
-  // Ouvrir le menu ne redessine donc pas toute la page (voir memo dans Passage.jsx).
+  // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
   const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
 
   return (
@@ -35,7 +35,7 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<HistoryPage annotations={annotations} />} />
-          {hasFeature('bible') && <Route path="/bible" element={<BiblePage />} />}
+          {hasFeature('bible') && <Route path="/bible" element={<BiblePage annotations={annotations} />} />}
           {/* Adresse inconnue (ou page cachée) : retour à l'histoire du salut */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

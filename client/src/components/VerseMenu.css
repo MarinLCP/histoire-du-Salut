@@ -1,7 +1,7 @@
 /* Panneau collé en bas de l'écran (bottom sheet) */
 .verse-menu {
   width: 100%;
-  max-width: 38rem;
+  max-width: var(--reading-width);
   margin: auto auto 0;
   /* Pas de marge interne ici : voir useBackdropClose dans VerseMenu.jsx */
   padding: 0;

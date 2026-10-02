@@ -6,6 +6,8 @@
   --background: #fbf9f5;
   /* Jaune doux, comme un surligneur sur du papier */
   --highlight: #fbeaa0;
+  /* Largeur de la colonne de lecture (passages, chapitres, menus) */
+  --reading-width: 38rem;
 
   color-scheme: light dark;
   color: var(--text);

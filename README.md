@@ -145,7 +145,8 @@ histoire-du-Salut/
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
-│   │   │   └── postgresBibleRepository.js   ← tout le SQL de la Bible entière
+│   │   │   ├── postgresBibleRepository.js   ← tout le SQL de la Bible entière
+│   │   │   └── verseColumns.js      ← les colonnes d'un verset, partagées par les deux repositories
 │   │   └── http/                    ← le seul endroit qui connaît Express
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/books, /api/bible
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
@@ -169,6 +170,7 @@ histoire-du-Salut/
 │   └── tests/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
+│       ├── bible.spec.js            ← lire la Bible en continu ; un surlignage vaut aussi dans l'histoire
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -181,17 +183,21 @@ histoire-du-Salut/
     │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
     │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline)
-    │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière (cachée en ligne : flag "bible")
+    │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu (cachée en ligne : flag "bible")
     │   ├── index.css                ← couleurs (clair / sombre), police
     │   ├── api/
-    │   │   └── passages.api.js      ← appels à l'API (timeline, passage par slug)
+    │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
+    │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
+    │   │   └── bible.api.js         ← appels à l'API (Bible entière en continu)
     │   ├── bible/
     │   │   └── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── NavBar.jsx / .css    ← la barre de navigation entre les pages
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
-    │   │   ├── TimelineStatus.jsx   ← chargement / erreur / fin de l'histoire
-    │   │   ├── Passage.jsx / .css   ← un passage, ses versets et leurs notes
+    │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
+    │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, Partager, ses versets
+    │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
+    │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes), pour passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier)
     │   ├── highlights/              ← surlignages
@@ -211,9 +217,10 @@ histoire-du-Salut/
     │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien
     │   ├── features/
     │   │   └── features.js          ← feature flags : hasFeature('frise')
-    │   ├── hooks/                   ← appui long
+    │   ├── hooks/                   ← appui long, chargement au fil du défilement
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
-    │   │   └── useLongPress.js      ← branchement React
+    │   │   ├── useLongPress.js      ← branchement React
+    │   │   └── useCursorPagination.js ← liste chargée page par page (timeline et Bible)
     │   └── storage/                 ← outils partagés par surlignages et notes
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
@@ -222,6 +229,7 @@ histoire-du-Salut/
         ├── api/passages.api.test.js ← données et messages d'erreur de l'API
         ├── bible/reference.test.js
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
+        ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── features/features.test.js
         ├── highlights/              ← highlights, highlights.storage

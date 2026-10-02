@@ -1,5 +1,7 @@
 // Implémentation PostgreSQL du port BibleRepository (domain/BibleRepository.js) : tout le SQL de la Bible entière.
 
+import { VERSE_COLUMNS } from './verseColumns.js';
+
 /**
  * @param {import('pg').Pool} pool
  * @returns {import('../domain/BibleRepository.js').BibleRepository}
@@ -47,7 +49,7 @@ export function createPostgresBibleRepository(pool) {
 // Les versets de plusieurs chapitres, en UNE requête. Renvoie une Map : id du chapitre -> ses versets.
 async function findVersesByChapterIds(pool, ids) {
   const result = await pool.query(
-    `SELECT c.id AS chapter_id, v.verse, v.kind, v.text
+    `SELECT c.id AS chapter_id, ${VERSE_COLUMNS}
      FROM chapters c
      JOIN verses v ON v.book_id = c.book_id AND v.chapter = c.label
      WHERE c.id = ANY($1)

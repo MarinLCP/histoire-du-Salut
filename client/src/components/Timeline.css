@@ -3,25 +3,9 @@
   border-top: 1px solid var(--text-muted);
 }
 
-.timeline-status {
-  margin: 1rem 0 3rem;
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.timeline-retry {
-  padding: 0.5rem 1.2rem;
-  font: inherit;
-  cursor: pointer;
-}
-
-.timeline-end {
-  font-style: italic;
-}
-
 .timeline-back {
   display: block;
-  max-width: 38rem;
+  max-width: var(--reading-width);
   margin: 1rem auto 0;
   padding: 0 1rem;
   color: var(--text-muted);

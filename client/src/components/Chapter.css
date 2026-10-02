@@ -1,0 +1,21 @@
+.chapter {
+  max-width: var(--reading-width);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 0.5rem;
+  /* Lire toute la Bible empile des milliers de versets : le navigateur saute la mise en page
+     et le dessin des chapitres hors de l'écran (hauteur estimée en attendant) */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+/* Le titre du livre ouvre le livre : plus grand, avec de l'air au-dessus */
+.chapter-book {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.8rem;
+}
+
+.chapter-title {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  color: var(--text-muted);
+}
