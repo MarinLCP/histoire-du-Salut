@@ -4,29 +4,40 @@
 // ou null s'il n'y a encore rien à lire.
 
 const READING_LINE = 0.35;
+const MAX_PROGRESS = 0.999; // jamais 1 : la position resterait dans cet élément, pas au début du suivant
+// Arrondie au millième : moins de valeurs différentes pendant le défilement, donc moins d'affichages de la frise
+const PRECISION = 1000;
 
 export function measureReadingPosition() {
   const items = document.querySelectorAll('[data-reading-position]');
   if (items.length === 0) return null;
 
   const line = window.innerHeight * READING_LINE;
-  const index = lastIndexAbove(items, line);
-  const box = items[index].getBoundingClientRect();
-  const progress = Math.min(0.999, Math.max(0, (line - box.top) / box.height));
-  return Number(items[index].dataset.readingPosition) + Math.round(progress * 1000) / 1000;
+  const index = lastIndexAbove(items.length, (rank) => items[rank].getBoundingClientRect().top, line);
+  const progress = progressThrough(items[index].getBoundingClientRect(), line);
+  return Number(items[index].dataset.readingPosition) + progress;
 }
 
-// Recherche par dichotomie du dernier élément dont le haut est au-dessus de la ligne (le premier sinon) :
-// rapide même avec des centaines de chapitres chargés
-function lastIndexAbove(items, line) {
+// Recherche par dichotomie du dernier élément dont le haut est au-dessus de la ligne (le premier sinon).
+// topOf(rang) ne mesure que les éléments visités : rapide même avec des centaines de chapitres chargés.
+export function lastIndexAbove(count, topOf, line) {
   let low = 0;
-  let high = items.length - 1;
+  let high = count - 1;
   while (low < high) {
     const middle = Math.ceil((low + high) / 2);
-    if (items[middle].getBoundingClientRect().top <= line) low = middle;
-    else high = middle - 1;
+    if (topOf(middle) <= line) {
+      low = middle;
+      continue;
+    }
+    high = middle - 1;
   }
   return low;
+}
+
+// La part de l'élément ({ top, height }, en px) déjà passée au-dessus de la ligne de lecture
+export function progressThrough({ top, height }, line) {
+  const progress = Math.min(MAX_PROGRESS, Math.max(0, (line - top) / height));
+  return Math.round(progress * PRECISION) / PRECISION;
 }
 
 // Saute (sans long défilement) à une position de lecture, avec un léger fondu : l'inverse de la mesure.

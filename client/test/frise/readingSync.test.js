@@ -1,5 +1,5 @@
 // Tests du lien entre la lecture et la frise (fonctions pures).
-// x : la position de lecture continue. Ex. 12.4 = on a lu 40 % du passage n° 12 (ou du chapitre n° 12 de la Bible).
+// readingAt : la position de lecture continue. Ex. 12.4 = on a lu 40 % du passage n° 12 (ou du chapitre n° 12 de la Bible).
 
 import { describe, test, expect } from 'vitest';
 import { readingPath, currentStair, followReading } from '../../src/frise/readingSync.js';
