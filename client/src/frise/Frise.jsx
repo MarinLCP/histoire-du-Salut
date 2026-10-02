@@ -45,19 +45,24 @@ function Frise({ mode, tabNames, onJump }) {
     if (next) goTo(next);
   }
 
+  // Les onglets se placent autour de ce qu'on lit (ou de ce qu'on regarde, si rien n'est lu)
+  const focusPath = reading.length > 0 ? reading : view.path;
   const blocks = size.width > 0 ? layoutCascade(tree, view.path, size) : [];
   const stair = blocks.length > 0 ? currentStair(tree, view.path, readingAt) : null;
 
   return (
     <nav className="frise" aria-label="Frise">
-      <div className="frise-tabs" role="group" aria-label="Niveau de la frise">
-        {tabNames.map((name, tab) => (
-          <button key={name} type="button" aria-pressed={pressedTab(view.path) === tab}
-            onClick={() => goTo(pathOfTab(tree, reading.length > 0 ? reading : view.path, tab))}>
-            {name}
-          </button>
-        ))}
-      </div>
+      {/* Pas d'onglets tant que l'arbre n'est pas là (ou si son chargement a échoué) : rien à zoomer */}
+      {tree.length > 0 && (
+        <div className="frise-tabs" role="group" aria-label="Niveau de la frise">
+          {tabNames.map((name, tab) => (
+            <button key={name} type="button" aria-pressed={pressedTab(view.path) === tab}
+              onClick={() => goTo(pathOfTab(tree, focusPath, tab))}>
+              {name}
+            </button>
+          ))}
+        </div>
+      )}
       <div className={`frise-stage morph-${view.changes % 2}`} ref={stageRef}>
         {blocks.map((block) => (
           <CascadeBlock key={block.key} block={block} isRead={startsWith(reading, block.nodePath)} onOpen={openBlock} />

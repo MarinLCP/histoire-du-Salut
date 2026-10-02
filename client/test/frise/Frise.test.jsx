@@ -58,6 +58,14 @@ describe('Frise', () => {
     expect(fetch).toHaveBeenCalledWith('/api/overview/history');
   });
 
+  test('tant que la vue d\'ensemble n\'est pas chargée, pas d\'onglets : rien à zoomer (sinon un clic plantait la page)', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+    render(<Frise mode="history" tabNames={TAB_NAMES} onJump={vi.fn()} />);
+
+    expect(screen.getByRole('navigation', { name: 'Frise' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Épisodes' })).toBeNull();
+  });
+
   test('si le chargement échoue, la frise reste vide (la lecture marche sans elle)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('réseau coupé')));
     render(<Frise mode="history" tabNames={TAB_NAMES} onJump={vi.fn()} />);
