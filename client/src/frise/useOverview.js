@@ -2,22 +2,12 @@
 // Renvoie [] tant qu'il n'est pas là, ou si le chargement échoue : la frise aide à se repérer,
 // la lecture reste possible sans elle.
 
-import { useEffect, useState } from 'react';
 import { fetchOverview } from '../api/overview.api.js';
+import { useLoaded } from '../hooks/useLoaded.js';
+
+// Une seule liste vide (la même d'un affichage à l'autre) : voir useLoaded
+const NO_TREE = [];
 
 export function useOverview(mode) {
-  const [tree, setTree] = useState([]);
-
-  useEffect(() => {
-    // Si le composant disparaît (ou change de mode) avant la réponse, on ignore celle-ci
-    let ignore = false;
-    fetchOverview(mode)
-      .then((nodes) => { if (!ignore) setTree(nodes); })
-      .catch(() => { if (!ignore) setTree([]); });
-    return () => {
-      ignore = true;
-    };
-  }, [mode]);
-
-  return tree;
+  return useLoaded(mode, fetchOverview, NO_TREE, NO_TREE);
 }

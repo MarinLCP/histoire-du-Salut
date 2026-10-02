@@ -255,6 +255,7 @@ histoire-du-Salut/
     │   │   ├── useLongPress.js      ← branchement React
     │   │   ├── useCursorPagination.js ← liste chargée page par page (timeline et Bible)
     │   │   ├── useStartCursor.js    ← où commencer une liste ouverte par un lien (passage, chapitre)
+    │   │   ├── useLoaded.js         ← une valeur chargée pour une clé (départ, chargée, ou secours)
     │   │   └── useMediaQuery.js     ← une règle de taille d'écran est-elle vraie (ex. écran étroit)
     │   └── storage/                 ← outils partagés par surlignages et notes
     │       ├── versionedStorage.js  ← localStorage au format versionné
@@ -270,7 +271,7 @@ histoire-du-Salut/
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
         ├── highlights/              ← highlights, highlights.storage
-        ├── hooks/longPress.test.js
+        ├── hooks/                   ← longPress, useLoaded
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
         └── storage/versionedStorage.test.js ← mécanisme commun de sauvegarde

@@ -6,7 +6,8 @@
 // Lu une seule fois : quand le lien change, le composant qui l'utilise est recréé (key={...}).
 // Utilisé par l'histoire du salut (?passage=) et par la Bible entière (?livre=&chapitre=).
 
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useLoaded } from './useLoaded.js';
 
 const START = 0;
 
@@ -16,21 +17,7 @@ const START = 0;
  *   (appelée seulement s'il y a un lien) ; à définir hors du composant, pour qu'elle reste la même
  */
 export function useStartCursor(linkKey, findPosition) {
-  const [startAfter, setStartAfter] = useState(linkKey === null ? START : null);
-
-  useEffect(() => {
-    if (linkKey === null) return;
-    // Si le composant disparaît avant la réponse, on ignore celle-ci
-    let ignore = false;
-
-    findPosition(linkKey)
-      .then((position) => { if (!ignore) setStartAfter(position - 1); })
-      .catch(() => { if (!ignore) setStartAfter(START); });
-
-    return () => {
-      ignore = true;
-    };
-  }, [linkKey, findPosition]);
-
-  return startAfter;
+  // Commencer juste avant l'élément visé, pour qu'il soit le premier affiché
+  const findStart = useCallback((key) => findPosition(key).then((position) => position - 1), [findPosition]);
+  return useLoaded(linkKey, findStart, linkKey === null ? START : null, START);
 }
