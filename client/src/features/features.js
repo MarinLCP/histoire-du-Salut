@@ -1,8 +1,9 @@
 // Feature flags : cacher une fonctionnalité pas finie, tout en la commitant sur main (Trunk-Based Development).
 // - En dev (npm run dev) : tout est visible, pour travailler dessus.
-// - En ligne : seulement les fonctionnalités listées dans la variable Render VITE_FEATURES (ex. "frise,graphe").
-// Usage dans un composant : {hasFeature('frise') && <Frise />}
-// Une fois la fonctionnalité stable et en ligne pour tout le monde, on supprime son flag du code.
+// - En ligne : seulement les fonctionnalités listées dans la variable Render VITE_FEATURES (ex. "personnages,graphe").
+// Usage dans un composant : {hasFeature('personnages') && <Personnages />}
+// Une fois la fonctionnalité stable et en ligne pour tout le monde, on supprime son flag du code
+// (ex. "bible" et "frise", retirés en V7.8). Aucun flag n'est utilisé en ce moment.
 
 // Règle pure (testée) : on lui passe la situation au lieu de lire Vite
 export function isFeatureEnabled(name, { isDev, enabledList }) {

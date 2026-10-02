@@ -1,5 +1,5 @@
 // Page « Histoire du salut » (adresse /) : la timeline des épisodes, depuis le début
-// ou depuis un lien partagé (/?passage=creation). À gauche, la frise (cachée en ligne : flag "frise").
+// ou depuis un lien partagé (/?passage=creation). À gauche, la frise (mode Histoire du salut).
 
 import Timeline from '../components/Timeline.jsx';
 import ListStatus from '../components/ListStatus.jsx';

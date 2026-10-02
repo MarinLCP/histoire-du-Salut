@@ -1,5 +1,4 @@
 // Parcours : passer d'une page à l'autre (histoire du salut, Bible entière).
-// En dev, toutes les fonctionnalités sont visibles (feature flags) : la page Bible aussi.
 
 import { test, expect } from '@playwright/test';
 import { firstTitle } from './helpers.js';

@@ -11,13 +11,12 @@ import BiblePage from './pages/BiblePage.jsx';
 import { useHighlights } from './highlights/useHighlights.js';
 import { useNotes } from './notes/useNotes.js';
 import { copyText } from './copy/clipboard.js';
-import { hasFeature } from './features/features.js';
 
-// Les pages du site. La Bible entière est cachée en ligne tant qu'elle n'est pas finie (feature flag).
+// Les pages du site
 const PAGES = [
-  { to: '/', label: 'Histoire du salut', visible: true },
-  { to: '/bible', label: 'Bible entière', visible: hasFeature('bible') },
-].filter((page) => page.visible);
+  { to: '/', label: 'Histoire du salut' },
+  { to: '/bible', label: 'Bible entière' },
+];
 
 function App() {
   const { highlights, toggle: toggleHighlight } = useHighlights();
@@ -35,8 +34,8 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<HistoryPage annotations={annotations} />} />
-          {hasFeature('bible') && <Route path="/bible" element={<BiblePage annotations={annotations} />} />}
-          {/* Adresse inconnue (ou page cachée) : retour à l'histoire du salut */}
+          <Route path="/bible" element={<BiblePage annotations={annotations} />} />
+          {/* Adresse inconnue : retour à l'histoire du salut */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

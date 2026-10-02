@@ -3,11 +3,9 @@
 // - Écran étroit (moins de 1100 px) : pas la place ; la frise est rangée dans un panneau glissant,
 //   ouvert par l'onglet « Frise » au bord gauche, et refermé par Échap, un toucher dans la lecture,
 //   ou un saut de lecture (un clic sur un bloc).
-// Sans le flag "frise" (en ligne, tant qu'elle n'est pas finie) : la lecture seule, comme avant.
 
 import { useCallback, useEffect, useState } from 'react';
 import Frise from './Frise.jsx';
-import { hasFeature } from '../features/features.js';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import './ReadingWithFrise.css';
 
@@ -27,8 +25,6 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
   }, [onJump]);
 
   useCloseOnEscape(isOpen, setIsOpen);
-
-  if (!hasFeature('frise')) return children;
 
   return (
     <div className="with-frise">

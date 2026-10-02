@@ -8,7 +8,7 @@
   --highlight: #fbeaa0;
   /* Largeur de la colonne de lecture (passages, chapitres, menus) */
   --reading-width: 38rem;
-  /* Hauteur de la barre de navigation : la frise la retire de la sienne pour tenir entière à l'écran */
+  /* Hauteur de la barre de navigation (toujours visible) : la frise se place dessous, sur le reste de l'écran */
   --nav-height: 3rem;
 
   color-scheme: light dark;
@@ -29,6 +29,11 @@
 
 body {
   margin: 0;
+}
+
+/* Un saut de lecture (clic dans la frise) arrête le titre sous la barre de navigation, pas derrière */
+[data-reading-position] {
+  scroll-margin-top: calc(var(--nav-height) + .75rem);
 }
 
 /* « Revenir au début » : en tête d'une liste ouverte depuis un lien (histoire du salut, Bible entière) */

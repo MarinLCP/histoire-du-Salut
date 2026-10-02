@@ -1,8 +1,7 @@
 // Page « Bible entière » (adresse /bible) : toute la Bible, lue en continu, chapitre après chapitre.
 // Depuis un lien (/bible?livre=Gn&chapitre=3, ex. « Lire tout le chapitre »), la lecture commence à ce chapitre.
 // La suite se charge au fil du défilement (même mécanisme que la timeline : useCursorPagination).
-// Cachée en ligne tant qu'elle n'est pas finie (feature flag "bible", voir App.jsx).
-// À gauche, la frise en mode Bible entière (cachée en ligne : flag "frise").
+// À gauche, la frise en mode Bible entière.
 
 import { memo } from 'react';
 import { Link, useLocation } from 'react-router';

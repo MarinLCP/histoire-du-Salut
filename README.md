@@ -52,9 +52,10 @@ Le résultat s'affiche dans l'onglet **Actions** du dépôt et en ✅ / ❌ à c
 On commite tous les jours sur `main` (Trunk-Based Development) : une fonctionnalité en cours est cachée en ligne.
 
 - **En dev** (`npm run dev`) : tout est visible.
-- **En ligne** : seulement les fonctionnalités listées dans la variable Render **`VITE_FEATURES`** (ex. `frise,graphe`).
+- **En ligne** : seulement les fonctionnalités listées dans la variable Render **`VITE_FEATURES`** (ex. `personnages,graphe`).
 
-Dans un composant : `{hasFeature('frise') && <Frise />}` (voir [client/src/features/features.js](client/src/features/features.js)).
+Dans un composant : `{hasFeature('personnages') && <Personnages />}` (voir [client/src/features/features.js](client/src/features/features.js)).
+Aucun flag n'est utilisé en ce moment (« bible » et « frise » ont été retirés en V7.8, une fois en ligne).
 Pour mettre en ligne : ajouter le nom dans `VITE_FEATURES` sur Render (cela redéploie : la valeur est lue au build).
 Une fois la fonctionnalité stable, on supprime son flag du code. Jamais de secret dans une variable `VITE_` : elle finit dans le navigateur.
 
@@ -204,10 +205,10 @@ histoire-du-Salut/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
     │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
-    │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche (flag "frise")
-    │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu (cachée en ligne : flag "bible")
+    │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche
+    │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu
     │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre ; frise en mode Bible
-    │   ├── index.css                ← couleurs (clair / sombre), police, hauteur de la barre, « Revenir au début »
+    │   ├── index.css                ← couleurs, police, hauteur de la barre (fixe en haut), « Revenir au début »
     │   ├── api/
     │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
     │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
@@ -217,7 +218,7 @@ histoire-du-Salut/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   │   └── bibleLink.js         ← lien vers un chapitre : /bible?livre=Gn&chapitre=3 (créer / relire)
     │   ├── components/              ← ce qui s'affiche à l'écran
-    │   │   ├── NavBar.jsx / .css    ← la barre de navigation entre les pages
+    │   │   ├── NavBar.jsx / .css    ← la barre de navigation entre les pages (toujours visible en haut)
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
     │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, « Lire tout le chapitre », Partager, ses versets
@@ -249,14 +250,14 @@ histoire-du-Salut/
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
-    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche, lecture à droite ; < 1100 px : panneau « Frise »
+    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (toute la hauteur), lecture à droite ; < 1100 px : panneau
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
     │   ├── features/
-    │   │   └── features.js          ← feature flags : hasFeature('frise')
+    │   │   └── features.js          ← feature flags : hasFeature('...') (aucun en ce moment)
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React

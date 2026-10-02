@@ -1,4 +1,9 @@
+/* Toujours visible en haut de l'écran, même en bas de la lecture (sticky) ; fond opaque pour cacher le texte dessous */
 .nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--background);
   display: flex;
   align-items: center;
   justify-content: center;

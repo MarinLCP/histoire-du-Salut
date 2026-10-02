@@ -1,4 +1,4 @@
-// Parcours de la frise (cascade à gauche du texte). En local et en CI, le flag "frise" est actif (mode dev).
+// Parcours de la frise (cascade à gauche du texte ; panneau « Frise » sur téléphone).
 
 import { test, expect } from '@playwright/test';
 
@@ -13,6 +13,19 @@ test('sur ordinateur, la frise montre les époques à gauche de l\'histoire', as
   const friseBox = await frise.boundingBox();
   const titleBox = await page.getByRole('heading', { name: 'La Création' }).boundingBox();
   expect(friseBox.x + friseBox.width).toBeLessThanOrEqual(titleBox.x);
+});
+
+test('en bas de la lecture : la barre du haut reste visible, la frise va jusqu\'en bas de l\'écran', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
+  await page.goto('/');
+  await page.getByRole('heading', { name: 'La Création' }).waitFor();
+  await page.mouse.wheel(0, 4000);
+
+  await expect(page.getByRole('navigation', { name: 'Pages' })).toBeInViewport();
+  const friseBox = await page.getByRole('navigation', { name: 'Frise' }).boundingBox();
+  const navBox = await page.getByRole('navigation', { name: 'Pages' }).boundingBox();
+  expect(friseBox.y).toBeCloseTo(navBox.y + navBox.height, 0);
+  expect(friseBox.y + friseBox.height).toBeCloseTo(page.viewportSize().height, 0);
 });
 
 test('zoom : clic sur une époque pour voir ses épisodes, clic sur sa bande pour remonter', async ({ page, isMobile }) => {

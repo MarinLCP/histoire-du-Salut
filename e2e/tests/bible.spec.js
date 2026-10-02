@@ -1,4 +1,4 @@
-// Parcours : lire la Bible entière (page /bible, visible en dev grâce aux feature flags).
+// Parcours : lire la Bible entière (page /bible).
 
 import { test, expect } from '@playwright/test';
 import { firstVerse, longPress, scrollUntilVisible } from './helpers.js';

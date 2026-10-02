@@ -34,7 +34,7 @@ describe('routage', () => {
     expect(screen.queryByRole('heading', { name: 'La Bible entière' })).toBeNull();
   });
 
-  test('"/" affiche aussi la frise à gauche du texte (flag "frise", toujours actif en dev et en test)', () => {
+  test('"/" affiche aussi la frise à gauche du texte', () => {
     renderAt('/');
 
     expect(screen.getByRole('navigation', { name: 'Frise' })).toBeDefined();

@@ -4,7 +4,6 @@
 // ou null s'il n'y a encore rien à lire.
 
 const READING_LINE = 0.35;
-const SCROLL_MARGIN = 12; // un peu d'air au-dessus du titre après un saut
 
 export function measureReadingPosition() {
   const items = document.querySelectorAll('[data-reading-position]');
@@ -30,13 +29,13 @@ function lastIndexAbove(items, line) {
   return low;
 }
 
-// Saute (sans long défilement) à l'élément de cette position, avec un léger fondu.
-// Renvoie false s'il n'est pas encore chargé dans la page.
+// Saute (sans long défilement) à l'élément de cette position, avec un léger fondu. Il s'arrête sous la barre
+// de navigation (scroll-margin-top, voir index.css). Renvoie false s'il n'est pas encore chargé dans la page.
 export function jumpToReadingPosition(position) {
   const target = document.querySelector(`[data-reading-position="${position}"]`);
   if (!target) return false;
 
-  window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - SCROLL_MARGIN, behavior: 'instant' });
+  target.scrollIntoView({ block: 'start', behavior: 'instant' });
   target.parentElement.animate?.([{ opacity: 0.35 }, { opacity: 1 }], { duration: 250, easing: 'ease' });
   return true;
 }

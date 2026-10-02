@@ -6,7 +6,6 @@
 // - Pendant la lecture : le bloc lu est surligné, le bateau descend la cascade, et la frise suit la lecture.
 // Les blocs sont placés au pixel près par des fonctions pures (cascadeLayout.js, readingSync.js) ; d'un niveau
 // à l'autre, un même nœud garde sa clé React et glisse vers sa nouvelle place (transition CSS).
-// Cachée en ligne tant qu'elle n'est pas finie (feature flag "frise", voir HistoryPage.jsx).
 
 import { memo, useState } from 'react';
 import { Icon } from './Icon.jsx';

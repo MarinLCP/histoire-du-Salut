@@ -12,9 +12,9 @@
   /* Le glissement d'un niveau à l'autre (zoom) */
   --morph: .6s cubic-bezier(.5, 0, .2, 1);
 
-  /* Sous la barre de navigation, la vue d'ensemble tient entière à l'écran ; elle y reste pendant la lecture */
+  /* Collée sous la barre de navigation, jusqu'en bas de l'écran, pendant toute la lecture */
   position: sticky;
-  top: 0;
+  top: var(--nav-height);
   display: flex;
   flex-direction: column;
   height: calc(100dvh - var(--nav-height));

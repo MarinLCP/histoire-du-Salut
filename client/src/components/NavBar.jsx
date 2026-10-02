@@ -1,5 +1,5 @@
 // La barre de navigation : un lien par page. NavLink ajoute aria-current="page" sur la page affichée.
-// `pages` : [{ to, label }] (App décide quelles pages existent, selon les feature flags).
+// `pages` : [{ to, label }] (la liste des pages est dans App.jsx).
 
 import { NavLink } from 'react-router';
 import './NavBar.css';
