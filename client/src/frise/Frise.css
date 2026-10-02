@@ -1,0 +1,58 @@
+/* La frise : une colonne à gauche du texte, qui reste à l'écran pendant qu'on lit (sticky).
+   Couleurs : un bleu par niveau (maquette V7.1), liseré clair en haut de chaque bloc pour les séparer. */
+
+.frise {
+  --level-1: #6488db;
+  --level-2: #4f6fae;
+  --level-3: #32466e;
+  --level-4: #24335a;
+  --ink-on-light: #0d1630;
+  --ink-on-dark: #ffffff;
+
+  /* Sous la barre de navigation, la vue d'ensemble tient entière à l'écran ; elle y reste pendant la lecture */
+  position: sticky;
+  top: 0;
+  height: calc(100dvh - var(--nav-height));
+  border-right: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
+}
+
+.frise-stage {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.frise-block {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  padding: .7rem .75rem;
+  font: 600 .8rem/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* De fines rayures verticales et un liseré clair en haut : l'eau qui tombe en cascade */
+  background-image: repeating-linear-gradient(90deg, transparent 0 1.5rem, #ffffff1f 1.5rem calc(1.5rem + 1px));
+  box-shadow: inset 0 2px 0 #ffffff59, inset 0 -1px 0 #0d16301f, 0 -2px 0 #0d163024;
+}
+
+.frise-block.small {
+  padding-block: .4rem;
+}
+
+.frise-block.depth-1 { background-color: var(--level-1); color: var(--ink-on-light); }
+.frise-block.depth-2 { background-color: var(--level-2); color: var(--ink-on-light); }
+.frise-block.depth-3 { background-color: var(--level-3); color: var(--ink-on-dark); }
+.frise-block.depth-4 { background-color: var(--level-4); color: var(--ink-on-dark); }
+
+.frise-label {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  min-width: 0;
+  text-wrap: balance;
+}
+
+.frise-icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+}

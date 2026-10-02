@@ -192,6 +192,7 @@ histoire-du-Salut/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
+│       ├── frise.spec.js            ← la frise à gauche du texte (ordinateur), cachée sur téléphone
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -203,14 +204,15 @@ histoire-du-Salut/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
     │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
-    │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline)
+    │   │   ├── HistoryPage.jsx / .css ← /     : l'histoire du salut (timeline), la frise à gauche (flag "frise")
     │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu (cachée en ligne : flag "bible")
     │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre
-    │   ├── index.css                ← couleurs (clair / sombre), police, lien « Revenir au début »
+    │   ├── index.css                ← couleurs (clair / sombre), police, hauteur de la barre, « Revenir au début »
     │   ├── api/
     │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
     │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
-    │   │   └── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre)
+    │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre)
+    │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode)
     │   ├── bible/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   │   └── bibleLink.js         ← lien vers un chapitre : /bible?livre=Gn&chapitre=3 (créer / relire)
@@ -238,6 +240,14 @@ histoire-du-Salut/
     │   │   ├── shareLink.js         ← lien direct /?passage=slug (créer / relire)
     │   │   ├── share.js             ← feuille de partage du téléphone, ou copie du lien
     │   │   └── useStartPosition.js  ← démarrer la timeline au passage du lien
+    │   ├── frise/                   ← la frise : cascade de blocs à gauche du texte (maquette V7.1)
+    │   │   ├── staircase.js         ← le grand escalier en fonction pure (rectangles, sans navigateur)
+    │   │   ├── cascadeLayout.js     ← où va chaque bloc (vue d'ensemble), au pixel près
+    │   │   ├── Frise.jsx / .css     ← le composant : charge l'arbre, mesure la zone, dessine les blocs
+    │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
+    │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
+    │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
+    │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
     │   ├── features/
     │   │   └── features.js          ← feature flags : hasFeature('frise')
     │   ├── hooks/                   ← appui long, chargement au fil du défilement
@@ -249,13 +259,14 @@ histoire-du-Salut/
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
-        ├── App.test.jsx             ← routage : chaque adresse affiche sa page
+        ├── App.test.jsx             ← routage : chaque adresse affiche sa page (et la frise sur /)
         ├── api/passages.api.test.js ← données et messages d'erreur de l'API
         ├── bible/                   ← reference, bibleLink
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, ouverte par un lien
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── features/features.test.js
+        ├── frise/                   ← escalier, disposition, pictogrammes (vs fichiers de données), composant
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/longPress.test.js
         ├── notes/                   ← notes, notes.storage

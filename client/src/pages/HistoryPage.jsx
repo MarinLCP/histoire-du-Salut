@@ -1,10 +1,13 @@
 // Page « Histoire du salut » (adresse /) : la timeline des épisodes, depuis le début
-// ou depuis un lien partagé (/?passage=creation).
+// ou depuis un lien partagé (/?passage=creation). À gauche, la frise (cachée en ligne : flag "frise").
 
 import Timeline from '../components/Timeline.jsx';
 import ListStatus from '../components/ListStatus.jsx';
+import Frise from '../frise/Frise.jsx';
 import { sharePassage } from '../share/share.js';
 import { useStartPosition } from '../share/useStartPosition.js';
+import { hasFeature } from '../features/features.js';
+import './HistoryPage.css';
 
 // annotations : surlignages, notes et ouverture du menu d'un verset (partagés par toutes les pages)
 function HistoryPage({ annotations }) {
@@ -12,7 +15,15 @@ function HistoryPage({ annotations }) {
 
   // Lien partagé : on attend de savoir où commencer avant d'afficher la timeline
   if (startAfter === null) return <ListStatus isLoading />;
-  return <Timeline startAfter={startAfter} annotations={annotations} onShare={sharePassage} />;
+  const timeline = <Timeline startAfter={startAfter} annotations={annotations} onShare={sharePassage} />;
+  if (!hasFeature('frise')) return timeline;
+
+  return (
+    <div className="with-frise">
+      <Frise mode="history" />
+      <div className="with-frise-reading">{timeline}</div>
+    </div>
+  );
 }
 
 export default HistoryPage;

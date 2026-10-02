@@ -1,0 +1,17 @@
+/* La frise à gauche, la lecture à droite (écran large). Sous 1100 px, pas la place : la frise est cachée
+   (V7.7 : un onglet « Frise » au bord gauche l'ouvrira dans un panneau glissant). */
+
+.with-frise {
+  display: grid;
+  grid-template-columns: 22rem minmax(0, 1fr);
+}
+
+@media (max-width: 1099px) {
+  .with-frise {
+    display: block;
+  }
+
+  .with-frise .frise {
+    display: none;
+  }
+}
