@@ -142,7 +142,7 @@ histoire-du-Salut/
 │   │   │   └── postgresPassageRepository.js ← tout le SQL des passages
 │   │   └── http/                    ← le seul endroit qui connaît Express
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline
-│   │       │                          + site React construit (prod)
+│   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
 │   └── test/                        ← en miroir de src/ et scripts/
 │       ├── domain/                  ← PassageSlug, PageRequest (unitaires, sans base)
@@ -150,6 +150,7 @@ histoire-du-Salut/
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
+│       │   ├── spaFallback.test.js  ← les adresses du site renvoient index.html, pas l'API
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       └── scripts/
 │           ├── migrations.test.js   ← choix des migrations à appliquer
@@ -159,6 +160,7 @@ histoire-du-Salut/
 │   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
 │   └── tests/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
+│       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -167,14 +169,18 @@ histoire-du-Salut/
     ├── index.html                   ← la seule page HTML (app "single page")
     ├── vite.config.js               ← proxy /api → localhost:3000 en dev
     ├── src/
-    │   ├── main.jsx                 ← point d'entrée : monte React dans la page
-    │   ├── App.jsx                  ← assemble tout : timeline + menu d'un verset
+    │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
+    │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
+    │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
+    │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline)
+    │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière (cachée en ligne : flag "bible")
     │   ├── index.css                ← couleurs (clair / sombre), police
     │   ├── api/
     │   │   └── passages.api.js      ← appels à l'API (timeline, passage par slug)
     │   ├── bible/
     │   │   └── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   ├── components/              ← ce qui s'affiche à l'écran
+    │   │   ├── NavBar.jsx / .css    ← la barre de navigation entre les pages
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── TimelineStatus.jsx   ← chargement / erreur / fin de l'histoire
     │   │   ├── Passage.jsx / .css   ← un passage, ses versets et leurs notes
@@ -204,6 +210,7 @@ histoire-du-Salut/
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
+        ├── App.test.jsx             ← routage : chaque adresse affiche sa page
         ├── api/passages.api.test.js ← données et messages d'erreur de l'API
         ├── bible/reference.test.js
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)

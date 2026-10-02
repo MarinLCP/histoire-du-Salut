@@ -62,4 +62,13 @@ function serveClient(app, clientBuildDirectory) {
     express.static(join(clientBuildDirectory, 'assets'), { immutable: true, maxAge: '1y', fallthrough: false }),
   );
   app.use(express.static(clientBuildDirectory));
+
+  // « SPA fallback » : une adresse du site qui n'est pas un fichier (ex. /bible, ouverte directement ou
+  // rafraîchie) renvoie index.html ; c'est ensuite React (le routeur) qui affiche la bonne page.
+  // Les adresses de l'API ne sont pas concernées : une route API inconnue doit rester une vraie 404.
+  app.get('/{*address}', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    // Pas de site construit (en dev, c'est Vite qui sert le site) : on laisse Express répondre 404
+    res.sendFile(join(clientBuildDirectory, 'index.html'), (error) => { if (error) next(); });
+  });
 }

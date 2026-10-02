@@ -1,35 +1,45 @@
-// Assemble l'app : la timeline des passages (depuis le début, ou depuis un lien partagé),
-// et le menu d'un verset (surligner, noter, copier).
+// Assemble l'app : la barre de navigation, les pages (une adresse chacune), et le menu d'un verset
+// (surligner, noter, copier), partagé par toutes les pages.
+// Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useMemo, useState } from 'react';
-import Timeline from './components/Timeline.jsx';
-import TimelineStatus from './components/TimelineStatus.jsx';
+import { Navigate, Route, Routes } from 'react-router';
+import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
+import HistoryPage from './pages/HistoryPage.jsx';
+import BiblePage from './pages/BiblePage.jsx';
 import { useHighlights } from './highlights/useHighlights.js';
 import { useNotes } from './notes/useNotes.js';
 import { copyText } from './copy/clipboard.js';
-import { sharePassage } from './share/share.js';
-import { useStartPosition } from './share/useStartPosition.js';
+import { hasFeature } from './features/features.js';
+
+// Les pages du site. La Bible entière est cachée en ligne tant qu'elle n'est pas finie (feature flag).
+const PAGES = [
+  { to: '/', label: 'Histoire du salut', visible: true },
+  { to: '/bible', label: 'Bible entière', visible: hasFeature('bible') },
+].filter((page) => page.visible);
 
 function App() {
   const { highlights, toggle: toggleHighlight } = useHighlights();
   const { notes, save: saveNote } = useNotes();
   // Verset dont le menu est ouvert, { key: "Gn 1,3", text: "..." }, ou null si aucun
   const [menuVerse, setMenuVerse] = useState(null);
-  const startAfter = useStartPosition();
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
-  // Ouvrir le menu ne redessine donc pas toute la timeline (voir memo dans Passage.jsx).
+  // Ouvrir le menu ne redessine donc pas toute la page (voir memo dans Passage.jsx).
   const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
 
   return (
-    <main>
-      {/* Lien partagé : on attend de savoir où commencer avant d'afficher la timeline */}
-      {startAfter === null ? (
-        <TimelineStatus isLoading />
-      ) : (
-        <Timeline startAfter={startAfter} annotations={annotations} onShare={sharePassage} />
-      )}
+    <>
+      <NavBar pages={PAGES} />
+      <main>
+        <Routes>
+          <Route path="/" element={<HistoryPage annotations={annotations} />} />
+          {hasFeature('bible') && <Route path="/bible" element={<BiblePage />} />}
+          {/* Adresse inconnue (ou page cachée) : retour à l'histoire du salut */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
 
       {/* key : un nouveau menu (état remis à zéro) pour chaque verset */}
       {menuVerse && (
@@ -45,7 +55,7 @@ function App() {
           onClose={() => setMenuVerse(null)}
         />
       )}
-    </main>
+    </>
   );
 }
 

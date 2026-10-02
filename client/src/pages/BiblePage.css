@@ -1,0 +1,15 @@
+.bible-page {
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.bible-page h1 {
+  margin: 0 0 .5rem;
+  font-size: 1.6rem;
+}
+
+.bible-page p {
+  margin: 0;
+  color: var(--text-muted);
+}
