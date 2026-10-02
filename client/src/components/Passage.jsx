@@ -21,8 +21,9 @@ function Passage({ passage, annotations, onShare }) {
   // Après la feuille de partage du téléphone (ou si on l'a fermée), rien à confirmer
   const share = () => onShare(passage).then((result) => (result === 'copied' ? 'done' : 'idle'));
 
+  // data-reading-position : la frise repère ainsi le passage en cours de lecture (frise/useReadingPosition.js)
   return (
-    <article className="passage">
+    <article className="passage" data-reading-position={passage.position}>
       <header className="passage-header">
         <div>
           <h2 className="passage-title">{passage.title}</h2>

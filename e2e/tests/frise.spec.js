@@ -30,6 +30,28 @@ test('zoom : clic sur une époque pour voir ses épisodes, clic sur sa bande pou
   await expect(frise.getByRole('button', { name: 'Jésus' })).toBeVisible();
 });
 
+test('lecture : le bloc lu est surligné, et la frise le suit quand on avance', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est cachée');
+  await page.goto('/');
+  const frise = page.getByRole('navigation', { name: 'Frise' });
+
+  await expect(frise.getByRole('button', { name: 'Les origines' })).toHaveAttribute('aria-current', 'location');
+  await page.getByRole('heading', { name: "L'appel d'Abraham" }).scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 200);
+  await expect(frise.getByRole('button', { name: 'Les patriarches' })).toHaveAttribute('aria-current', 'location');
+});
+
+test('clic sur un bloc : la lecture y saute, même s\'il n\'est pas encore chargé', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est cachée');
+  await page.goto('/');
+  const frise = page.getByRole('navigation', { name: 'Frise' });
+
+  await frise.getByRole('button', { name: 'Jésus' }).getByText('Jésus').click();
+
+  await expect(page.getByRole('heading', { name: 'Annonciation et Nativité' })).toBeInViewport();
+  await expect(frise.getByRole('button', { name: 'Annonciation et Nativité' })).toHaveAttribute('aria-current', 'location');
+});
+
 test('sur téléphone, pas la place : la frise est cachée', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Sur ordinateur, la frise est visible (voir le test précédent)');
   await page.goto('/');

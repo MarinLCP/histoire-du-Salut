@@ -2,7 +2,7 @@
 // path : le chemin des nœuds dans lesquels on est entré ([] = vue d'ensemble, [1, 0] = 1er enfant du 2e nœud).
 
 import { describe, test, expect } from 'vitest';
-import { layoutCascade, MAX_STEPS } from '../../src/frise/cascadeLayout.js';
+import { layoutCascade, boatPlace, MAX_STEPS } from '../../src/frise/cascadeLayout.js';
 
 // Un nœud de l'API (forme commune à tous les niveaux) avec `childCount` enfants
 const node = (title, childCount = 0) => ({
@@ -108,5 +108,37 @@ describe('layoutCascade : zoom', () => {
 
     expect(blocks.get('1').labelled).toBe(true);
     expect(blocks.get('1.0.0').labelled).toBe(true);
+  });
+});
+
+describe('boatPlace : le bateau glisse d\'un bloc de l\'escalier au suivant, au fil de la lecture', () => {
+  const blocks = layoutCascade(deep, [], box);
+  const stairs = blocks.filter((block) => block.kind === 'stair');
+  // Le bateau se pose au bord droit du haut du bloc, juste au-dessus
+  const anchorOf = (block) => ({ left: block.left + block.width - 38, top: block.top - 22 });
+
+  test('au début d\'un bloc : posé sur ce bloc', () => {
+    expect(boatPlace(blocks, { rank: 1, fraction: 0 })).toEqual(anchorOf(stairs[1]));
+  });
+
+  test('à mi-lecture d\'un bloc : à mi-chemin du bloc suivant (le premier bloc touche le haut : le bateau y reste visible)', () => {
+    const [from, to] = [anchorOf(stairs[0]), anchorOf(stairs[1])];
+
+    expect(boatPlace(blocks, { rank: 0, fraction: 0.5 })).toEqual({
+      left: (from.left + to.left) / 2, top: Math.max(-6, (from.top + to.top) / 2),
+    });
+    expect(boatPlace(blocks, { rank: 0, fraction: 0 }).top).toBe(-6);
+  });
+
+  test('dernier bloc : le bateau y reste, sans sortir du cadre', () => {
+    const place = boatPlace(blocks, { rank: 1, fraction: 0.9 });
+
+    expect(place.left).toBe(anchorOf(stairs[1]).left);
+    expect(place.top).toBeGreaterThanOrEqual(-6);
+  });
+
+  test('les blocs de l\'escalier portent leur écume ; le premier n\'en a pas', () => {
+    expect(stairs[0].foam).toBeNull();
+    expect(stairs[1].foam).not.toBeNull();
   });
 });

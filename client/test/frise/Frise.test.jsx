@@ -6,17 +6,21 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Frise from '../../src/frise/Frise.jsx';
 
-const node = (title, icon, children = [], detail = null) => ({ title, detail, icon, position: 1, children });
-const chapter = (label) => node('La Genèse', 'page', [], `chapitre ${label} · en entier`);
+const node = (title, icon, position, children = [], detail = null) => ({ title, detail, icon, position, children });
+const chapter = (label, position) => node('La Genèse', 'page', position, [], `chapitre ${label} · en entier`);
+// 3 épisodes (positions 1, 2, 3) dans 2 époques
 const overview = [
-  node('Les origines', 'sun', [node('La Création', 'sun', [chapter('1'), chapter('2')]), node('La chute', 'tree', [chapter('3')])]),
-  node('Les patriarches', 'tent', [node("L'appel d'Abraham", 'tent', [chapter('12')])]),
+  node('Les origines', 'sun', 1, [
+    node('La Création', 'sun', 1, [chapter('1', 1), chapter('2', 1)]),
+    node('La chute', 'tree', 2, [chapter('3', 2)]),
+  ]),
+  node('Les patriarches', 'tent', 3, [node("L'appel d'Abraham", 'tent', 3, [chapter('12', 3)])]),
 ];
 const TAB_NAMES = ["Vue d'ensemble", 'Épisodes', 'Chapitres'];
 
-function renderFrise() {
+function renderFrise(onJump = vi.fn()) {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(overview))));
-  return render(<Frise mode="history" tabNames={TAB_NAMES} />);
+  return render(<Frise mode="history" tabNames={TAB_NAMES} onJump={onJump} />);
 }
 
 const pressedTab = () => screen.getAllByRole('button', { pressed: true }).map((button) => button.textContent);
@@ -33,6 +37,7 @@ describe('Frise', () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+    document.body.querySelectorAll('[data-reading-position]').forEach((element) => element.remove());
   });
 
   test('un bloc avec son titre par époque ; les épisodes sont de petites marches sans titre', async () => {
@@ -47,7 +52,7 @@ describe('Frise', () => {
   test('demande la vue d\'ensemble du mode choisi', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(overview)));
     vi.stubGlobal('fetch', fetch);
-    render(<Frise mode="history" tabNames={TAB_NAMES} />);
+    render(<Frise mode="history" tabNames={TAB_NAMES} onJump={vi.fn()} />);
 
     await screen.findByText('Les origines');
     expect(fetch).toHaveBeenCalledWith('/api/overview/history');
@@ -55,7 +60,7 @@ describe('Frise', () => {
 
   test('si le chargement échoue, la frise reste vide (la lecture marche sans elle)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('réseau coupé')));
-    render(<Frise mode="history" tabNames={TAB_NAMES} />);
+    render(<Frise mode="history" tabNames={TAB_NAMES} onJump={vi.fn()} />);
 
     expect(screen.getByRole('navigation', { name: 'Frise' })).toBeDefined();
     await Promise.resolve();
@@ -84,5 +89,27 @@ describe('Frise', () => {
 
     expect(screen.getByText('chapitre 1 · en entier')).toBeDefined();
     expect(pressedTab()).toEqual(['Chapitres']);
+  });
+
+  test('clic sur un bloc : la lecture saute à sa position (une bande, elle, ne fait que remonter)', async () => {
+    const onJump = vi.fn();
+    renderFrise(onJump);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Les patriarches' }));
+    expect(onJump).toHaveBeenLastCalledWith(3);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Les patriarches' }));
+    expect(onJump).toHaveBeenCalledTimes(1);
+  });
+
+  test('le bloc de ce qu\'on lit est marqué (surligné) dans la frise', async () => {
+    // Un passage n° 1 dans la page : c'est lui qu'on lit
+    const article = document.createElement('article');
+    article.dataset.readingPosition = '1';
+    document.body.append(article);
+    renderFrise();
+
+    expect(await screen.findByRole('button', { name: 'Les origines', current: 'location' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Les patriarches' }).getAttribute('aria-current')).toBeNull();
   });
 });

@@ -148,12 +148,94 @@ button.frise-block:focus-visible {
   display: none;
 }
 
+/* Ce qu'on lit en ce moment : le titre surligné aux trois quarts de sa hauteur, le texte garde sa couleur.
+   Sur les blocs foncés, un ambre translucide pour que le texte blanc reste lisible. */
+.frise-block.current .frise-label > span {
+  background: linear-gradient(transparent 22%, #f6dc6e 22% 96%, transparent 96%);
+}
+
+.frise-block.depth-3.current .frise-label > span,
+.frise-block.depth-4.current .frise-label > span {
+  background: linear-gradient(transparent 22%, #f0b4298c 22% 96%, transparent 96%);
+}
+
+/* Une petite marche où se trouve la lecture : un peu plus claire */
+.frise-block.reading-here {
+  filter: brightness(1.2);
+}
+
+/* L'écume, immobile au pied de chaque chute : forte sous l'eau qui tombe, puis elle s'estompe vers la gauche
+   le long de la séparation (--foam-x, --foam-w : où tombe l'eau, calculé par staircase.js) */
+.frise-block.foamy::before {
+  content: "";
+  position: absolute;
+  top: -.5rem;
+  left: 0;
+  width: calc(var(--foam-x) + var(--foam-w));
+  height: 1rem;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at calc(100% - var(--foam-w) * .85) 60%, #fffffff2 0 .45rem, transparent .48rem),
+    radial-gradient(circle at calc(100% - var(--foam-w) * .55) 45%, #fffffff2 0 .55rem, transparent .58rem),
+    radial-gradient(circle at calc(100% - var(--foam-w) * .25) 60%, #fffffff2 0 .48rem, transparent .51rem),
+    radial-gradient(circle at calc(100% - var(--foam-w) * .05) 50%, #ffffffd9 0 .4rem, transparent .43rem),
+    radial-gradient(ellipse at 50% 55%, #ffffffb3 0 .22rem, transparent .25rem) 0 0 / 1.1rem 100% repeat-x;
+  mask-image: linear-gradient(90deg, transparent, #000 calc(100% - var(--foam-w) * 1.6));
+}
+
+/* Le bateau : il descend en continu au fil de la lecture, en se balançant doucement */
+.frise-boat {
+  position: absolute;
+  z-index: 9000;
+  width: 2.3rem;
+  height: 2.3rem;
+  pointer-events: none;
+}
+
+.frise-boat svg {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 80%;
+  animation: frise-bob 2.6s ease-in-out infinite;
+}
+
+@keyframes frise-bob {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50% { transform: rotate(4deg) translateY(-2px); }
+}
+
+/* Pendant un changement de niveau, l'écume et le bateau se cachent le temps que les blocs glissent (0,6 s),
+   puis reviennent en fondu. Deux animations identiques, alternées à chaque changement : changer de nom
+   d'animation la fait recommencer. */
+.frise-stage.morph-0 .frise-boat,
+.frise-stage.morph-0 .frise-block.foamy::before {
+  animation: frise-appear-0 .35s ease .6s both;
+}
+
+.frise-stage.morph-1 .frise-boat,
+.frise-stage.morph-1 .frise-block.foamy::before {
+  animation: frise-appear-1 .35s ease .6s both;
+}
+
+@keyframes frise-appear-0 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes frise-appear-1 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .frise-block {
     transition: none;
   }
 
-  .frise-label {
+  .frise-label,
+  .frise-boat svg,
+  .frise-stage .frise-boat,
+  .frise-stage .frise-block.foamy::before {
     animation: none;
   }
 }

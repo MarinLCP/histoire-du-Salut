@@ -68,6 +68,15 @@ describe('staircase', () => {
     expect(stairs.map((stair) => stair.radius)).toEqual([0, 16]);
   });
 
+  test('l\'écume : au pied de chaque chute (sauf la première), sur la largeur de la marche d\'où l\'eau tombe', () => {
+    const [first, second] = stairsOf({ count: 4 });
+    const stairWidth = rightOf(second.rect) - rightOf(first.rect);
+
+    expect(first.foam).toBeNull();
+    // Position relative au bloc : la chute tombe du bloc précédent, juste au-dessus de lui
+    expect(second.foam).toEqual({ x: rightOf(first.rect) - 10, width: stairWidth });
+  });
+
   test('aucun élément : aucun bloc', () => {
     expect(stairsOf({ count: 0 })).toEqual([]);
   });

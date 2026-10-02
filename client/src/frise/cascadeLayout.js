@@ -1,6 +1,6 @@
 // Où va chaque bloc de la frise (fonction pure) : à partir de l'arbre de l'API, du chemin dans lequel on est
 // entré et de la taille de la zone, une liste de blocs
-// { key, nodePath, node, kind, depth, left, top, width, height, z, radius, labelled, small }.
+// { key, nodePath, node, kind, depth, left, top, width, height, z, radius, labelled, small, foam }.
 //   - path = [] (vue d'ensemble) : les nœuds du premier niveau en grand escalier ;
 //   - path = [1, 0] : les nœuds du chemin deviennent des bandes verticales à gauche (kind 'strip', clic = remonter),
 //     les enfants du dernier forment l'escalier (kind 'stair', clic = descendre),
@@ -17,6 +17,10 @@ const STRIP_WIDTHS = [34, 30, 28]; // largeur des bandes de gauche (px), de la p
 const STRIP_STEP = 26; // chaque bande commence un peu plus bas que la précédente : un escalier, elles aussi
 const STRIP_RADIUS = 14;
 const STEP_RADIUS = 4;
+// Le bateau (2,3rem de côté) se pose au bord droit du haut d'un bloc, juste au-dessus
+const BOAT_FROM_RIGHT = 38;
+const BOAT_ABOVE = 22;
+const BOAT_MIN_TOP = -6; // sans sortir du cadre en haut
 
 /**
  * @param {object[]} roots - les nœuds du premier niveau (époques, ou grands ensembles de la Bible)
@@ -44,6 +48,7 @@ function layoutStrips(roots, path, box) {
     const strip = {
       key: path.slice(0, rank + 1).join('.'), nodePath: path.slice(0, rank + 1), node, kind: 'strip', depth: rank + 1,
       left, top, width, height: box.height - top, z: 1000 + rank, radius: STRIP_RADIUS, labelled: true, small: false,
+      foam: null,
     };
     children = node.children;
     left += width;
@@ -77,11 +82,28 @@ function blocksOfStair(item, nodePath, stair, depth) {
   const rank = nodePath.at(-1);
   const block = {
     key: nodePath.join('.'), nodePath, node: item, kind: 'stair', depth, ...stair.rect, z: 2 * rank,
-    radius: stair.radius, labelled: true, small: stair.rowHeight < SMALL_ROW,
+    radius: stair.radius, labelled: true, small: stair.rowHeight < SMALL_ROW, foam: stair.foam,
   };
   const steps = stair.steps.map((step, childRank) => ({
     key: [...nodePath, childRank].join('.'), nodePath: [...nodePath, childRank], node: item.children[childRank],
     kind: 'step', depth: depth + 1, ...step, z: 2 * rank + 1, radius: STEP_RADIUS, labelled: false, small: false,
+    foam: null,
   }));
   return [block, ...steps];
+}
+
+// Où poser le bateau : entre le bloc lu de l'escalier et le suivant, selon la part déjà lue (fraction, de 0 à 1)
+export function boatPlace(blocks, { rank, fraction }) {
+  const stairs = blocks.filter((block) => block.kind === 'stair');
+  const from = boatAnchor(stairs[rank]);
+  const to = stairs[rank + 1] ? boatAnchor(stairs[rank + 1]) : from;
+
+  return {
+    left: from.left + (to.left - from.left) * fraction,
+    top: Math.max(BOAT_MIN_TOP, from.top + (to.top - from.top) * fraction),
+  };
+}
+
+function boatAnchor(block) {
+  return { left: block.left + block.width - BOAT_FROM_RIGHT, top: block.top - BOAT_ABOVE };
 }
