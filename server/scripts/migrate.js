@@ -3,29 +3,22 @@
 // Usage : npm run db:migrate
 
 import { readdir, readFile } from 'node:fs/promises';
-import pg from 'pg';
 import { pendingMigrations } from './migrations.js';
+import { withClient, inTransaction } from './database.js';
 
 const MIGRATIONS_DIRECTORY = new URL('../db/migrations/', import.meta.url);
 
-// DATABASE_URL vient du fichier .env (chargé par node --env-file)
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
-await client.connect();
-
-try {
-  await createMigrationsTable();
-  const toApply = pendingMigrations(await readdir(MIGRATIONS_DIRECTORY), await appliedMigrations());
+await withClient(async (client) => {
+  await createMigrationsTable(client);
+  const toApply = pendingMigrations(await readdir(MIGRATIONS_DIRECTORY), await appliedMigrations(client));
 
   for (const migration of toApply) {
-    await applyMigration(migration);
+    await applyMigration(client, migration);
   }
   console.log(toApply.length === 0 ? 'Base à jour : aucune migration à appliquer.' : 'Migrations terminées.');
-} finally {
-  // On ferme la connexion même en cas d'erreur, sinon le script ne s'arrête pas
-  await client.end();
-}
+});
 
-async function createMigrationsTable() {
+async function createMigrationsTable(client) {
   await client.query(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       name       TEXT PRIMARY KEY,
@@ -34,23 +27,20 @@ async function createMigrationsTable() {
   `);
 }
 
-async function appliedMigrations() {
+async function appliedMigrations(client) {
   const result = await client.query('SELECT name FROM schema_migrations');
   return result.rows.map((row) => row.name);
 }
 
 // Une transaction par migration : si elle échoue au milieu, rien n'est appliqué ni noté
-async function applyMigration(migration) {
+async function applyMigration(client, migration) {
   const sql = await readFile(new URL(migration, MIGRATIONS_DIRECTORY), 'utf8');
 
-  try {
-    await client.query('BEGIN');
+  await inTransaction(client, async () => {
     await client.query(sql);
     await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [migration]);
-    await client.query('COMMIT');
-    console.log(`Appliquée : ${migration}`);
-  } catch (error) {
-    await client.query('ROLLBACK');
+  }).catch((error) => {
     throw new Error(`La migration ${migration} a échoué : ${error.message}`);
-  }
+  });
+  console.log(`Appliquée : ${migration}`);
 }

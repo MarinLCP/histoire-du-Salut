@@ -7,7 +7,6 @@
 
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
-import pg from 'pg';
 import { bibleGroups } from '../db/bible-groups.data.js';
 import { epochs } from '../db/epochs.data.js';
 import { passages } from '../db/passages.data.js';
@@ -15,6 +14,8 @@ import { validatePassages } from './passageRules.js';
 import { validateEpochs } from './epochRules.js';
 import { assignBookGroups } from './bibleGroupRules.js';
 import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from './bibleOrder.js';
+import { withClient, inTransaction } from './database.js';
+import { placeholdersFor, verseKind } from './sqlRows.js';
 
 const BATCH_SIZE = 1000;
 const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
@@ -28,7 +29,8 @@ validatePassages(passages, source.verses);
 validateEpochs(epochs, passages);
 const groupOfBook = assignBookGroups(bibleGroups, books.map((book) => book.code));
 
-await withTransaction(async (client) => {
+// Soit tout est écrit, soit rien (une erreur au milieu annule tout)
+await withClient((client) => inTransaction(client, async () => {
   await clearTables(client);
   const groupIds = await insertSlugList(client, 'bible_groups', bibleGroups);
   const bookIds = await insertBooks(client, books, groupOfBook, groupIds);
@@ -36,7 +38,7 @@ await withTransaction(async (client) => {
   await insertChapters(client, chapters, bookIds);
   const epochIds = await insertSlugList(client, 'epochs', epochs);
   await insertPassages(client, passages, bookIds, epochIds);
-});
+}));
 
 console.log(
   `Seed terminé : ${bibleGroups.length} ensembles, ${books.length} livres, ${chapters.length} chapitres, `
@@ -64,23 +66,6 @@ function readSource() {
 }
 
 // --- Écriture dans PostgreSQL ---
-
-// Exécute `work` dans une transaction : soit tout réussit, soit rien n'est enregistré.
-async function withTransaction(work) {
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
-
-  try {
-    await client.query('BEGIN');
-    await work(client);
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    await client.end();
-  }
-}
 
 // Pas de CASCADE : si une autre table pointe un jour vers ces tables
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
@@ -151,27 +136,6 @@ async function insertVerseBatch(client, batch, firstPosition, bookIds) {
 async function insertChapters(client, chapters, bookIds) {
   const rows = chapters.map((chapter, index) => [bookIds.get(chapter.code), chapter.label, index + 1]);
   await client.query(`INSERT INTO chapters (book_id, label, position) VALUES ${placeholdersFor(rows)}`, rows.flat());
-}
-
-// Quelques lignes de la source n'ont pas de numéro (ex. "ELLE" dans le Cantique)
-function verseKind(verse) {
-  return verse.verse === null ? 'unnumbered' : 'verse';
-}
-
-// Pour 2 lignes de 3 colonnes : "($1, $2, $3), ($4, $5, $6)"
-function placeholdersFor(rows) {
-  return rows.map((row, rowIndex) => placeholdersForRow(rowIndex, row.length)).join(', ');
-}
-
-// La ligne n°1 (2e ligne) de 3 colonnes utilise $4, $5, $6
-function placeholdersForRow(rowIndex, columnCount) {
-  const firstNumber = rowIndex * columnCount + 1;
-  const placeholders = [];
-
-  for (let number = firstNumber; number < firstNumber + columnCount; number++) {
-    placeholders.push(`$${number}`);
-  }
-  return `(${placeholders.join(', ')})`;
 }
 
 // Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages et validateEpochs).

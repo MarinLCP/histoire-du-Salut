@@ -124,6 +124,8 @@ histoire-du-Salut/
 │   │   ├── bibleGroupRules.js       ← grands ensembles : à la suite, sans trou ni chevauchement, tous les livres
 │   │   ├── dataIdentifier.js        ← listes des fichiers de données : slugs et pictogrammes bien formés, uniques
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job), des chapitres et des versets
+│   │   ├── database.js              ← connexion et transaction des scripts (seed, migrations)
+│   │   ├── sqlRows.js               ← petites règles d'écriture du seed ($1, $2... ; verset sans numéro)
 │   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
@@ -169,6 +171,8 @@ histoire-du-Salut/
 │       │   └── seededData.test.js   ← ce que le seed a écrit (époques, pictogrammes, versets, grands ensembles)
 │       └── scripts/
 │           ├── migrations.test.js   ← choix des migrations à appliquer
+│           ├── database.test.js     ← COMMIT / ROLLBACK, connexion toujours fermée (faux client)
+│           ├── sqlRows.test.js      ← numérotation des paramètres, verset sans numéro
 │           ├── passageRules.test.js ← règles de passages.data.js (vérifiées avant le seed)
 │           ├── epochRules.test.js   ← règles de epochs.data.js et de leur lien avec les passages
 │           ├── bibleGroupRules.test.js ← découpage de la Bible en grands ensembles
