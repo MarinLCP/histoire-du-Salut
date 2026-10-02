@@ -1,10 +1,10 @@
 // La mise en page des pages de lecture : la frise à gauche, la lecture à droite.
 // - Écran large : les deux côte à côte.
-// - Écran étroit (moins de 1100 px) : pas la place ; la frise est rangée dans un panneau glissant,
-//   ouvert par l'onglet « Frise » au bord gauche, et refermé par Échap, un toucher dans la lecture,
-//   ou un saut de lecture (un clic sur un bloc).
+// - Écran étroit (moins de 1100 px) : pas la place ; la frise est rangée dans un panneau glissant
+//   (2/3 de l'écran), ouvert par l'onglet « Frise » au bord gauche. Il reste ouvert pendant qu'on zoome
+//   et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (le tiers visible) ou Échap le referme.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Frise from './Frise.jsx';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import './ReadingWithFrise.css';
@@ -18,19 +18,13 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
   const [isOpen, setIsOpen] = useState(false);
   const close = () => setIsOpen(false);
 
-  // Après un saut, on veut voir le texte : le panneau se referme
-  const jumpAndClose = useCallback((position) => {
-    onJump(position);
-    setIsOpen(false);
-  }, [onJump]);
-
   useCloseOnEscape(isOpen, setIsOpen);
 
   return (
     <div className="with-frise">
       {/* inert : panneau fermé sur écran étroit = ni clavier ni lecteur d'écran n'y entrent */}
       <div id="frise-drawer" className={`frise-drawer${isOpen ? ' open' : ''}`} inert={isNarrow && !isOpen}>
-        <Frise mode={mode} tabNames={tabNames} onJump={jumpAndClose} />
+        <Frise mode={mode} tabNames={tabNames} onJump={onJump} />
       </div>
       <button type="button" className="frise-drawer-tab" aria-controls="frise-drawer" aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}>

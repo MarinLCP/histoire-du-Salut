@@ -26,8 +26,10 @@ const BOAT_MIN_TOP = -6; // sans sortir du cadre en haut
 
 // Les réglages du grand escalier : le premier bloc garde la place d'un titre (plus large une fois zoomé :
 // il y a moins de blocs), et une marche plus large rendrait l'escalier plat
-const OVERVIEW_STAIRS = { firstBlockShare: 0.34, firstBlockWidth: 130, maxStairWidth: 70 };
-const ZOOMED_STAIRS = { firstBlockShare: 0.5, firstBlockWidth: 170, maxStairWidth: 60 };
+const OVERVIEW_STAIRS = { firstBlockWidth: 130, maxStairWidth: 70 };
+const ZOOMED_STAIRS = { firstBlockWidth: 170, maxStairWidth: 60 };
+// Dans une zone étroite (panneau sur téléphone), le premier bloc prend au plus 60 % de la place
+const FIRST_BLOCK_MAX_SHARE = 0.6;
 
 /**
  * @param {object[]} roots - les nœuds du premier niveau (époques, ou grands ensembles de la Bible)
@@ -78,7 +80,7 @@ function layoutStairs(items, path, box, left) {
     width: freeWidth - EDGE_MARGIN,
     height: box.height - top,
     count: items.length,
-    minFirstWidth: Math.min(freeWidth * settings.firstBlockShare, settings.firstBlockWidth),
+    minFirstWidth: Math.min(freeWidth * FIRST_BLOCK_MAX_SHARE, settings.firstBlockWidth),
     maxStairWidth: settings.maxStairWidth,
     stepsOf: (rank) => Math.min(items[rank].children.length, MAX_STEPS),
   });

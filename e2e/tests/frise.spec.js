@@ -107,8 +107,16 @@ test('sur téléphone : la frise est rangée dans un panneau, ouvert par l\'ongl
   await page.getByRole('button', { name: 'Frise' }).click();
   await expect(frise).toBeVisible();
 
-  // Un clic sur une époque : la lecture y saute, et le panneau se referme pour laisser lire
+  // Le panneau prend les 2/3 de l'écran : le tiers de droite laisse voir le texte
+  const panelBox = await frise.boundingBox();
+  expect(panelBox.width).toBeCloseTo(page.viewportSize().width * 2 / 3, -1);
+
+  // Un clic sur une époque : la lecture y saute, et le panneau reste ouvert (on peut continuer à zoomer)
   await frise.getByRole('button', { name: 'Les patriarches' }).getByText('Les patriarches').click();
   await expect(page.getByRole('heading', { name: "L'appel d'Abraham" })).toBeInViewport();
+  await expect(frise.getByRole('button', { name: "L'appel d'Abraham" })).toBeVisible();
+
+  // Un toucher dans le texte (le tiers visible à droite) referme le panneau
+  await page.mouse.click(page.viewportSize().width - 20, page.viewportSize().height / 2);
   await expect(frise).toBeHidden();
 });

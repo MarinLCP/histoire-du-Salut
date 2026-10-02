@@ -42,6 +42,13 @@ describe('layoutCascade : vue d\'ensemble', () => {
     });
   });
 
+  test('zone étroite (panneau sur téléphone) : le premier bloc garde la place d\'un titre', () => {
+    const many = Array.from({ length: 10 }, (_, index) => node(`Époque ${index}`, 1));
+    const [first] = layoutCascade(many, [], { width: 260, height: 600 });
+
+    expect(first.width).toBeGreaterThanOrEqual(120);
+  });
+
   test(`au plus ${MAX_STEPS} marches par bloc : au-delà, l'escalier serait illisible`, () => {
     const blocks = layoutCascade([node('Les Psaumes', 40)], [], box);
 

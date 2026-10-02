@@ -244,7 +244,7 @@ histoire-du-Salut/
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
-    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (toute la hauteur), lecture à droite ; < 1100 px : panneau
+    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche ; < 1100 px : panneau (2/3 de l'écran), onglet « Frise »
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)

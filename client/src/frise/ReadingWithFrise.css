@@ -1,6 +1,8 @@
 /* La frise à gauche, la lecture à droite (écran large : pages Histoire du salut et Bible entière). */
 
 .with-frise {
+  /* Largeur de l'onglet « Frise » (écran étroit) */
+  --drawer-tab-width: 1.4rem;
   display: grid;
   grid-template-columns: 22rem minmax(0, 1fr);
 }
@@ -17,11 +19,17 @@
     display: block;
   }
 
+  /* La lecture laisse à gauche la place de l'onglet « Frise » : il ne cache jamais le début d'une ligne */
+  .with-frise-reading {
+    padding-left: var(--drawer-tab-width);
+  }
+
   .frise-drawer {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 50;
-    width: min(22rem, 92vw);
+    /* 2/3 de l'écran : le tiers de droite laisse voir le texte (un toucher dessus referme le panneau) */
+    width: calc(100vw * 2 / 3);
     background: var(--background);
     /* Fermé : hors de l'écran, et invisible une fois le glissement fini (pas un pixel ne dépasse) */
     visibility: hidden;
@@ -48,12 +56,13 @@
     top: 40%;
     left: 0;
     z-index: 40;
-    padding: .9rem .45rem;
+    width: var(--drawer-tab-width);
+    padding: .8rem 0;
     border: 0;
     border-radius: 8px 0 0 8px;
     background: var(--level-2);
     color: var(--ink-on-dark);
-    font: 600 .75rem/1 var(--ui-font);
+    font: 600 .7rem/1 var(--ui-font);
     letter-spacing: .08em;
     text-transform: uppercase;
     /* Écrit à la verticale, de bas en haut, comme les bandes de la frise */

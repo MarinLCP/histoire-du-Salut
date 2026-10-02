@@ -59,7 +59,7 @@ describe('ReadingWithFrise sur écran étroit', () => {
     expect(drawerTab.getAttribute('aria-expanded')).toBe('false');
   });
 
-  test('un clic sur un bloc fait sauter la lecture et referme la frise', async () => {
+  test('un clic sur un bloc fait sauter la lecture, et la frise reste ouverte (pour continuer à zoomer)', async () => {
     const onJump = vi.fn();
     const { drawerTab } = renderNarrow(onJump);
 
@@ -67,6 +67,6 @@ describe('ReadingWithFrise sur écran étroit', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Les origines' }));
 
     expect(onJump).toHaveBeenCalledWith(1);
-    expect(drawerTab.getAttribute('aria-expanded')).toBe('false');
+    expect(drawerTab.getAttribute('aria-expanded')).toBe('true');
   });
 });
