@@ -10,6 +10,8 @@ export function pathAfterClick(roots, { kind, nodePath }) {
   return nodePath;
 }
 
+const TABS = [0, 1, 2];
+
 // Les onglets : 0 = vue d'ensemble, 1 = dans l'époque (ou l'ensemble), 2 = le niveau le plus fin.
 // focusPath : ce qu'on regarde en ce moment ; ce qui manque est complété par le premier enfant.
 export function pathOfTab(roots, focusPath, tab) {
@@ -18,9 +20,10 @@ export function pathOfTab(roots, focusPath, tab) {
   return deepestPath(roots, focusPath);
 }
 
-// L'onglet en surbrillance : celui du niveau affiché
-export function pressedTab(path) {
-  return Math.min(path.length, 2);
+// L'onglet allumé : celui qui mène exactement au niveau affiché, ou -1 si aucun
+// (ex. les dizaines d'un long livre, entre « Livres » et « Chapitres »)
+export function pressedTab(roots, path) {
+  return TABS.findIndex((tab) => pathOfTab(roots, path, tab).join('.') === path.join('.'));
 }
 
 function nodeAt(roots, path) {
@@ -28,13 +31,16 @@ function nodeAt(roots, path) {
 }
 
 // Descend depuis focusPath jusqu'au dernier niveau qui a encore des enfants à montrer en escalier
+// (sans jamais s'arrêter sur une feuille : elle n'aurait pas d'escalier à montrer)
 function deepestPath(roots, focusPath) {
   const path = [];
   let node = { children: roots };
   while (node.children.some((child) => child.children.length > 0)) {
     const index = focusPath[path.length] ?? 0;
+    const next = node.children[index];
+    if (!next || next.children.length === 0) return path;
     path.push(index);
-    node = node.children[index];
+    node = next;
   }
   return path;
 }

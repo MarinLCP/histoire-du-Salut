@@ -40,7 +40,22 @@ describe('onglets', () => {
     expect(pathOfTab(roots, [0, 1], 2)).toEqual([0, 1]);
   });
 
-  test('l\'onglet en surbrillance suit le niveau affiché', () => {
-    expect([[], [1], [1, 0], [1, 0, 2]].map(pressedTab)).toEqual([0, 1, 2, 2]);
+  test('l\'onglet allumé est celui qui mène exactement au niveau affiché', () => {
+    expect([[], [1], [1, 0]].map((path) => pressedTab(roots, path))).toEqual([0, 1, 2]);
+  });
+
+  // Bible : ensemble → livre → dizaines → chapitres (un livre de plus de 15 chapitres)
+  const bible = [node([node([node([node(), node()]), node([node()])])])];
+
+  test('sur les dizaines (entre « Livres » et « Chapitres ») : aucun onglet allumé', () => {
+    expect(pressedTab(bible, [0, 0])).toBe(-1);
+    expect(pressedTab(bible, [0, 0, 1])).toBe(2);
+  });
+
+  test('« Chapitres » descend jusqu\'au dernier niveau qui a des enfants, sans jamais s\'arrêter sur une feuille', () => {
+    // Un niveau mélangé : le 2e enfant n'a pas d'enfants
+    const mixed = [node([node([node()]), node()])];
+
+    expect(pathOfTab(mixed, [0, 1], 2)).toEqual([0]);
   });
 });

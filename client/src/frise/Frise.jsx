@@ -56,7 +56,7 @@ function Frise({ mode, tabNames, onJump }) {
       {tree.length > 0 && (
         <div className="frise-tabs" role="group" aria-label="Niveau de la frise">
           {tabNames.map((name, tab) => (
-            <button key={name} type="button" aria-pressed={pressedTab(view.path) === tab}
+            <button key={name} type="button" aria-pressed={pressedTab(tree, view.path) === tab}
               onClick={() => goTo(pathOfTab(tree, focusPath, tab))}>
               {name}
             </button>
