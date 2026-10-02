@@ -3,7 +3,7 @@
 // L'API est remplacée par un faux fetch ; l'IntersectionObserver par un faux qui « voit » tout de suite le bas de page.
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import BiblePage from '../../src/pages/BiblePage.jsx';
 
@@ -18,6 +18,15 @@ const pages = {
   2: { chapters: [chapter(3, 'Ex', "L'Exode", '1', 'Voici les noms')], nextCursor: null },
 };
 
+// La vue d'ensemble de la frise : un ensemble, deux livres (Genèse 1-2, Exode 1)
+const leaf = (title, position) => ({ title, detail: null, icon: 'page', position, children: [] });
+const overview = [{
+  title: 'Le Pentateuque', detail: null, icon: 'tablets', position: 1, children: [
+    { title: 'La Genèse', detail: null, icon: 'book', position: 1, children: [leaf('Chapitre 1', 1), leaf('Chapitre 2', 2)] },
+    { title: "L'Exode", detail: null, icon: 'book', position: 3, children: [leaf('Chapitre 1', 3)] },
+  ],
+}];
+
 function renderPage(address = '/bible') {
   const openMenu = vi.fn();
   render(
@@ -31,6 +40,7 @@ function renderPage(address = '/bible') {
 describe('BiblePage', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (url === '/api/overview/bible') return new Response(JSON.stringify(overview));
       // Position d'un chapitre (lien "Lire tout le chapitre") : Exode 1 = 3e chapitre ; le reste n'existe pas
       if (url.startsWith('/api/books/')) {
         return url === '/api/books/Ex/chapters/1'
@@ -40,6 +50,12 @@ describe('BiblePage', () => {
       const after = Number(new URL(url, 'http://test').searchParams.get('after'));
       return new Response(JSON.stringify(pages[after]));
     }));
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(callback) { this.callback = callback; }
+      observe() { this.callback([{ contentRect: { width: 400, height: 600 } }]); }
+      disconnect() {}
+    });
+    vi.stubGlobal('scrollTo', vi.fn());
     // Le bas de page est toujours « visible » : chaque page chargée déclenche la suivante, jusqu'à la fin
     vi.stubGlobal('IntersectionObserver', class {
       constructor(callback) { this.callback = callback; }
@@ -99,5 +115,42 @@ describe('BiblePage', () => {
     renderPage('/bible?livre=Xx&chapitre=1');
 
     expect(await screen.findByRole('heading', { name: 'La Genèse' })).toBeDefined();
+  });
+
+  test('la frise montre les grands ensembles de la Bible, avec les onglets Livres et Chapitres', async () => {
+    renderPage();
+    const frise = await screen.findByRole('navigation', { name: 'Frise' });
+
+    expect(await within(frise).findByRole('button', { name: 'Le Pentateuque' })).toBeDefined();
+    expect(within(frise).getByRole('button', { name: 'Livres' })).toBeDefined();
+  });
+
+  test('clic dans la frise sur un chapitre pas encore chargé : la lecture recommence à ce chapitre', async () => {
+    // La 1re page (Genèse) est chargée, mais pas la suite : la page ne « voit » le bas qu'une fois
+    let firstLook = true;
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback) { this.callback = callback; }
+      observe() {
+        if (firstLook) setTimeout(() => this.callback([{ isIntersecting: true }]), 0);
+        firstLook = false;
+      }
+      disconnect() {}
+    });
+    renderPage();
+    const frise = await screen.findByRole('navigation', { name: 'Frise' });
+    await screen.findByRole('heading', { name: 'La Genèse' });
+
+    fireEvent.click(await within(frise).findByRole('button', { name: 'Le Pentateuque' }));
+    // La lecture recommencée charge sa propre 1re page
+    firstLook = true;
+    fireEvent.click(within(frise).getByRole('button', { name: "L'Exode" }));
+
+    expect(await screen.findByRole('heading', { name: "L'Exode", level: 2 })).toBeDefined();
+    expect(screen.queryByRole('heading', { name: 'La Genèse', level: 2 })).toBeNull();
+
+    // « Revenir au début » oublie le saut : la Genèse revient
+    firstLook = true;
+    fireEvent.click(screen.getByRole('link', { name: /Revenir au début de la Bible/ }));
+    expect(await screen.findByRole('heading', { name: 'La Genèse', level: 2 })).toBeDefined();
   });
 });

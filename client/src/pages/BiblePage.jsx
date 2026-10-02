@@ -2,15 +2,19 @@
 // Depuis un lien (/bible?livre=Gn&chapitre=3, ex. « Lire tout le chapitre »), la lecture commence à ce chapitre.
 // La suite se charge au fil du défilement (même mécanisme que la timeline : useCursorPagination).
 // Cachée en ligne tant qu'elle n'est pas finie (feature flag "bible", voir App.jsx).
+// À gauche, la frise en mode Bible entière (cachée en ligne : flag "frise").
 
 import { memo } from 'react';
 import { Link, useLocation } from 'react-router';
 import Chapter from '../components/Chapter.jsx';
 import ListStatus from '../components/ListStatus.jsx';
+import Frise from '../frise/Frise.jsx';
+import ReadingWithFrise from '../frise/ReadingWithFrise.jsx';
 import { fetchBible, fetchChapter } from '../api/bible.api.js';
 import { readChapterLink } from '../bible/bibleLink.js';
 import { useCursorPagination } from '../hooks/useCursorPagination.js';
 import { useStartCursor } from '../hooks/useStartCursor.js';
+import { useJump } from '../frise/useJump.js';
 import './BiblePage.css';
 
 // Fonctions stables (hors des composants) : les hooks ne se relancent pas à chaque affichage
@@ -22,26 +26,35 @@ function findChapterPosition(search) {
   return fetchChapter(book, chapter).then((found) => found.position);
 }
 
+const TAB_NAMES = ["Vue d'ensemble", 'Livres', 'Chapitres'];
+
 // annotations : surlignages, notes et ouverture du menu d'un verset (partagés par toutes les pages)
 function BiblePage({ annotations }) {
-  const { search } = useLocation();
+  // location.key change à chaque navigation, même vers la même adresse (ex. « Revenir au début » depuis /bible)
+  const { search, key: navigationKey } = useLocation();
+  // Un clic dans la frise vers un chapitre pas encore chargé : la lecture recommence à ce chapitre
+  const [jumpStart, jumpTo] = useJump(navigationKey);
 
   return (
-    <section aria-labelledby="bible-page-title">
-      <h1 className="bible-page-title" id="bible-page-title">La Bible entière</h1>
-      {/* key : une autre adresse (autre lien, ou retour au début) = une lecture recommencée de zéro */}
-      <BibleReading key={search} search={search} annotations={annotations} />
-    </section>
+    <ReadingWithFrise frise={<Frise mode="bible" tabNames={TAB_NAMES} onJump={jumpTo} />}>
+      <section aria-labelledby="bible-page-title">
+        <h1 className="bible-page-title" id="bible-page-title">La Bible entière</h1>
+        {/* key : une autre adresse (autre lien, ou retour au début) = une lecture recommencée de zéro */}
+        <BibleReading key={search} search={search} jumpStart={jumpStart} annotations={annotations} />
+      </section>
+    </ReadingWithFrise>
   );
 }
 
-// Où commencer (au début, ou au chapitre du lien), puis la lecture
-function BibleReading({ search, annotations }) {
+// Où commencer (au début, au chapitre du lien, ou au chapitre choisi dans la frise), puis la lecture
+function BibleReading({ search, jumpStart, annotations }) {
   const linkKey = readChapterLink(search) ? search : null;
-  const startAfter = useStartCursor(linkKey, findChapterPosition);
+  const linkStart = useStartCursor(linkKey, findChapterPosition);
+  const startAfter = jumpStart ?? linkStart;
 
   if (startAfter === null) return <ListStatus isLoading />;
-  return <BibleReader startAfter={startAfter} annotations={annotations} />;
+  // key : un autre point de départ = une lecture rechargée depuis ce chapitre
+  return <BibleReader key={startAfter} startAfter={startAfter} annotations={annotations} />;
 }
 
 function BibleReader({ startAfter, annotations }) {

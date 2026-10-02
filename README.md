@@ -192,7 +192,7 @@ histoire-du-Salut/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
-│       ├── frise.spec.js            ← la frise (ordinateur) : zoom, suit la lecture, saut au clic ; cachée sur téléphone
+│       ├── frise.spec.js            ← la frise (ordinateur) : zoom, lecture, saut au clic, mode Bible ; cachée sur téléphone
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -204,9 +204,9 @@ histoire-du-Salut/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
     │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
-    │   │   ├── HistoryPage.jsx / .css ← /     : l'histoire du salut (timeline), la frise à gauche (flag "frise")
+    │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche (flag "frise")
     │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu (cachée en ligne : flag "bible")
-    │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre
+    │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre ; frise en mode Bible
     │   ├── index.css                ← couleurs (clair / sombre), police, hauteur de la barre, « Revenir au début »
     │   ├── api/
     │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
@@ -248,6 +248,8 @@ histoire-du-Salut/
     │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu)
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
+    │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
+    │   │   ├── ReadingWithFrise.jsx / .css ← mise en page : frise à gauche, lecture à droite (flag "frise")
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
@@ -268,7 +270,7 @@ histoire-du-Salut/
         ├── api/passages.api.test.js ← données et messages d'erreur de l'API
         ├── bible/                   ← reference, bibleLink
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
-        ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, ouverte par un lien
+        ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, lien, frise
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── features/features.test.js
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant

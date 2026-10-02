@@ -1,4 +1,5 @@
-/* La frise à gauche, la lecture à droite (écran large). Sous 1100 px, pas la place : la frise est cachée
+/* La frise à gauche, la lecture à droite (écran large : pages Histoire du salut et Bible entière).
+   Sous 1100 px, pas la place : la frise est cachée
    (V7.7 : un onglet « Frise » au bord gauche l'ouvrira dans un panneau glissant). */
 
 .with-frise {

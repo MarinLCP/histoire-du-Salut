@@ -52,6 +52,21 @@ test('clic sur un bloc : la lecture y saute, même s\'il n\'est pas encore charg
   await expect(frise.getByRole('button', { name: 'Annonciation et Nativité' })).toHaveAttribute('aria-current', 'location');
 });
 
+test('Bible entière : ensembles → livres → dizaines → chapitres, et la lecture saute au Psaume 23', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est cachée');
+  await page.goto('/bible');
+  const frise = page.getByRole('navigation', { name: 'Frise' });
+  const clickBlock = (name) => frise.getByRole('button', { name, exact: true }).getByText(name, { exact: true }).click();
+
+  await clickBlock('Les livres poétiques et sapientiaux');
+  await clickBlock('Livre des Psaumes');
+  await clickBlock('Chapitres 20-29');
+  await clickBlock('Chapitre 23');
+
+  await expect(page.getByRole('heading', { name: 'Chapitre 23', exact: true })).toBeInViewport();
+  await expect(frise.getByRole('button', { name: 'Chapitre 23', exact: true })).toHaveAttribute('aria-current', 'location');
+});
+
 test('sur téléphone, pas la place : la frise est cachée', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Sur ordinateur, la frise est visible (voir le test précédent)');
   await page.goto('/');
