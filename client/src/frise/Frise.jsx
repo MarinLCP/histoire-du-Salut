@@ -7,7 +7,7 @@
 // Les blocs sont placés au pixel près par des fonctions pures (cascadeLayout.js, readingSync.js) ; d'un niveau
 // à l'autre, un même nœud garde sa clé React et glisse vers sa nouvelle place (transition CSS).
 
-import { memo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Icon } from './Icon.jsx';
 import { Boat } from './Boat.jsx';
 import { layoutCascade, boatPlace } from './cascadeLayout.js';
@@ -36,18 +36,24 @@ function Frise({ mode, tabNames, onJump }) {
     setView({ path: followed ?? view.path, changes: view.changes + (followed ? 1 : 0), readingKey });
   }
 
-  // changes : compte les changements de niveau, pour cacher l'écume et le bateau pendant le glissement
-  const goTo = (path) => setView((current) => ({ ...current, path, changes: current.changes + 1 }));
+  // changes : compte les changements de niveau, pour cacher l'écume et le bateau pendant le glissement.
+  // useCallback : les mêmes fonctions d'un affichage à l'autre, pour que les blocs (memo) ne se redessinent pas
+  const goTo = useCallback((path) => setView((current) => ({ ...current, path, changes: current.changes + 1 })), []);
 
-  function openBlock(block) {
+  const openBlock = useCallback((block) => {
     if (block.kind !== 'strip') onJump(block.node.position);
     const next = pathAfterClick(tree, block);
     if (next) goTo(next);
-  }
+  }, [tree, onJump, goTo]);
 
   // Les onglets se placent autour de ce qu'on lit (ou de ce qu'on regarde, si rien n'est lu)
   const focusPath = reading.length > 0 ? reading : view.path;
-  const blocks = size.width > 0 ? layoutCascade(tree, view.path, size) : [];
+  // useMemo : la disposition ne change qu'avec l'arbre, le niveau affiché ou la taille de la frise ;
+  // pendant le défilement, seuls le bateau et le surlignage bougent (une mesure par image)
+  const blocks = useMemo(
+    () => (size.width > 0 ? layoutCascade(tree, view.path, size) : []),
+    [tree, view.path, size],
+  );
   const stair = blocks.length > 0 ? currentStair(tree, view.path, readingAt) : null;
 
   return (
@@ -79,7 +85,8 @@ function Frise({ mode, tabNames, onJump }) {
 // est éclairée ; une bande, elle, ne change pas (elle contient toujours ce qu'on regarde)
 const READ_CLASS = { stair: 'current', step: 'reading-here', strip: null };
 
-function CascadeBlock({ block, isRead, onOpen }) {
+// memo : un bloc ne se redessine que si sa place ou son état de lecture change
+const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
   const style = {
     left: block.left, top: block.top, width: block.width, height: block.height, zIndex: block.z,
     borderRadius: `0 ${block.radius}px 0 0`,
@@ -103,7 +110,7 @@ function CascadeBlock({ block, isRead, onOpen }) {
       </span>
     </button>
   );
-}
+});
 
 // Le chemin `path` commence-t-il par `prefix` ? (ex. [1, 0, 2] commence par [1, 0])
 function startsWith(path, prefix) {
