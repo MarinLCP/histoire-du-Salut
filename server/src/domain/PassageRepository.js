@@ -28,6 +28,15 @@
  * @property {(slug: import('./PassageSlug.js').PassageSlug) => Promise<Passage | null>} findBySlug
  * @property {(after: number, limit: number) => Promise<{ passages: Passage[], hasMore: boolean }>} findPageAfter
  *   - au plus `limit` passages de position > after, dans l'ordre, et s'il en reste d'autres après
+ * @property {() => Promise<HistoryOutline>} findHistoryOutline
+ *   - les époques, les épisodes et les chapitres qu'ils couvrent, à plat et dans l'ordre (pour la frise)
+ */
+
+/**
+ * @typedef {object} HistoryOutline
+ * @property {{ slug: string, title: string, icon: string }[]} epochs
+ * @property {{ position: number, title: string, icon: string, epoch: string }[]} episodes - epoch : slug de l'époque
+ * @property {import('./historyOverview.js').CoveredChapter[]} chapters
  */
 
 export {};

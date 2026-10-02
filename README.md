@@ -141,6 +141,9 @@ histoire-du-Salut/
 │   │   ├── domain/                  ← règles métier pures (ni Express, ni PostgreSQL)
 │   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
 │   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
+│   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux), groupBy
+│   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts (« à partir du v. 13 »)
+│   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres
 │   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   └── errors.js            ← ValidationError, NotFoundError
@@ -149,7 +152,9 @@ histoire-du-Salut/
 │   │   │   ├── getTimeline.js
 │   │   │   ├── listBooks.js         ← les 74 livres
 │   │   │   ├── readBible.js         ← la Bible en continu, chapitre après chapitre
-│   │   │   └── findChapter.js       ← position d'un chapitre (ouvrir la Bible au bon endroit)
+│   │   │   ├── findChapter.js       ← position d'un chapitre (ouvrir la Bible au bon endroit)
+│   │   │   ├── getHistoryOverview.js ← vue d'ensemble de la frise, mode Histoire du salut
+│   │   │   └── getBibleOverview.js  ← vue d'ensemble de la frise, mode Bible entière
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
@@ -157,17 +162,18 @@ histoire-du-Salut/
 │   │   │   └── verseColumns.js      ← les colonnes d'un verset, partagées par les deux repositories
 │   │   └── http/                    ← le seul endroit qui connaît Express
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/books, /api/bible,
-│   │       │                          /api/books/:code/chapters/:chapter
+│   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
 │   └── test/                        ← en miroir de src/ et scripts/
-│       ├── domain/                  ← PassageSlug, PageRequest (unitaires, sans base)
-│       ├── application/             ← getPassage, getTimeline, readBible, findChapter (avec un faux repository)
+│       ├── domain/                  ← PassageSlug, PageRequest, arbres de la frise (unitaires, sans base)
+│       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble (faux repository)
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
 │       │   ├── spaFallback.test.js  ← les adresses du site renvoient index.html, pas l'API
 │       │   ├── bible.test.js        ← GET /api/books, GET /api/bible (sans trou ni doublon), position d'un chapitre
+│       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
 │       │   └── seededData.test.js   ← ce que le seed a écrit (époques, pictogrammes, versets, grands ensembles)

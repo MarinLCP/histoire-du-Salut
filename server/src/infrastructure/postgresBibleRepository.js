@@ -51,6 +51,25 @@ export function createPostgresBibleRepository(pool) {
         hasMore: result.rows.length > limit,
       };
     },
+
+    // Trois listes à plat, sans texte, chacune dans l'ordre (trois requêtes en parallèle sur des tables entières).
+    // Les noms entre guillemets ("group") sont déjà ceux attendus par le domaine (buildBibleTree).
+    async findBibleOutline() {
+      const [groups, books, chapters] = await Promise.all([
+        pool.query('SELECT slug, title, icon FROM bible_groups ORDER BY position'),
+        pool.query(
+          `SELECT b.code, b.title, g.slug AS "group"
+           FROM books b JOIN bible_groups g ON g.id = b.group_id
+           ORDER BY b.position`,
+        ),
+        pool.query(
+          `SELECT c.position, b.code AS book, c.label
+           FROM chapters c JOIN books b ON b.id = c.book_id
+           ORDER BY c.position`,
+        ),
+      ]);
+      return { groups: groups.rows, books: books.rows, chapters: chapters.rows };
+    },
   };
 }
 

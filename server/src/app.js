@@ -15,6 +15,8 @@ import { makeGetTimeline } from './application/getTimeline.js';
 import { makeListBooks } from './application/listBooks.js';
 import { makeReadBible } from './application/readBible.js';
 import { makeFindChapter } from './application/findChapter.js';
+import { makeGetHistoryOverview } from './application/getHistoryOverview.js';
+import { makeGetBibleOverview } from './application/getBibleOverview.js';
 import { createApp } from './http/createApp.js';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +29,8 @@ const app = createApp({
   listBooks: makeListBooks(bibleRepository),
   readBible: makeReadBible(bibleRepository),
   findChapter: makeFindChapter(bibleRepository),
+  getHistoryOverview: makeGetHistoryOverview(passageRepository),
+  getBibleOverview: makeGetBibleOverview(bibleRepository),
   pingDatabase,
   // Le site React une fois construit (cd client && npm run build)
   clientBuildDirectory: fileURLToPath(new URL('../../client/dist', import.meta.url)),

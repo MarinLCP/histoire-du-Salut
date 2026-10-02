@@ -41,8 +41,56 @@ export function createPostgresPassageRepository(pool) {
         hasMore: result.rows.length > limit,
       };
     },
+
+    // Trois listes à plat, sans texte, chacune dans l'ordre (trois requêtes en parallèle).
+    // Les noms entre guillemets sont déjà ceux attendus par le domaine (buildHistoryTree).
+    async findHistoryOutline() {
+      const [epochs, episodes, chapters] = await Promise.all([
+        pool.query('SELECT slug, title, icon FROM epochs ORDER BY position'),
+        pool.query(
+          `SELECT p.position, p.title, p.icon, e.slug AS epoch
+           FROM passages p JOIN epochs e ON e.id = p.epoch_id
+           ORDER BY p.position`,
+        ),
+        pool.query(COVERED_CHAPTERS),
+      ]);
+      return { epochs: epochs.rows, episodes: episodes.rows, chapters: chapters.rows };
+    },
   };
 }
+
+// Les chapitres couverts par chaque passage : pour chacun, le premier et le dernier verset du passage DANS
+// ce chapitre, et s'il part du début du chapitre / va jusqu'à sa fin (comparaison avec les bornes du chapitre).
+//   covered : les versets du passage, regroupés par chapitre (première et dernière position)
+//   bounds  : la première et la dernière position de chaque chapitre couvert
+const COVERED_CHAPTERS = `
+  WITH covered AS (
+    SELECT p.position AS passage_position, v.book_id, v.chapter,
+           MIN(v.position) AS first_position, MAX(v.position) AS last_position
+    FROM passages p
+    JOIN verses s ON s.id = p.start_verse_id
+    JOIN verses e ON e.id = p.end_verse_id
+    JOIN verses v ON v.position BETWEEN s.position AND e.position
+    GROUP BY p.position, v.book_id, v.chapter
+  ),
+  bounds AS (
+    SELECT v.book_id, v.chapter, MIN(v.position) AS first_position, MAX(v.position) AS last_position
+    FROM verses v
+    JOIN covered USING (book_id, chapter)
+    GROUP BY v.book_id, v.chapter
+  )
+  SELECT covered.passage_position AS "passagePosition", b.title AS "bookTitle", c.label,
+         first_verse.verse AS "fromVerse", last_verse.verse AS "toVerse",
+         covered.first_position = bounds.first_position AS "startsChapter",
+         covered.last_position = bounds.last_position AS "endsChapter"
+  FROM covered
+  JOIN bounds USING (book_id, chapter)
+  JOIN books b ON b.id = covered.book_id
+  JOIN chapters c ON c.book_id = covered.book_id AND c.label = covered.chapter
+  JOIN verses first_verse ON first_verse.position = covered.first_position
+  JOIN verses last_verse ON last_verse.position = covered.last_position
+  ORDER BY covered.passage_position, c.position
+`;
 
 // Ajoute leurs versets à des lignes de passages. Toujours UNE requête, quel que soit le nombre de passages.
 async function withVerses(pool, rows) {
