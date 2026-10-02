@@ -11,8 +11,8 @@
   box-sizing: border-box;
   height: var(--nav-height);
   padding: 0 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
-  font: 600 .8rem/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  border-bottom: 1px solid var(--border);
+  font: 600 .8rem/1 var(--ui-font);
 }
 
 .nav-link {

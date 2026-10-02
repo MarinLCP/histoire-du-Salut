@@ -51,9 +51,9 @@
     padding: .9rem .45rem;
     border: 0;
     border-radius: 8px 0 0 8px;
-    background: #4f6fae;
-    color: #fff;
-    font: 600 .75rem/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: var(--level-2);
+    color: var(--ink-on-dark);
+    font: 600 .75rem/1 var(--ui-font);
     letter-spacing: .08em;
     text-transform: uppercase;
     /* Écrit à la verticale, de bas en haut, comme les bandes de la frise */

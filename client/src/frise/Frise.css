@@ -1,14 +1,7 @@
 /* La frise : une colonne à gauche du texte, qui reste à l'écran pendant qu'on lit (sticky).
-   Couleurs : un bleu par niveau (maquette V7.1), liseré clair en haut de chaque bloc pour les séparer. */
+   Couleurs : un bleu par niveau (variables --level-* dans index.css), liseré clair en haut de chaque bloc. */
 
 .frise {
-  --level-1: #6488db;
-  --level-2: #4f6fae;
-  --level-3: #32466e;
-  --level-4: #24335a;
-  --ink-on-light: #0d1630;
-  --ink-on-dark: #ffffff;
-  --ui-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
   /* Le glissement d'un niveau à l'autre (zoom) */
   --morph: .6s cubic-bezier(.5, 0, .2, 1);
 
@@ -18,14 +11,14 @@
   display: flex;
   flex-direction: column;
   height: calc(100dvh - var(--nav-height));
-  border-right: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
+  border-right: 1px solid var(--border);
 }
 
 /* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin */
 .frise-tabs {
   display: flex;
   margin: .5rem .7rem .6rem;
-  border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
+  border: 1px solid var(--border);
   border-radius: 99px;
   overflow: hidden;
 }
@@ -42,7 +35,7 @@
 
 .frise-tabs button[aria-pressed="true"] {
   background: var(--level-2);
-  color: #fff;
+  color: var(--ink-on-dark);
 }
 
 .frise-stage {

@@ -10,6 +10,17 @@
   --reading-width: 38rem;
   /* Hauteur de la barre de navigation (toujours visible) : la frise se place dessous, sur le reste de l'écran */
   --nav-height: 3rem;
+  /* Police des boutons et de la frise (le texte biblique, lui, est en serif) */
+  --ui-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Bordures discrètes (barre de navigation, frise) */
+  --border: color-mix(in srgb, var(--text-muted) 30%, transparent);
+  /* La frise : un bleu par niveau (maquette V7.1), et la couleur du texte posé dessus */
+  --level-1: #6488db;
+  --level-2: #4f6fae;
+  --level-3: #32466e;
+  --level-4: #24335a;
+  --ink-on-light: #0d1630;
+  --ink-on-dark: #ffffff;
 
   color-scheme: light dark;
   color: var(--text);
