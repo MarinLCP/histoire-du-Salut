@@ -12,7 +12,7 @@ const sourceVerses = [
   { code: 'Ex', chapter: '1', verse: '1' },
 ];
 
-const validPassage = { slug: 'creation', title: 'La Création', book: 'Gn', start: ['1', '1'], end: ['1', '3'] };
+const validPassage = { slug: 'creation', title: 'La Création', book: 'Gn', start: ['1', '1'], end: ['1', '3'], icon: 'sun' };
 
 const validateOne = (changes) => () => validatePassages([{ ...validPassage, ...changes }], sourceVerses);
 
@@ -27,6 +27,11 @@ describe('validatePassages', () => {
 
   test('un slug mal formé est refusé', () => {
     expect(validateOne({ slug: 'La Création' })).toThrow('Slug "La Création" mal formé');
+  });
+
+  test('un passage sans pictogramme (ou mal écrit) est refusé', () => {
+    expect(validateOne({ icon: undefined })).toThrow('Passage "La Création" : pictogramme "undefined" mal formé');
+    expect(validateOne({ icon: 'Soleil' })).toThrow('Passage "La Création" : pictogramme "Soleil" mal formé');
   });
 
   test('un livre inconnu est refusé', () => {

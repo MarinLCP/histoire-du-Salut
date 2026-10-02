@@ -3,6 +3,7 @@
 // Le seed s'en sert pour s'arrêter AVANT de toucher à la base, avec un message clair.
 
 import { PassageSlug } from '../src/domain/PassageSlug.js';
+import { isDataIdentifier } from './dataIdentifier.js';
 
 // sourceVerses : les versets dans l'ordre de lecture, [{ code, chapter, verse }, ...]
 // Lève une erreur au premier passage incorrect.
@@ -18,6 +19,10 @@ export function validatePassages(passages, sourceVerses) {
 function validatePassage(passage, bookCodes, positions) {
   // La même règle que l'API pour le slug (lève une ValidationError)
   new PassageSlug(passage.slug);
+
+  if (!isDataIdentifier(passage.icon)) {
+    throw new Error(`Passage "${passage.title}" : pictogramme "${passage.icon}" mal formé.`);
+  }
 
   if (!bookCodes.has(passage.book)) {
     throw new Error(`Passage "${passage.title}" : livre ${passage.book} introuvable.`);

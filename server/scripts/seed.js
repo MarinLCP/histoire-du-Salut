@@ -1,5 +1,5 @@
 // Remplit les tables books, verses et chapters à partir de data/bible.db (SQLite, AELF),
-// puis la table passages à partir de db/passages.data.js.
+// puis les tables epochs et passages à partir de db/epochs.data.js et db/passages.data.js.
 // Les livres sont rangés dans l'ordre d'une Bible catholique (Psaumes après Job : voir bibleOrder.js).
 // Rejouable : on vide les tables avant de les remplir, dans une transaction.
 // Usage : npm run seed
@@ -7,8 +7,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
+import { epochs } from '../db/epochs.data.js';
 import { passages } from '../db/passages.data.js';
 import { validatePassages } from './passageRules.js';
+import { validateEpochs } from './epochRules.js';
 import { canonicalBookOrder, chaptersInReadingOrder } from './bibleOrder.js';
 
 const BATCH_SIZE = 1000;
@@ -17,19 +19,22 @@ const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
 const source = readSource();
 const books = canonicalBookOrder(source.books);
 const chapters = chaptersInReadingOrder(books, source.verses);
-// Une faute dans passages.data.js arrête le seed ICI, avant de toucher à la base
+// Une faute dans passages.data.js ou epochs.data.js arrête le seed ICI, avant de toucher à la base
 validatePassages(passages, source.verses);
+validateEpochs(epochs, passages);
 
 await withTransaction(async (client) => {
   await clearTables(client);
   const bookIds = await insertBooks(client, books);
   await insertVerses(client, source.verses, bookIds);
   await insertChapters(client, chapters, bookIds);
-  await insertPassages(client, passages, bookIds);
+  const epochIds = await insertEpochs(client, epochs);
+  await insertPassages(client, passages, bookIds, epochIds);
 });
 
 console.log(
-  `Seed terminé : ${books.length} livres, ${chapters.length} chapitres, ${source.verses.length} versets, ${passages.length} passages.`,
+  `Seed terminé : ${books.length} livres, ${chapters.length} chapitres, ${source.verses.length} versets, `
+  + `${epochs.length} époques, ${passages.length} passages.`,
 );
 
 // --- Lecture de la source ---
@@ -74,7 +79,7 @@ async function withTransaction(work) {
 // Pas de CASCADE : si une autre table pointe un jour vers ces tables
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
 async function clearTables(client) {
-  await client.query('TRUNCATE passages, chapters, verses, books RESTART IDENTITY');
+  await client.query('TRUNCATE passages, epochs, chapters, verses, books RESTART IDENTITY');
 }
 
 // Insère les livres (seulement 74, un par un) et renvoie une Map : code du livre -> id.
@@ -145,13 +150,33 @@ function placeholdersForRow(rowIndex, columnCount) {
   return `(${placeholders.join(', ')})`;
 }
 
-// Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages).
-async function insertPassages(client, passages, bookIds) {
+// Insère les époques (une dizaine, une par une) et renvoie une Map : slug de l'époque -> id.
+async function insertEpochs(client, epochs) {
+  const epochIds = new Map();
+
+  for (const [index, epoch] of epochs.entries()) {
+    const result = await client.query(
+      'INSERT INTO epochs (slug, title, icon, position) VALUES ($1, $2, $3, $4) RETURNING id',
+      [epoch.slug, epoch.title, epoch.icon, index + 1],
+    );
+    epochIds.set(epoch.slug, result.rows[0].id);
+  }
+
+  return epochIds;
+}
+
+// Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages et validateEpochs).
+// Les id des versets de début et de fin sont retrouvés par la base elle-même (sous-requêtes).
+async function insertPassages(client, passages, bookIds, epochIds) {
   for (const [index, passage] of passages.entries()) {
     await client.query(
-      `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [index + 1, passage.slug, passage.title, bookIds.get(passage.book), ...passage.start, ...passage.end],
+      `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse,
+                             epoch_id, icon, start_verse_id, end_verse_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+               (SELECT id FROM verses WHERE book_id = $4 AND chapter = $5 AND verse = $6),
+               (SELECT id FROM verses WHERE book_id = $4 AND chapter = $7 AND verse = $8))`,
+      [index + 1, passage.slug, passage.title, bookIds.get(passage.book), ...passage.start, ...passage.end,
+        epochIds.get(passage.epoch), passage.icon],
     );
   }
 }
