@@ -12,8 +12,9 @@ import { Icon } from './Icon.jsx';
 import { Boat } from './Boat.jsx';
 import { layoutCascade, boatPlace } from './cascadeLayout.js';
 import { pathAfterClick, pathOfTab, pressedTab } from './cascadeNavigation.js';
-import { readingPath, currentStair, followReading } from './readingSync.js';
-import { pathKey, startsWith } from './nodePath.js';
+import { readingPath, currentStair } from './readingSync.js';
+import { startsWith } from './nodePath.js';
+import { INITIAL_VIEW, viewAt, viewAfterReading } from './cascadeView.js';
 import { useElementSize } from './useElementSize.js';
 import { useOverview } from './useOverview.js';
 import { useReadingPosition } from './useReadingPosition.js';
@@ -26,20 +27,16 @@ function Frise({ mode, tabNames, onJump }) {
   const tree = useOverview(mode);
   const readingAt = useReadingPosition();
   const [stageRef, size] = useElementSize();
-  const [view, setView] = useState({ path: [], changes: 0, readingKey: '' });
+  const [view, setView] = useState(INITIAL_VIEW);
 
-  // La lecture a changé de nœud : la frise la suit, au même niveau de zoom
-  // (mise à jour pendant l'affichage : React recommence aussitôt, sans effet ni affichage intermédiaire)
+  // La lecture a changé de nœud : la frise la suit, au même niveau de zoom (voir cascadeView.js).
+  // Mise à jour pendant l'affichage : React recommence aussitôt, sans effet ni affichage intermédiaire
   const reading = readingPath(tree, readingAt);
-  const readingKey = pathKey(reading);
-  if (readingKey !== view.readingKey) {
-    const followed = followReading(view.path, reading);
-    setView({ path: followed ?? view.path, changes: view.changes + (followed ? 1 : 0), readingKey });
-  }
+  const viewNow = viewAfterReading(view, reading);
+  if (viewNow !== view) setView(viewNow);
 
-  // changes : compte les changements de niveau, pour cacher l'écume et le bateau pendant le glissement.
   // useCallback : les mêmes fonctions d'un affichage à l'autre, pour que les blocs (memo) ne se redessinent pas
-  const goTo = useCallback((path) => setView((current) => ({ ...current, path, changes: current.changes + 1 })), []);
+  const goTo = useCallback((path) => setView((current) => viewAt(current, path)), []);
 
   const openBlock = useCallback((block) => {
     if (block.kind !== 'strip') onJump(block.node.position);
@@ -70,7 +67,7 @@ function Frise({ mode, tabNames, onJump }) {
           ))}
         </div>
       )}
-      <div className={`frise-stage morph-${view.changes % 2}`} ref={stageRef}>
+      <div className={`frise-stage ${view.slide ? 'slide-b' : 'slide-a'}`} ref={stageRef}>
         {blocks.map((block) => (
           <CascadeBlock key={block.key} block={block} isRead={startsWith(reading, block.nodePath)} onOpen={openBlock} />
         ))}
