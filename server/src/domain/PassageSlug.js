@@ -3,9 +3,7 @@
 // (vérification dès la création, "fail fast"). Utilisé par l'API ET par le seed.
 
 import { ValidationError } from './errors.js';
-
-// Minuscules, chiffres et tirets simples : la même règle que le CHECK de la table passages
-const SLUG_FORMAT = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+import { isIdentifier } from './identifier.js';
 
 export class PassageSlug {
   /** @param {string} value */
@@ -19,6 +17,6 @@ export class PassageSlug {
 
   /** @param {unknown} value @returns {boolean} */
   static isValid(value) {
-    return typeof value === 'string' && SLUG_FORMAT.test(value);
+    return isIdentifier(value);
   }
 }

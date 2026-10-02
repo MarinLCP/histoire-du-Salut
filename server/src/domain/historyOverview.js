@@ -1,5 +1,7 @@
 // L'arbre « Histoire du salut » de la frise : époques → épisodes → chapitres couverts par chaque épisode.
 // Fonction pure : elle reçoit les listes à plat du repository (déjà dans l'ordre) et les imbrique.
+// Le seed garantit qu'il n'y a pas de trou ; si la base est modifiée à la main, la frise s'adapte au lieu
+// d'échouer : une époque sans épisode est sautée, un épisode sans chapitre devient une feuille.
 
 import { leafNode, parentNode, groupBy } from './overviewNode.js';
 
@@ -14,14 +16,16 @@ export function buildHistoryTree({ epochs, episodes, chapters }) {
   const episodesByEpoch = groupBy(episodes, (episode) => episode.epoch);
   const chaptersByEpisode = groupBy(chapters, (chapter) => chapter.passagePosition);
 
-  return epochs.map((epoch) => parentNode({
+  return epochs.filter((epoch) => episodesByEpoch.has(epoch.slug)).map((epoch) => parentNode({
     title: epoch.title,
     icon: epoch.icon,
     children: episodesByEpoch.get(epoch.slug).map((episode) => episodeNode(episode, chaptersByEpisode.get(episode.position))),
   }));
 }
 
-function episodeNode(episode, chapters) {
+// chapters : undefined si l'épisode n'a aucun chapitre en base
+function episodeNode(episode, chapters = []) {
+  if (chapters.length === 0) return leafNode({ title: episode.title, icon: episode.icon, position: episode.position });
   return parentNode({ title: episode.title, icon: episode.icon, children: chapters.map(chapterNode) });
 }
 

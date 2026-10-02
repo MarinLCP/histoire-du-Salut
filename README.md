@@ -122,13 +122,14 @@ histoire-du-Salut/
 │   │   ├── passageRules.js          ← règles d'un passage (slug, livre, bornes, pictogramme) : le seed s'arrête avant la base
 │   │   ├── epochRules.js            ← règles des époques (chaque époque a ses épisodes, à la suite, dans l'ordre)
 │   │   ├── bibleGroupRules.js       ← grands ensembles : à la suite, sans trou ni chevauchement, tous les livres
-│   │   ├── dataIdentifier.js        ← identifiants des fichiers de données : slugs et pictogrammes bien formés, uniques
+│   │   ├── dataIdentifier.js        ← listes des fichiers de données : slugs et pictogrammes bien formés, uniques
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job) et des chapitres
 │   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
 │   │   ├── app.js                   ← assemblage : branche PostgreSQL → use cases → Express
 │   │   ├── domain/                  ← règles métier pures (ni Express, ni PostgreSQL)
+│   │   │   ├── identifier.js        ← règle commune des identifiants (slugs, pictogrammes)
 │   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
 │   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
 │   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux), groupBy
@@ -155,7 +156,7 @@ histoire-du-Salut/
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
 │   └── test/                        ← en miroir de src/ et scripts/
-│       ├── domain/                  ← PassageSlug, PageRequest, arbres de la frise (unitaires, sans base)
+│       ├── domain/                  ← identifier, PassageSlug, PageRequest, arbres de la frise (unitaires, sans base)
 │       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble (faux repository)
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)

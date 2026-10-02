@@ -15,10 +15,12 @@ const TENS = 10;
  * @returns {import('./overviewNode.js').OverviewNode[]}
  */
 export function buildBibleTree({ groups, books, chapters }) {
-  const booksByGroup = groupBy(books, (book) => book.group);
   const chaptersByBook = groupBy(chapters, (chapter) => chapter.book);
+  // Le seed garantit qu'il n'y a pas de trou ; si la base est modifiée à la main, la frise s'adapte au lieu
+  // d'échouer : un livre sans chapitre, puis un ensemble sans livre, sont sautés
+  const booksByGroup = groupBy(books.filter((book) => chaptersByBook.has(book.code)), (book) => book.group);
 
-  return groups.map((group) => parentNode({
+  return groups.filter((group) => booksByGroup.has(group.slug)).map((group) => parentNode({
     title: group.title,
     icon: group.icon,
     children: booksByGroup.get(group.slug).map((book) => bookNode(book, chaptersByBook.get(book.code))),

@@ -77,6 +77,17 @@ describe('buildBibleTree', () => {
     expect(ruth.children[0].children).toEqual([]);
   });
 
+  test('base modifiée à la main : un ensemble sans livre, ou un livre sans chapitre, est sauté', () => {
+    const tree = buildBibleTree({
+      groups: [...groups, { slug: 'vide', title: 'Un ensemble vide', icon: 'book' }],
+      books: [...books, { code: 'Xx', title: 'Un livre sans chapitre', group: 'historiques' }],
+      chapters: small.chapters,
+    });
+
+    expect(titles(tree)).toEqual(['Les livres historiques', 'Les livres poétiques et sapientiaux']);
+    expect(titles(tree[0].children)).toEqual(['Le Livre de Ruth', 'Esther']);
+  });
+
   test('base encore vide (pas d\'ensemble) : un arbre vide', () => {
     expect(buildBibleTree({ groups: [], books: [], chapters: [] })).toEqual([]);
   });

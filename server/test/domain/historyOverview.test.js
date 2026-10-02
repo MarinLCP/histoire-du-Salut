@@ -66,6 +66,17 @@ describe('buildHistoryTree', () => {
     expect(origins.children[0].children[0].children).toEqual([]);
   });
 
+  test('base modifiée à la main : une époque sans épisode est sautée, un épisode sans chapitre devient une feuille', () => {
+    const tree = buildHistoryTree({
+      epochs: [...outline.epochs, { slug: 'vide', title: 'Une époque vide', icon: 'sun' }],
+      episodes: outline.episodes,
+      chapters: outline.chapters.filter((chapter) => chapter.passagePosition !== 2),
+    });
+
+    expect(tree.map((epoch) => epoch.title)).toEqual(['Les origines', 'Les patriarches']);
+    expect(tree[0].children[1]).toMatchObject({ title: 'La chute', position: 2, children: [] });
+  });
+
   test('base encore vide (pas d\'époque) : un arbre vide', () => {
     expect(buildHistoryTree({ epochs: [], episodes: [], chapters: [] })).toEqual([]);
   });
