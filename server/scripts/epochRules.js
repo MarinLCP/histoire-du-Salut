@@ -2,22 +2,12 @@
 // Fonction pure, appelée par le seed AVANT de toucher à la base (message clair au premier problème).
 // La frise dessine chaque époque comme un bloc : ses épisodes doivent donc se suivre, dans l'ordre des époques.
 
-import { isDataIdentifier } from './dataIdentifier.js';
+import { validateSlugList } from './dataIdentifier.js';
 
 export function validateEpochs(epochs, passages) {
-  const slugs = epochs.map((epoch) => epoch.slug);
-
-  epochs.forEach((epoch, index) => validateEpoch(epoch, index, slugs));
-  validatePassageEpochs(passages, slugs);
+  validateSlugList(epochs, 'Époque');
+  validatePassageEpochs(passages, epochs.map((epoch) => epoch.slug));
   requireEpisodes(epochs, passages);
-}
-
-// index : sa place dans la liste ; un slug déjà vu plus haut est un doublon
-function validateEpoch(epoch, index, slugs) {
-  const where = `Époque "${epoch.title}"`;
-  if (!isDataIdentifier(epoch.slug)) throw new Error(`${where} : slug "${epoch.slug}" mal formé.`);
-  if (slugs.indexOf(epoch.slug) !== index) throw new Error(`${where} : slug "${epoch.slug}" déjà utilisé.`);
-  if (!isDataIdentifier(epoch.icon)) throw new Error(`${where} : pictogramme "${epoch.icon}" mal formé.`);
 }
 
 // L'époque d'un passage ne revient jamais en arrière : ses épisodes se suivent, dans l'ordre des époques

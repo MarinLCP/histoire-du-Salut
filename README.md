@@ -72,7 +72,7 @@ Ne jamais modifier une migration déjà appliquée. Pour changer le schéma :
 
 En production, un seul serveur : Express envoie l'API **et** le site React construit (`client/dist`).
 
-**1. Remplir la base Render depuis son Mac** (la première fois, puis à chaque changement de `passages.data.js` ou `epochs.data.js`)
+**1. Remplir la base Render depuis son Mac** (la première fois, puis à chaque changement d'un fichier de données `server/db/*.data.js`)
 
 Créer `server/.env.production` (ignoré par Git, ne jamais le commiter) avec l'**External Database URL** de Render,
 suivie de `?sslmode=verify-full` :
@@ -121,7 +121,9 @@ histoire-du-Salut/
 │   │   ├── migrations/              ← l'historique du schéma, appliqué dans l'ordre
 │   │   │   ├── 001_initial_schema.sql ← tables books, verses, passages
 │   │   │   ├── 002_chapters.sql     ← les chapitres dans l'ordre de lecture (Bible entière en continu)
-│   │   │   └── 003_epochs_and_verse_links.sql ← époques, pictogrammes, passages reliés à leurs versets (expand)
+│   │   │   ├── 003_epochs_and_verse_links.sql ← époques, pictogrammes, passages reliés à leurs versets (expand)
+│   │   │   └── 004_bible_groups.sql ← les grands ensembles de la Bible, et celui de chaque livre (expand)
+│   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   └── passages.data.js         ← les 32 passages (slug, références, époque, pictogramme) : à modifier ici
 │   ├── scripts/
@@ -129,9 +131,10 @@ histoire-du-Salut/
 │   │   ├── migrations.js            ← règle : quelles migrations restent à appliquer
 │   │   ├── passageRules.js          ← règles d'un passage (slug, livre, bornes, pictogramme) : le seed s'arrête avant la base
 │   │   ├── epochRules.js            ← règles des époques (chaque époque a ses épisodes, à la suite, dans l'ordre)
-│   │   ├── dataIdentifier.js        ← format des identifiants des fichiers de données (slug d'époque, pictogramme)
+│   │   ├── bibleGroupRules.js       ← grands ensembles : à la suite, sans trou ni chevauchement, tous les livres
+│   │   ├── dataIdentifier.js        ← identifiants des fichiers de données : slugs et pictogrammes bien formés, uniques
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job) et des chapitres
-│   │   └── seed.js                  ← npm run seed : bible.db + epochs.data.js + passages.data.js → PostgreSQL
+│   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
 │   │   ├── app.js                   ← assemblage : branche PostgreSQL → use cases → Express
@@ -167,11 +170,13 @@ histoire-du-Salut/
 │       │   ├── bible.test.js        ← GET /api/books, GET /api/bible (sans trou ni doublon), position d'un chapitre
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
-│       │   └── seededData.test.js   ← ce que le seed a écrit (époques, pictogrammes, liens vers les versets)
+│       │   └── seededData.test.js   ← ce que le seed a écrit (époques, pictogrammes, versets, grands ensembles)
 │       └── scripts/
 │           ├── migrations.test.js   ← choix des migrations à appliquer
 │           ├── passageRules.test.js ← règles de passages.data.js (vérifiées avant le seed)
 │           ├── epochRules.test.js   ← règles de epochs.data.js et de leur lien avec les passages
+│           ├── bibleGroupRules.test.js ← découpage de la Bible en grands ensembles
+│           ├── dataIdentifier.test.js ← slugs et pictogrammes d'une liste de données (bien formés, uniques)
 │           └── bibleOrder.test.js   ← ordre des livres et des chapitres
 │
 ├── e2e/                             ← tests de bout en bout (Playwright) : l'app complète en local

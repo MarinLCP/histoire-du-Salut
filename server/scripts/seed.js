@@ -1,4 +1,5 @@
 // Remplit les tables books, verses et chapters à partir de data/bible.db (SQLite, AELF),
+// bible_groups à partir de db/bible-groups.data.js,
 // puis les tables epochs et passages à partir de db/epochs.data.js et db/passages.data.js.
 // Les livres sont rangés dans l'ordre d'une Bible catholique (Psaumes après Job : voir bibleOrder.js).
 // Rejouable : on vide les tables avant de les remplir, dans une transaction.
@@ -7,10 +8,12 @@
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
+import { bibleGroups } from '../db/bible-groups.data.js';
 import { epochs } from '../db/epochs.data.js';
 import { passages } from '../db/passages.data.js';
 import { validatePassages } from './passageRules.js';
 import { validateEpochs } from './epochRules.js';
+import { assignBookGroups } from './bibleGroupRules.js';
 import { canonicalBookOrder, chaptersInReadingOrder } from './bibleOrder.js';
 
 const BATCH_SIZE = 1000;
@@ -19,22 +22,24 @@ const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
 const source = readSource();
 const books = canonicalBookOrder(source.books);
 const chapters = chaptersInReadingOrder(books, source.verses);
-// Une faute dans passages.data.js ou epochs.data.js arrête le seed ICI, avant de toucher à la base
+// Une faute dans un fichier de données arrête le seed ICI, avant de toucher à la base
 validatePassages(passages, source.verses);
 validateEpochs(epochs, passages);
+const groupOfBook = assignBookGroups(bibleGroups, books.map((book) => book.code));
 
 await withTransaction(async (client) => {
   await clearTables(client);
-  const bookIds = await insertBooks(client, books);
+  const groupIds = await insertSlugList(client, 'bible_groups', bibleGroups);
+  const bookIds = await insertBooks(client, books, groupOfBook, groupIds);
   await insertVerses(client, source.verses, bookIds);
   await insertChapters(client, chapters, bookIds);
-  const epochIds = await insertEpochs(client, epochs);
+  const epochIds = await insertSlugList(client, 'epochs', epochs);
   await insertPassages(client, passages, bookIds, epochIds);
 });
 
 console.log(
-  `Seed terminé : ${books.length} livres, ${chapters.length} chapitres, ${source.verses.length} versets, `
-  + `${epochs.length} époques, ${passages.length} passages.`,
+  `Seed terminé : ${bibleGroups.length} ensembles, ${books.length} livres, ${chapters.length} chapitres, `
+  + `${source.verses.length} versets, ${epochs.length} époques, ${passages.length} passages.`,
 );
 
 // --- Lecture de la source ---
@@ -79,17 +84,35 @@ async function withTransaction(work) {
 // Pas de CASCADE : si une autre table pointe un jour vers ces tables
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
 async function clearTables(client) {
-  await client.query('TRUNCATE passages, epochs, chapters, verses, books RESTART IDENTITY');
+  await client.query('TRUNCATE passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY');
+}
+
+// Insère une liste des fichiers de données (slug, titre, pictogramme), dans l'ordre, une ligne à la fois
+// (une dizaine au plus), et renvoie une Map : slug -> id. Sert aux grands ensembles et aux époques.
+// table : 'bible_groups' ou 'epochs', écrit dans ce fichier (jamais une donnée venue de l'extérieur).
+async function insertSlugList(client, table, items) {
+  const ids = new Map();
+
+  for (const [index, item] of items.entries()) {
+    const result = await client.query(
+      `INSERT INTO ${table} (slug, title, icon, position) VALUES ($1, $2, $3, $4) RETURNING id`,
+      [item.slug, item.title, item.icon, index + 1],
+    );
+    ids.set(item.slug, result.rows[0].id);
+  }
+
+  return ids;
 }
 
 // Insère les livres (seulement 74, un par un) et renvoie une Map : code du livre -> id.
-async function insertBooks(client, books) {
+// groupOfBook : code du livre -> slug de son ensemble ; groupIds : slug de l'ensemble -> id
+async function insertBooks(client, books, groupOfBook, groupIds) {
   const bookIds = new Map();
 
   for (const [index, book] of books.entries()) {
     const result = await client.query(
-      'INSERT INTO books (code, title, position) VALUES ($1, $2, $3) RETURNING id',
-      [book.code, book.title, index + 1],
+      'INSERT INTO books (code, title, position, group_id) VALUES ($1, $2, $3, $4) RETURNING id',
+      [book.code, book.title, index + 1, groupIds.get(groupOfBook.get(book.code))],
     );
     bookIds.set(book.code, result.rows[0].id);
   }
@@ -148,21 +171,6 @@ function placeholdersForRow(rowIndex, columnCount) {
     placeholders.push(`$${number}`);
   }
   return `(${placeholders.join(', ')})`;
-}
-
-// Insère les époques (une dizaine, une par une) et renvoie une Map : slug de l'époque -> id.
-async function insertEpochs(client, epochs) {
-  const epochIds = new Map();
-
-  for (const [index, epoch] of epochs.entries()) {
-    const result = await client.query(
-      'INSERT INTO epochs (slug, title, icon, position) VALUES ($1, $2, $3, $4) RETURNING id',
-      [epoch.slug, epoch.title, epoch.icon, index + 1],
-    );
-    epochIds.set(epoch.slug, result.rows[0].id);
-  }
-
-  return epochIds;
 }
 
 // Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages et validateEpochs).

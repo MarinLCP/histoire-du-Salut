@@ -18,22 +18,11 @@ describe('validateEpochs', () => {
     expect(() => validateEpochs(epochs, validPassages)).not.toThrow();
   });
 
-  test('un slug d\'époque mal formé est refusé', () => {
+  // Le détail (format, doublons) est testé une fois, dans dataIdentifier.test.js
+  test('les slugs et pictogrammes des époques sont vérifiés', () => {
     const wrong = [{ ...epochs[0], slug: 'Les Origines' }, epochs[1]];
 
-    expect(() => validateEpochs(wrong, validPassages)).toThrow('Époque "Les origines" : slug "Les Origines" mal formé');
-  });
-
-  test('deux époques avec le même slug sont refusées', () => {
-    const twice = [epochs[0], { ...epochs[1], slug: 'origines' }];
-
-    expect(() => validateEpochs(twice, validPassages)).toThrow('Époque "Les patriarches" : slug "origines" déjà utilisé');
-  });
-
-  test('une époque sans pictogramme est refusée', () => {
-    const noIcon = [{ ...epochs[0], icon: '' }, epochs[1]];
-
-    expect(() => validateEpochs(noIcon, validPassages)).toThrow('Époque "Les origines" : pictogramme "" mal formé');
+    expect(() => validateEpochs(wrong, validPassages)).toThrow('Époque "Les origines" : slug "Les Origines" mal formé.');
   });
 
   test('un passage rattaché à une époque inconnue est refusé', () => {

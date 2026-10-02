@@ -1,10 +1,12 @@
-// Tests de ce que le seed a écrit dans la base de dev (époques, pictogrammes, liens vers les versets).
+// Tests de ce que le seed a écrit dans la base de dev (époques, pictogrammes, liens vers les versets, grands ensembles).
 // Ces tests lisent la base de dev : lancer npm run db:migrate et npm run seed avant si elle est vide.
 
 import { describe, test, expect, afterAll } from 'vitest';
 import { pool } from '../../src/infrastructure/db.js';
 import { epochs } from '../../db/epochs.data.js';
 import { passages } from '../../db/passages.data.js';
+import { bibleGroups } from '../../db/bible-groups.data.js';
+import { assignBookGroups } from '../../scripts/bibleGroupRules.js';
 
 afterAll(() => pool.end());
 
@@ -33,5 +35,20 @@ describe('base remplie par le seed', () => {
     );
 
     expect(rows).toHaveLength(passages.length);
+  });
+
+  test('les grands ensembles de la Bible, dans l\'ordre du fichier de données', async () => {
+    const { rows } = await pool.query('SELECT slug, title, icon FROM bible_groups ORDER BY position');
+
+    expect(rows).toEqual(bibleGroups.map(({ slug, title, icon }) => ({ slug, title, icon })));
+  });
+
+  test('chaque livre est dans son grand ensemble (LEFT JOIN : un livre sans ensemble aurait null)', async () => {
+    const { rows } = await pool.query(
+      'SELECT b.code, g.slug FROM books b LEFT JOIN bible_groups g ON g.id = b.group_id ORDER BY b.position',
+    );
+    const expected = assignBookGroups(bibleGroups, rows.map((row) => row.code));
+
+    expect(rows.map((row) => [row.code, row.slug])).toEqual([...expected]);
   });
 });
