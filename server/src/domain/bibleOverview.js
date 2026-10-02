@@ -1,24 +1,21 @@
 // L'arbre « Bible entière » de la frise : grands ensembles → livres → (dizaines) → chapitres.
 // Fonction pure : elle reçoit les listes à plat du repository (déjà dans l'ordre) et les imbrique.
 
-import { leafNode, parentNode, groupBy } from './overviewNode.js';
+import { leafNode, parentNode } from './overviewNode.js';
 
 // Au-delà de 15 chapitres, un niveau par dizaines : sinon l'escalier de la frise devient illisible
 const GROUP_BY_TENS_ABOVE = 15;
 const TENS = 10;
 
 /**
- * @param {object} outline
- * @param {{ slug: string, title: string, icon: string }[]} outline.groups
- * @param {{ code: string, title: string, group: string }[]} outline.books
- * @param {{ position: number, book: string, label: string }[]} outline.chapters
+ * @param {import('./BibleRepository.js').BibleOutline} outline
  * @returns {import('./overviewNode.js').OverviewNode[]}
  */
 export function buildBibleTree({ groups, books, chapters }) {
-  const chaptersByBook = groupBy(chapters, (chapter) => chapter.book);
+  const chaptersByBook = Map.groupBy(chapters, (chapter) => chapter.book);
   // Le seed garantit qu'il n'y a pas de trou ; si la base est modifiée à la main, la frise s'adapte au lieu
   // d'échouer : un livre sans chapitre, puis un ensemble sans livre, sont sautés
-  const booksByGroup = groupBy(books.filter((book) => chaptersByBook.has(book.code)), (book) => book.group);
+  const booksByGroup = Map.groupBy(books.filter((book) => chaptersByBook.has(book.code)), (book) => book.group);
 
   return groups.filter((group) => booksByGroup.has(group.slug)).map((group) => parentNode({
     title: group.title,

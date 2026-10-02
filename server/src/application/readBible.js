@@ -1,7 +1,7 @@
 // Use case : une page de la Bible entière, lue en continu (pagination par curseur sur l'ordre des chapitres).
 // Renvoie { chapters, nextCursor } ; nextCursor = la position à passer en `after` pour la suite, ou null.
 
-import { PageRequest } from '../domain/PageRequest.js';
+import { PageRequest, nextCursorOf } from '../domain/PageRequest.js';
 
 // Un chapitre peut être long : 2 par défaut, 5 au plus
 const BIBLE_LIMITS = { defaultLimit: 2, maxLimit: 5 };
@@ -13,9 +13,6 @@ export function makeReadBible(bibleRepository) {
     const page = PageRequest.from(query, BIBLE_LIMITS);
     const { chapters, hasMore } = await bibleRepository.findChapterPageAfter(page.after, page.limit);
 
-    return {
-      chapters,
-      nextCursor: hasMore ? chapters.at(-1).position : null,
-    };
+    return { chapters, nextCursor: nextCursorOf(chapters, hasMore) };
   };
 }

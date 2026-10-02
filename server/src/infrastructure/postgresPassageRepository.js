@@ -2,7 +2,15 @@
 // C'est le SEUL endroit qui contient le SQL des passages : si la source des données change
 // un jour, on écrit un autre repository qui respecte le même contrat, sans toucher au reste.
 
-import { VERSE_COLUMNS } from './verseColumns.js';
+import { VERSE_COLUMNS, versesByOwner } from './verseColumns.js';
+
+// Les versets d'un passage (p) : s = son verset de début, e = son verset de fin, v = tous les versets entre
+// les deux. La colonne position gère les passages sur plusieurs chapitres.
+const PASSAGE_VERSES = `
+  JOIN verses s ON s.id = p.start_verse_id
+  JOIN verses e ON e.id = p.end_verse_id
+  JOIN verses v ON v.position BETWEEN s.position AND e.position
+`;
 
 // Début commun des requêtes qui lisent des passages (p = passages, s / e = versets de début et de fin,
 // b = livre du verset de début) : chaque requête n'ajoute que son WHERE / ORDER BY
@@ -75,10 +83,7 @@ const COVERED_CHAPTERS = `
            MIN(v.position) FILTER (WHERE v.kind = 'verse') AS first_numbered,
            MAX(v.position) FILTER (WHERE v.kind = 'verse') AS last_numbered,
            SUM(length(v.text)) AS characters
-    FROM passages p
-    JOIN verses s ON s.id = p.start_verse_id
-    JOIN verses e ON e.id = p.end_verse_id
-    JOIN verses v ON v.position BETWEEN s.position AND e.position
+    FROM passages p ${PASSAGE_VERSES}
     GROUP BY p.position, v.book_id, v.chapter
   ),
   bounds AS (
@@ -114,26 +119,15 @@ async function withVerses(pool, rows) {
 
 // Renvoie une Map : id du passage -> liste de ses versets (dans l'ordre de lecture).
 async function findVersesByPassageIds(pool, ids) {
-  // s = verset de début, e = verset de fin, v = tous les versets entre les deux.
-  // La colonne position gère les passages sur plusieurs chapitres.
   // = ANY($1) : "l'id fait partie de ce tableau", comme un IN (...) avec un tableau JS
   const result = await pool.query(
     `SELECT p.id AS passage_id, ${VERSE_COLUMNS}
-     FROM passages p
-     JOIN verses s ON s.id = p.start_verse_id
-     JOIN verses e ON e.id = p.end_verse_id
-     JOIN verses v ON v.position BETWEEN s.position AND e.position
+     FROM passages p ${PASSAGE_VERSES}
      WHERE p.id = ANY($1)
      ORDER BY p.position, v.position`,
     [ids],
   );
-
-  // On range chaque ligne dans la liste de son passage
-  const versesByPassage = new Map(ids.map((id) => [id, []]));
-  for (const { passage_id, ...verse } of result.rows) {
-    versesByPassage.get(passage_id).push(verse);
-  }
-  return versesByPassage;
+  return versesByOwner(ids, result.rows, 'passage_id');
 }
 
 // Transforme une ligne SQL (colonnes à plat) en passage (objets imbriqués).

@@ -34,3 +34,10 @@ export class PageRequest {
     return new PageRequest(Number(after ?? DEFAULT_AFTER), Number(limit ?? defaultLimit), maxLimit);
   }
 }
+
+// Le curseur de la page suivante : la position du dernier élément de cette page, ou null s'il ne reste rien.
+// Partagé par toutes les listes paginées (timeline, Bible entière).
+/** @param {{ position: number }[]} items @param {boolean} hasMore @returns {number | null} */
+export function nextCursorOf(items, hasMore) {
+  return hasMore ? items.at(-1).position : null;
+}

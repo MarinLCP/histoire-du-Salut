@@ -3,18 +3,15 @@
 // Le seed garantit qu'il n'y a pas de trou ; si la base est modifiée à la main, la frise s'adapte au lieu
 // d'échouer : une époque sans épisode est sautée, un épisode sans chapitre devient une feuille.
 
-import { leafNode, parentNode, groupBy } from './overviewNode.js';
+import { leafNode, parentNode } from './overviewNode.js';
 
 /**
- * @param {object} outline
- * @param {{ slug: string, title: string, icon: string }[]} outline.epochs
- * @param {{ position: number, title: string, icon: string, epoch: string }[]} outline.episodes
- * @param {CoveredChapter[]} outline.chapters
+ * @param {import('./PassageRepository.js').HistoryOutline} outline
  * @returns {import('./overviewNode.js').OverviewNode[]}
  */
 export function buildHistoryTree({ epochs, episodes, chapters }) {
-  const episodesByEpoch = groupBy(episodes, (episode) => episode.epoch);
-  const chaptersByEpisode = groupBy(chapters, (chapter) => chapter.passagePosition);
+  const episodesByEpoch = Map.groupBy(episodes, (episode) => episode.epoch);
+  const chaptersByEpisode = Map.groupBy(chapters, (chapter) => chapter.passagePosition);
 
   return epochs.filter((epoch) => episodesByEpoch.has(epoch.slug)).map((epoch) => parentNode({
     title: epoch.title,

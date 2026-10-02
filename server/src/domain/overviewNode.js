@@ -19,14 +19,3 @@ export function leafNode({ title, icon, position, detail = null }) {
 export function parentNode({ title, icon, children }) {
   return { title, detail: null, icon, position: children[0].position, children };
 }
-
-// Range des éléments par clé, sans changer leur ordre : Map clé -> liste
-export function groupBy(items, keyOf) {
-  const groups = new Map();
-  for (const item of items) {
-    const key = keyOf(item);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(item);
-  }
-  return groups;
-}

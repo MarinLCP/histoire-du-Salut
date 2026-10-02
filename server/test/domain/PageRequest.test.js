@@ -1,7 +1,7 @@
 // Tests unitaires du value object PageRequest : "quelle page de la timeline ?" (domaine pur).
 
 import { describe, test, expect } from 'vitest';
-import { PageRequest } from '../../src/domain/PageRequest.js';
+import { PageRequest, nextCursorOf } from '../../src/domain/PageRequest.js';
 import { ValidationError } from '../../src/domain/errors.js';
 
 describe('PageRequest', () => {
@@ -41,5 +41,16 @@ describe('PageRequest', () => {
     expect(PageRequest.from({}, limits).limit).toBe(2);
     expect(PageRequest.from({ limit: '5' }, limits).limit).toBe(5);
     expect(() => PageRequest.from({ limit: '6' }, limits)).toThrow('`limit` doit être un entier entre 1 et 5.');
+  });
+});
+
+describe('nextCursorOf', () => {
+  test('il reste une suite : le curseur est la position du dernier élément de la page', () => {
+    expect(nextCursorOf([{ position: 3 }, { position: 4 }], true)).toBe(4);
+  });
+
+  test('plus rien après : pas de curseur (null)', () => {
+    expect(nextCursorOf([{ position: 3 }], false)).toBeNull();
+    expect(nextCursorOf([], false)).toBeNull();
   });
 });
