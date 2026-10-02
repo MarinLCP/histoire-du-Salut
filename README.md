@@ -122,7 +122,8 @@ histoire-du-Salut/
 │   │   │   ├── 001_initial_schema.sql ← tables books, verses, passages
 │   │   │   ├── 002_chapters.sql     ← les chapitres dans l'ordre de lecture (Bible entière en continu)
 │   │   │   ├── 003_epochs_and_verse_links.sql ← époques, pictogrammes, passages reliés à leurs versets (expand)
-│   │   │   └── 004_bible_groups.sql ← les grands ensembles de la Bible, et celui de chaque livre (expand)
+│   │   │   ├── 004_bible_groups.sql ← les grands ensembles de la Bible, et celui de chaque livre (expand)
+│   │   │   └── 005_contract_passages.sql ← fin du changement : passages = versets de début et de fin (contract)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   └── passages.data.js         ← les 32 passages (slug, références, époque, pictogramme) : à modifier ici

@@ -174,17 +174,17 @@ function placeholdersForRow(rowIndex, columnCount) {
 }
 
 // Insère les passages dans l'ordre de la liste (déjà vérifiés par validatePassages et validateEpochs).
-// Les id des versets de début et de fin sont retrouvés par la base elle-même (sous-requêtes).
+// Les id des versets de début et de fin sont retrouvés par la base elle-même (sous-requêtes) :
+// $6 = le livre, $7/$8 = chapitre et verset de début, $9/$10 = chapitre et verset de fin.
 async function insertPassages(client, passages, bookIds, epochIds) {
   for (const [index, passage] of passages.entries()) {
     await client.query(
-      `INSERT INTO passages (position, slug, title, book_id, start_chapter, start_verse, end_chapter, end_verse,
-                             epoch_id, icon, start_verse_id, end_verse_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-               (SELECT id FROM verses WHERE book_id = $4 AND chapter = $5 AND verse = $6),
-               (SELECT id FROM verses WHERE book_id = $4 AND chapter = $7 AND verse = $8))`,
-      [index + 1, passage.slug, passage.title, bookIds.get(passage.book), ...passage.start, ...passage.end,
-        epochIds.get(passage.epoch), passage.icon],
+      `INSERT INTO passages (position, slug, title, epoch_id, icon, start_verse_id, end_verse_id)
+       VALUES ($1, $2, $3, $4, $5,
+               (SELECT id FROM verses WHERE book_id = $6 AND chapter = $7 AND verse = $8),
+               (SELECT id FROM verses WHERE book_id = $6 AND chapter = $9 AND verse = $10))`,
+      [index + 1, passage.slug, passage.title, epochIds.get(passage.epoch), passage.icon,
+        bookIds.get(passage.book), ...passage.start, ...passage.end],
     );
   }
 }
