@@ -7,6 +7,8 @@ import { Navigate, Route, Routes } from 'react-router';
 import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
+import BackupSection from './backup/BackupSection.jsx';
+import { downloadJson } from './backup/downloadJson.js';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
 import { useHighlights } from './highlights/useHighlights.js';
@@ -21,8 +23,8 @@ const PAGES = [
 ];
 
 function App() {
-  const { highlights, toggle: toggleHighlight } = useHighlights();
-  const { notes, save: saveNote } = useNotes();
+  const { highlights, toggle: toggleHighlight, merge: mergeHighlights } = useHighlights();
+  const { notes, save: saveNote, merge: mergeNotes } = useNotes();
   // Verset dont le menu est ouvert, { key: "Gn 1,3", text: "..." }, ou null si aucun
   const [menuVerse, setMenuVerse] = useState(null);
   const { settings, change: changeSettings } = useSettings();
@@ -60,7 +62,10 @@ function App() {
       )}
 
       {isSettingsOpen && (
-        <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)} />
+        <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
+          <BackupSection highlights={highlights} notes={notes} onDownload={downloadJson}
+            onImport={(backup) => { mergeHighlights(backup.highlights); mergeNotes(backup.notes); }} />
+        </SettingsPanel>
       )}
     </>
   );

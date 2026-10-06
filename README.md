@@ -200,7 +200,7 @@ histoire-du-Salut/
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
 │       ├── frise.spec.js            ← la frise : zoom, lecture, saut, sous-chapitres, marque-page, mode Bible ; téléphone
 │       ├── characters.spec.js       ← les personnages d'un épisode
-│       ├── settings.spec.js         ← Paramètres : texte plus grand, thème sombre, retenus après rechargement
+│       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -268,6 +268,10 @@ histoire-du-Salut/
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
+    │   ├── backup/                  ← sauvegarde des notes et surlignages (dans le panneau Paramètres)
+    │   │   ├── backup.js            ← règles : créer, relire, fusionner une sauvegarde (fichier JSON)
+    │   │   ├── downloadJson.js      ← faire télécharger un fichier JSON
+    │   │   └── BackupSection.jsx    ← « Télécharger une sauvegarde » / « Importer une sauvegarde »
     │   ├── settings/                ← les Paramètres (bouton de la barre du haut, panneau à droite)
     │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
@@ -298,6 +302,7 @@ histoire-du-Salut/
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
         ├── settings/                ← règles des réglages, panneau
+        ├── backup/                  ← règles de la sauvegarde, section du panneau
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
         └── storage/versionedStorage.test.js ← mécanisme commun de sauvegarde

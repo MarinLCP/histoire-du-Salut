@@ -3,6 +3,7 @@
 import { setNote } from './notes.js';
 import { loadNotes, saveNotes } from './notes.storage.js';
 import { useStoredMap } from '../storage/useStoredMap.js';
+import { mergeInto } from '../backup/backup.js';
 
 export function useNotes() {
   const [notes, setNotes] = useStoredMap(loadNotes, saveNotes);
@@ -12,5 +13,10 @@ export function useNotes() {
     setNotes((previous) => setNote(previous, key, text));
   }
 
-  return { notes, save };
+  // Ajoute des notes importées (sauvegarde) à celles qu'on a déjà
+  function merge(imported) {
+    setNotes((previous) => mergeInto(previous, imported));
+  }
+
+  return { notes, save, merge };
 }
