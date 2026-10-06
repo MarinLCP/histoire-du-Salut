@@ -1,7 +1,7 @@
 // Tests unitaires des références bibliques (fonctions pures).
 
 import { describe, test, expect } from 'vitest';
-import { verseKey, passageReference } from '../../src/bible/reference.js';
+import { verseKey, parseVerseKey, rangeReference, passageReference } from '../../src/bible/reference.js';
 
 describe('verseKey', () => {
   test('construit la référence d\'un verset', () => {
@@ -10,6 +10,30 @@ describe('verseKey', () => {
 
   test('garde les numéros avec lettre tels quels', () => {
     expect(verseKey('Ps', { chapter: '9A', verse: '1a' })).toBe('Ps 9A,1a');
+  });
+});
+
+describe('parseVerseKey', () => {
+  test('relit le livre, le chapitre et le verset d\'une référence', () => {
+    expect(parseVerseKey('Ps 9A,1a')).toEqual({ book: 'Ps', chapter: '9A', verse: '1a' });
+    expect(parseVerseKey('1S 17,4')).toEqual({ book: '1S', chapter: '17', verse: '4' });
+  });
+
+  test('une référence mal formée : null', () => {
+    expect(parseVerseKey('Gn 1')).toBeNull();
+  });
+});
+
+describe('rangeReference', () => {
+  const at = (book, chapter, verse) => ({ book, chapter, verse });
+
+  test.each([
+    ['un verset', at('Ml', '3', '23'), at('Ml', '3', '23'), 'Ml 3,23'],
+    ['une plage dans un chapitre', at('Mc', '9', '11'), at('Mc', '9', '13'), 'Mc 9,11-13'],
+    ['sur deux chapitres', at('Gn', '31', '55'), at('Gn', '32', '2'), 'Gn 31,55 – 32,2'],
+    ['d\'un livre au suivant', at('2Ch', '36', '22'), at('Esd', '1', '3'), '2Ch 36,22 – Esd 1,3'],
+  ])('%s', (_, start, end, expected) => {
+    expect(rangeReference(start, end)).toBe(expected);
   });
 });
 

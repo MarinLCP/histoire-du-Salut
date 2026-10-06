@@ -1,12 +1,14 @@
 // Assemble l'app : la barre de navigation, les deux lectures (une adresse chacune), le menu d'un verset
-// (surligner, noter, copier), partagé par les deux, et le panneau Paramètres.
+// (surligner, noter, copier), partagé par les deux, le panneau des parallèles (Bible entière seulement)
+// et le panneau Paramètres.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useMemo, useState } from 'react';
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useMatch } from 'react-router';
 import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
+import ParallelsPanel from './parallels/ParallelsPanel.jsx';
 import BackupSection from './backup/BackupSection.jsx';
 import { downloadJson } from './backup/downloadJson.js';
 import HistoryPage from './pages/HistoryPage.jsx';
@@ -27,12 +29,22 @@ function App() {
   const { notes, save: saveNote, merge: mergeNotes } = useNotes();
   // Verset dont le menu est ouvert, { key: "Gn 1,3", text: "..." }, ou null si aucun
   const [menuVerse, setMenuVerse] = useState(null);
+  // Verset dont les parallèles sont affichés ("Mt 11,14"), ou null
+  const [parallelsKey, setParallelsKey] = useState(null);
+  // Les parallèles ne sont proposés que dans la Bible entière
+  const isBiblePage = useMatch('/bible') !== null;
   const { settings, change: changeSettings } = useSettings();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
   const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
+
+  // Le menu laisse la place au panneau des parallèles
+  function showParallels(key) {
+    setMenuVerse(null);
+    setParallelsKey(key);
+  }
 
   return (
     <>
@@ -57,8 +69,13 @@ function App() {
           onToggleHighlight={toggleHighlight}
           onSaveNote={saveNote}
           onCopy={copyText}
+          onShowParallels={isBiblePage ? () => showParallels(menuVerse.key) : undefined}
           onClose={() => setMenuVerse(null)}
         />
+      )}
+
+      {parallelsKey && (
+        <ParallelsPanel key={parallelsKey} verseKey={parallelsKey} onClose={() => setParallelsKey(null)} />
       )}
 
       {isSettingsOpen && (

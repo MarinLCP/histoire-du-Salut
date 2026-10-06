@@ -130,4 +130,16 @@ describe('VerseMenu', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
   });
+
+  test('« Voir les parallèles » : seulement si la page le propose (Bible entière)', async () => {
+    renderMenu();
+    expect(screen.queryByRole('button', { name: 'Voir les parallèles' })).toBeNull();
+    cleanup();
+
+    const onShowParallels = vi.fn();
+    renderMenu({ onShowParallels });
+    await userEvent.click(screen.getByRole('button', { name: 'Voir les parallèles' }));
+
+    expect(onShowParallels).toHaveBeenCalled();
+  });
 });

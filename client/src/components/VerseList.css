@@ -27,6 +27,21 @@
   background: var(--highlight);
 }
 
+/* Le verset visé par un lien (ex. un parallèle) brille un instant à l'arrivée (bible/useScrollToVerse.js) */
+.verse-arrival {
+  animation: verse-arrival 2s ease-out;
+}
+
+@keyframes verse-arrival {
+  from { background: var(--highlight); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verse-arrival {
+    animation-duration: .01s;
+  }
+}
+
 /* Contour visible quand on navigue au clavier (Tab) */
 .verse:focus-visible {
   outline: 2px solid var(--text-muted);

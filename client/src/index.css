@@ -12,6 +12,8 @@
   --nav-height: 3rem;
   /* Police des boutons et de la frise (le texte biblique, lui, est en serif) */
   --ui-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Police du texte biblique */
+  --reading-font: Georgia, 'Times New Roman', serif;
   /* Bordures discrètes (barre de navigation, frise) */
   --border: color-mix(in srgb, var(--text-muted) 30%, transparent);
   /* La frise : un bleu par niveau (maquette V7.1), et la couleur du texte posé dessus */
@@ -29,7 +31,7 @@
   color: var(--text);
   background: var(--background);
   /* Une police à empattements (serif) se lit mieux sur de longs textes */
-  font: 19px/1.6 Georgia, 'Times New Roman', serif;
+  font: 19px/1.6 var(--reading-font);
 }
 
 /* Thème sombre : celui du téléphone ou de l'ordinateur (thème « Automatique »), ou choisi dans les Paramètres.

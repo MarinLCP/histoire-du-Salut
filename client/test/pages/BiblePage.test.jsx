@@ -108,6 +108,19 @@ describe('BiblePage', () => {
     expect(screen.queryByRole('link', { name: /Revenir au début de la Bible/ })).toBeNull();
   });
 
+  test('un lien vers un verset (?verset=1, ex. un parallèle) : la lecture défile jusqu\'à lui', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    renderPage('/bible?livre=Ex&chapitre=1&verset=1');
+
+    const verse = await screen.findByRole('button', { name: /Voici les noms/ });
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(verse);
+    expect(verse.classList.contains('verse-arrival')).toBe(true);
+    delete Element.prototype.scrollIntoView;
+  });
+
   test('un lien vers un chapitre inconnu ouvre la Bible depuis le début', async () => {
     renderPage('/bible?livre=Xx&chapitre=1');
 

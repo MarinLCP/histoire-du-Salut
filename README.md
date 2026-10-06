@@ -220,6 +220,7 @@ histoire-du-Salut/
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
+│       ├── parallels.spec.js        ← les parallèles d'un verset (Bible entière seulement), « Voir plus », aller au verset
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
 └── client/                          ← site web (React + Vite)
@@ -227,20 +228,23 @@ histoire-du-Salut/
     ├── vite.config.js               ← proxy /api → localhost:3000 en dev ; préparation des tests (test/setup.js)
     ├── src/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
-    │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset
+    │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset, panneaux
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
     │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche
     │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu
     │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre ; frise en mode Bible
-    │   ├── index.css                ← couleurs, police, hauteur de la barre (fixe en haut), « Revenir au début »
+    │   │                              /bible?livre=Gn&chapitre=3&verset=15 : puis défile jusqu'au verset
+    │   ├── index.css                ← couleurs, polices, hauteur de la barre (fixe en haut), « Revenir au début »
     │   ├── api/
     │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
     │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
-    │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre)
+    │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre, parallèles)
     │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode, gardé en mémoire)
     │   ├── bible/
-    │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
-    │   │   └── bibleLink.js         ← lien vers un chapitre : /bible?livre=Gn&chapitre=3 (créer / relire)
+    │   │   ├── reference.js         ← références : "Gn 1,3" (verset, et sa relecture), "Mc 9,11-13" (plage),
+    │   │   │                          "La Genèse 1, 1 – 2, 25" (passage)
+    │   │   ├── bibleLink.js         ← lien vers un chapitre ou un verset : /bible?livre=Gn&chapitre=3&verset=15
+    │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── NavBar.jsx / .css    ← la barre du haut : les deux lectures, et le bouton Paramètres
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
@@ -249,7 +253,8 @@ histoire-du-Salut/
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
-    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier)
+    │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
+    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier, voir les parallèles)
     │   ├── highlights/              ← surlignages
     │   │   ├── highlights.js        ← logique pure (surligner / retirer)
     │   │   ├── highlights.storage.js← sauvegarde dans le navigateur
@@ -285,6 +290,9 @@ histoire-du-Salut/
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
+    │   ├── parallels/               ← les parallèles d'un verset (Bible entière seulement, OpenBible.info)
+    │   │   ├── useParallels.js      ← chargés 10 par 10, les plus votés d'abord (« Voir plus »)
+    │   │   └── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
     │   ├── backup/                  ← sauvegarde des notes et surlignages (dans le panneau Paramètres)
     │   │   ├── backup.js            ← règles : créer, relire, fusionner une sauvegarde (fichier JSON)
     │   │   ├── downloadJson.js      ← faire télécharger un fichier JSON
@@ -293,7 +301,7 @@ histoire-du-Salut/
     │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
     │   │   ├── useSettings.js       ← branchement React (appliqués et sauvegardés à chaque changement)
-    │   │   └── SettingsPanel.jsx / .css ← le panneau
+    │   │   └── SettingsPanel.jsx / .css ← le panneau (dans un SidePanel)
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
@@ -306,19 +314,20 @@ histoire-du-Salut/
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
-        ├── App.test.jsx             ← routage, frise sur /, panneau Paramètres
+        ├── App.test.jsx             ← routage, frise sur /, panneau Paramètres, panneau des parallèles
         ├── setup.js                 ← préparation commune à tous les tests (vide le cache et le stockage)
         ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink
         ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
-        ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, lien, frise
+        ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, liens (chapitre, verset), frise
         ├── pages/HistoryPage.test.jsx ← point de départ (lien partagé) et retour au début, sans rechargement
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
         ├── settings/                ← règles des réglages, panneau
+        ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source)
         ├── backup/                  ← règles de la sauvegarde, section du panneau
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
@@ -328,3 +337,8 @@ histoire-du-Salut/
 ## Données et droits
 
 Le texte biblique vient de la traduction liturgique de l'AELF, utilisée avec l'accord de ses responsables.
+
+Les parallèles entre versets viennent d'[OpenBible.info](https://www.openbible.info/labs/cross-references/)
+(licence CC-BY) : leur numérotation (celle des Bibles protestantes) est convertie vers celle de l'AELF par
+`server/scripts/parallels/` ; `npm run parallels:report` (dans server/) vérifie que chaque lien tombe sur un
+verset AELF. La source est citée dans l'app, en bas du panneau des parallèles.

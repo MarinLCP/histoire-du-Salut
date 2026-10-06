@@ -1,5 +1,6 @@
 // Page « Bible entière » (adresse /bible) : toute la Bible, lue en continu, chapitre après chapitre.
-// Depuis un lien (/bible?livre=Gn&chapitre=3, ex. « Lire tout le chapitre »), la lecture commence à ce chapitre.
+// Depuis un lien (/bible?livre=Gn&chapitre=3, ex. « Lire tout le chapitre »), la lecture commence à ce chapitre ;
+// avec un verset (&verset=15, ex. un parallèle), elle défile ensuite jusqu'à lui.
 // La suite se charge au fil du défilement (même mécanisme que la timeline : useCursorPagination).
 // À gauche, la frise en mode Bible entière.
 
@@ -10,6 +11,8 @@ import ListStatus from '../components/ListStatus.jsx';
 import ReadingWithFrise from '../frise/ReadingWithFrise.jsx';
 import { fetchBible, fetchChapter } from '../api/bible.api.js';
 import { readChapterLink } from '../bible/bibleLink.js';
+import { verseKey } from '../bible/reference.js';
+import { useScrollToVerse } from '../bible/useScrollToVerse.js';
 import { useCursorPagination } from '../hooks/useCursorPagination.js';
 import { useStartCursor } from '../hooks/useStartCursor.js';
 import { useJump } from '../frise/useJump.js';
@@ -45,18 +48,21 @@ function BiblePage({ annotations }) {
 
 // Où commencer (au début, au chapitre du lien, ou au chapitre choisi dans la frise), puis la lecture
 function BibleReading({ search, jumpStart, annotations }) {
-  const linkKey = readChapterLink(search) ? search : null;
-  const linkStart = useStartCursor(linkKey, findChapterPosition);
+  const link = readChapterLink(search);
+  const linkStart = useStartCursor(link ? search : null, findChapterPosition);
   const startAfter = jumpStart ?? linkStart;
+  // Le verset visé par le lien ; plus aucun après un saut dans la frise
+  const targetVerse = link?.verse && jumpStart === null ? verseKey(link.book, link) : null;
 
   if (startAfter === null) return <ListStatus isLoading />;
   // key : un autre point de départ = une lecture rechargée depuis ce chapitre
-  return <BibleReader key={startAfter} startAfter={startAfter} annotations={annotations} />;
+  return <BibleReader key={startAfter} startAfter={startAfter} targetVerse={targetVerse} annotations={annotations} />;
 }
 
-function BibleReader({ startAfter, annotations }) {
+function BibleReader({ startAfter, targetVerse, annotations }) {
   const { items: chapters, sentinelRef, isLoading, error, isFinished, retry } =
     useCursorPagination(fetchChapters, startAfter);
+  useScrollToVerse(targetVerse, chapters.length);
 
   return (
     <>

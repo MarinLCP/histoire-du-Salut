@@ -73,4 +73,27 @@ describe('routage', () => {
     expect(JSON.parse(localStorage.getItem('settings')).settings.theme).toBe('dark');
     document.documentElement.removeAttribute('data-theme');
   });
+
+  test('dans la Bible entière, « Voir les parallèles » ouvre le panneau du verset', async () => {
+    HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };
+    const verse = { chapter: '1', verse: '1', kind: 'verse', text: 'AU COMMENCEMENT' };
+    const responses = {
+      '/api/bible': { chapters: [{ position: 1, book: { code: 'Gn', title: 'La Genèse' }, chapter: '1', verses: [verse] }], nextCursor: null },
+      '/api/overview': [],
+      '/api/books': { parallels: [], nextCursor: null },
+    };
+    const responseFor = (url) => Object.entries(responses).find(([start]) => url.startsWith(start))[1];
+    vi.stubGlobal('fetch', vi.fn(async (url) => new Response(JSON.stringify(responseFor(url)))));
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback) { this.callback = callback; }
+      observe() { setTimeout(() => this.callback([{ isIntersecting: true }]), 0); }
+      disconnect() {}
+    });
+    renderAt('/bible');
+
+    fireEvent.contextMenu(await screen.findByRole('button', { name: /AU COMMENCEMENT/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Voir les parallèles' }));
+
+    expect(await screen.findByRole('heading', { name: 'Parallèles de Gn 1,1' })).toBeDefined();
+  });
 });

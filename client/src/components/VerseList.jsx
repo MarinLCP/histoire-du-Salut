@@ -47,8 +47,10 @@ const NumberedVerse = memo(function NumberedVerse({ verse, verseKey, isHighlight
 
   return (
     <>
+      {/* data-verse : un lien vers ce verset le retrouve ainsi (bible/useScrollToVerse.js) */}
       <p
         className={isHighlighted ? 'verse verse-highlighted' : 'verse'}
+        data-verse={verseKey}
         role="button"
         tabIndex={0}
         aria-haspopup="dialog"

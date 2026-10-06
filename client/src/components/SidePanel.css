@@ -1,0 +1,52 @@
+/* Un panneau qui glisse depuis le bord droit, par-dessus la lecture (fond grisé derrière) */
+
+.side-panel {
+  margin: 0 0 0 auto;
+  width: min(22rem, 100vw);
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  background: var(--background);
+  color: var(--text);
+  box-shadow: -8px 0 24px rgb(0 0 0 / .2);
+}
+
+.side-panel::backdrop {
+  background: rgb(0 0 0 / .35);
+}
+
+.side-panel-content {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.25rem 1.25rem 2rem;
+  font: .9rem/1.4 var(--ui-font);
+}
+
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.side-panel-header h2 {
+  margin: 0;
+  font: 600 1.1rem/1.2 var(--ui-font);
+}
+
+.side-panel-close {
+  padding: .5rem .8rem;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.side-panel-close:focus-visible {
+  outline: 2px solid var(--level-2);
+  outline-offset: -2px;
+}

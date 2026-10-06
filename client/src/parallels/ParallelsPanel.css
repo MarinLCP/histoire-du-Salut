@@ -1,0 +1,64 @@
+/* Le panneau des parallèles (le panneau lui-même : components/SidePanel.css) */
+
+.parallels-list {
+  display: grid;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parallel-link {
+  display: grid;
+  gap: .25rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.parallel-link:hover {
+  border-color: var(--level-2);
+}
+
+.parallel-link:focus-visible,
+.parallels-more:focus-visible {
+  outline: 2px solid var(--level-2);
+  outline-offset: 2px;
+}
+
+.parallel-reference {
+  font-weight: 600;
+}
+
+/* Le texte, en police de lecture, coupé à 3 lignes : le clic mène au texte entier */
+.parallel-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  font-family: var(--reading-font);
+  white-space: pre-line;
+}
+
+.parallels-more {
+  /* 44px : taille minimale recommandée pour une cible au doigt */
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.parallels-note {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.parallels-note a {
+  color: inherit;
+}

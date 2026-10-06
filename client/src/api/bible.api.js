@@ -11,3 +11,9 @@ export function fetchBible(after) {
 export function fetchChapter(bookCode, chapter) {
   return getJson(`/api/books/${encodeURIComponent(bookCode)}/chapters/${encodeURIComponent(chapter)}`);
 }
+
+// Renvoie { parallels, nextCursor } : les parallèles d'un verset, les plus votés d'abord, après le rang `after`
+export function fetchParallels({ book, chapter, verse }, after) {
+  const [bookPart, chapterPart, versePart] = [book, chapter, verse].map(encodeURIComponent);
+  return getJson(`/api/books/${bookPart}/chapters/${chapterPart}/verses/${versePart}/parallels?after=${after}`);
+}
