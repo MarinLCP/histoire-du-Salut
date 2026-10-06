@@ -4,19 +4,21 @@
 
 import { PageRequest, nextCursorOf } from '../domain/PageRequest.js';
 import { NotFoundError } from '../domain/errors.js';
+import { VerseReference } from '../domain/VerseReference.js';
 
 const PARALLEL_LIMITS = { defaultLimit: 10, maxLimit: 20 };
 
 /** @param {import('../domain/ParallelRepository.js').ParallelRepository} parallelRepository */
 export function makeGetParallels(parallelRepository) {
   /**
-   * @param {import('../domain/ParallelRepository.js').VerseReference} origin
+   * @param {{ book: string, chapter: string, verse: string }} verse - le verset, tel que reçu (ex. de l'adresse)
    * @param {{ after?: string, limit?: string }} query
    */
-  return async function getParallels(origin, query) {
+  return async function getParallels(verse, query) {
+    const origin = VerseReference.from(verse);
     const page = PageRequest.from(query, PARALLEL_LIMITS);
     const found = await parallelRepository.findPageAfter(origin, page.after, page.limit);
-    if (!found) throw new NotFoundError(`Verset ${origin.book} ${origin.chapter},${origin.verse} introuvable.`);
+    if (!found) throw new NotFoundError(`Verset ${origin} introuvable.`);
 
     return { parallels: found.parallels, nextCursor: nextCursorOf(found.parallels, found.hasMore) };
   };

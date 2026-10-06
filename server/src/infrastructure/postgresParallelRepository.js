@@ -22,6 +22,7 @@ export function createPostgresParallelRepository(pool) {
       // Un parallèle de plus que demandé : s'il existe, il reste une page après
       const result = await pool.query(PARALLEL_PAGE, [origin.rows[0].id, after, limit + 1]);
       const rows = result.rows.slice(0, limit);
+      if (rows.length === 0) return { parallels: [], hasMore: false };
       const versesByParallel = await findPreviewVerses(pool, rows);
 
       return { parallels: rows.map((row) => toParallel(row, versesByParallel.get(row.position))), hasMore: result.rows.length > limit };

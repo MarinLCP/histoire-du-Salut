@@ -29,11 +29,15 @@ const pages = {
   '/api/books/Gn/chapters/1/verses/1/parallels?after=0': { parallels: [], nextCursor: null },
 };
 
-function renderPanel(verseKey = 'Mt 11,14') {
+// Le verset du menu : sa référence en texte et en morceaux
+const MT_11_14 = { key: 'Mt 11,14', reference: { book: 'Mt', chapter: '11', verse: '14' } };
+const GN_1_1 = { key: 'Gn 1,1', reference: { book: 'Gn', chapter: '1', verse: '1' } };
+
+function renderPanel(verse = MT_11_14) {
   const onClose = vi.fn();
   render(
     <MemoryRouter>
-      <ParallelsPanel verseKey={verseKey} onClose={onClose} />
+      <ParallelsPanel verse={verse} onClose={onClose} />
     </MemoryRouter>,
   );
   return { onClose };
@@ -80,10 +84,24 @@ describe('ParallelsPanel', () => {
   });
 
   test('un verset sans parallèle : un message, pas de « Voir plus »', async () => {
-    renderPanel('Gn 1,1');
+    renderPanel(GN_1_1);
 
     expect(await screen.findByText('Aucun parallèle pour ce verset.')).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Voir plus' })).toBeNull();
+  });
+
+  test('API injoignable : un message et « Réessayer », qui redemande la page', async () => {
+    let isDown = true;
+    vi.stubGlobal('fetch', vi.fn(async (url) => (isDown
+      ? new Response(JSON.stringify({ error: 'Base indisponible.' }), { status: 503 })
+      : new Response(JSON.stringify(pages[url])))));
+    renderPanel();
+
+    expect(await screen.findByText('Base indisponible.')).toBeDefined();
+    isDown = false;
+    fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
+
+    expect(await screen.findByRole('link', { name: /Ml 3,23/ })).toBeDefined();
   });
 
   test('cite la source des parallèles (licence CC-BY)', () => {

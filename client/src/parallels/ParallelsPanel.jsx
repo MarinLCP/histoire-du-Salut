@@ -12,20 +12,19 @@ import './ParallelsPanel.css';
 
 const SOURCE_URL = 'https://www.openbible.info/labs/cross-references/';
 
-// verseKey : la référence du verset ("Mt 11,14")
-function ParallelsPanel({ verseKey, onClose }) {
-  const { parallels, isLoading, error, canLoadMore, loadMore } = useParallels(verseKey);
-  const isEmpty = !isLoading && !error && parallels.length === 0;
+// verse : { key: "Mt 11,14", reference: { book, chapter, verse } } (le verset du menu)
+function ParallelsPanel({ verse, onClose }) {
+  const { parallels, isLoading, error, canLoadMore, loadMore } = useParallels(verse.reference);
 
   return (
-    <SidePanel title={`Parallèles de ${verseKey}`} onClose={onClose}>
+    <SidePanel title={`Parallèles de ${verse.key}`} onClose={onClose}>
       <ol className="parallels-list">
         {parallels.map((parallel) => (
           <ParallelItem key={parallel.position} parallel={parallel} onOpen={onClose} />
         ))}
       </ol>
-      {isEmpty && <p className="parallels-note">Aucun parallèle pour ce verset.</p>}
-      <ListStatus isLoading={isLoading} error={error} onRetry={loadMore} />
+      <ListStatus isLoading={isLoading} error={error} onRetry={loadMore}
+        isFinished={parallels.length === 0} finishedText="Aucun parallèle pour ce verset." />
       {canLoadMore && <button type="button" className="parallels-more" onClick={loadMore}>Voir plus</button>}
       <p className="parallels-note">
         Parallèles : <a href={SOURCE_URL} target="_blank" rel="noreferrer">OpenBible.info</a> (CC-BY)

@@ -23,7 +23,9 @@ const passage = {
 };
 
 // Ce que reçoit le menu quand on l'ouvre sur le premier verset : sa référence et son texte
-const FIRST_VERSE = { key: 'Gn 1,1', text: 'Au commencement, Dieu créa le ciel et la terre.' };
+const FIRST_VERSE = {
+  key: 'Gn 1,1', text: 'Au commencement, Dieu créa le ciel et la terre.', reference: { book: 'Gn', chapter: '1', verse: '1' },
+};
 
 function renderPassage({
   highlights = new Map(),

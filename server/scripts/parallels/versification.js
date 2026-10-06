@@ -3,6 +3,7 @@
 // protestantes ; l'AELF suit la numérotation hébraïque pour l'Ancien Testament (et grecque pour les Psaumes).
 // Les différences ont été relevées chapitre par chapitre en comparant le fichier à la base AELF (V9.0).
 
+import { VerseReference } from '../../src/domain/VerseReference.js';
 import { psalmToAelf } from './psalms.js';
 
 // Code du fichier -> code AELF (les 66 livres ; le fichier n'a pas les livres deutérocanoniques)
@@ -60,20 +61,24 @@ const SHIFTS = [
   ['Ac', 19, 41, 41, '19', 40], ['2Co', 13, 13, 14, '13', 12],
 ];
 
+// Les décalages rangés par chapitre (« Gn|31 » -> ses lignes) : un million de références à convertir
+const SHIFTS_BY_CHAPTER = Map.groupBy(SHIFTS, ([book, chapter]) => `${book}|${chapter}`);
+
 /**
  * @param {{ book: string, chapter: number, verse: number }} reference code anglais, numérotation protestante
- * @returns {{ book: string, chapter: string, verse: number }} la même référence dans l'AELF
+ * @returns {VerseReference} la même référence dans l'AELF
  */
 export function toAelf({ book, chapter, verse }) {
   const aelfBook = BOOKS[book];
   if (!aelfBook) throw new Error(`Livre « ${book} » inconnu.`);
-  if (aelfBook === 'Ps') return { book: aelfBook, ...psalmToAelf(chapter, verse) };
-  return { book: aelfBook, ...shifted(aelfBook, chapter, verse) };
+  const place = aelfBook === 'Ps' ? psalmToAelf(chapter, verse) : shifted(aelfBook, chapter, verse);
+  return VerseReference.from({ book: aelfBook, ...place });
 }
 
 function shifted(book, chapter, verse) {
-  const shift = SHIFTS.find(([b, c, first, last]) => b === book && c === chapter && verse >= first && verse <= last);
-  if (!shift) return { chapter: String(chapter), verse };
+  const shifts = SHIFTS_BY_CHAPTER.get(`${book}|${chapter}`) ?? [];
+  const shift = shifts.find(([, , first, last]) => verse >= first && verse <= last);
+  if (!shift) return { chapter, verse };
   const [, , first, , aelfChapter, aelfFirst] = shift;
   return { chapter: aelfChapter, verse: aelfFirst + verse - first };
 }

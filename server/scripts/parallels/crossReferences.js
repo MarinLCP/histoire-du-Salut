@@ -9,7 +9,7 @@ const MIN_VOTES = 1; // un vote nul ou négatif : des lecteurs ont jugé le lien
 export function parseCrossReferences(text) {
   const lines = text.split('\n');
   const links = [];
-  // La 1re ligne est l'en-tête des colonnes ; numéro de ligne humain = index + 1
+  // La 1re ligne est l'en-tête des colonnes : la ligne d'index 0 après elle est la ligne n° 2 du fichier
   lines.slice(1).forEach((line, index) => {
     if (line.trim() === '') return;
     const link = parseLine(line, index + 2);

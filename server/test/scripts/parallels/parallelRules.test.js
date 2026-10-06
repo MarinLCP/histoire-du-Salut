@@ -19,9 +19,9 @@ describe('matchParallels', () => {
 
     expect(unmatched).toEqual([]);
     expect(parallels).toEqual([{
-      from: { book: 'Mt', chapter: '11', verse: 14 },
-      toStart: { book: 'Ml', chapter: '3', verse: 23 },
-      toEnd: { book: 'Ml', chapter: '3', verse: 24 },
+      from: { book: 'Mt', chapter: '11', verse: '14' },
+      toStart: { book: 'Ml', chapter: '3', verse: '23' },
+      toEnd: { book: 'Ml', chapter: '3', verse: '24' },
       votes: 42,
     }]);
   });
@@ -47,7 +47,7 @@ describe('matchParallels', () => {
     const { parallels, unmatched } = matchParallels([link(ref('Matt', 11, 14), ref('Gen', 32, 2), ref('Mal', 4, 5))], SOURCE);
 
     expect(unmatched).toEqual([]);
-    expect(parallels[0].toEnd).toEqual({ book: 'Ml', chapter: '3', verse: 23 });
+    expect(parallels[0].toEnd).toEqual({ book: 'Ml', chapter: '3', verse: '23' });
   });
 
   test('deux liens rendus identiques par la conversion n\'en font qu\'un, le plus voté', () => {

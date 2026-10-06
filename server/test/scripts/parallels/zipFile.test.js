@@ -7,10 +7,9 @@ import { readSingleFileZip } from '../../../scripts/parallels/zipFile.js';
 const zip = readFileSync(new URL('../../../data/cross-references.zip', import.meta.url));
 
 describe('readSingleFileZip', () => {
-  test('rend le nom et le texte du fichier compressé', () => {
-    const { name, text } = readSingleFileZip(zip);
+  test('rend le texte du fichier compressé', () => {
+    const text = readSingleFileZip(zip);
 
-    expect(name).toBe('cross_references.txt');
     expect(text.startsWith('From Verse\tTo Verse\tVotes')).toBe(true);
     expect(text.split('\n').filter(Boolean)).toHaveLength(344800);
   });

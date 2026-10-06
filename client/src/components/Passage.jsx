@@ -14,7 +14,7 @@ import './Passage.css';
 const SHARE_LABELS = { idle: 'Partager', done: 'Lien copié ✓', failed: 'Partage impossible' };
 
 // annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets.
-// openMenu({ key, text }) reçoit la référence du verset et son texte (pour le copier).
+// openMenu({ key, text, reference }) : voir VerseList.jsx
 // onShare(passage) partage le passage (injectée par App, remplacée par un faux dans les tests).
 function Passage({ passage, annotations, onShare }) {
   // Après la feuille de partage du téléphone (ou si on l'a fermée), rien à confirmer

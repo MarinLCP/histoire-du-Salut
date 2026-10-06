@@ -10,7 +10,8 @@ import { useLongPress } from '../hooks/useLongPress.js';
 import './VerseList.css';
 
 // annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets.
-// openMenu({ key, text }) reçoit la référence du verset et son texte (pour le copier).
+// openMenu({ key, text, reference }) reçoit la référence du verset ("Gn 1,3", et en morceaux :
+// { book, chapter, verse }) et son texte (pour le copier).
 function VerseList({ verses, bookCode, annotations }) {
   return verses.map((verse, index) => (
     <Fragment key={index}>
@@ -30,6 +31,7 @@ function Verse({ verse, bookCode, annotations }) {
   return (
     <NumberedVerse
       verse={verse}
+      bookCode={bookCode}
       verseKey={key}
       isHighlighted={annotations.highlights.has(key)}
       note={annotations.notes.get(key)}
@@ -41,8 +43,9 @@ function Verse({ verse, bookCode, annotations }) {
 // memo : un verset ne se redessine que si SES données changent (surligné, note...).
 // Sans ça, ouvrir le menu ou surligner un verset redessinerait les milliers de versets à l'écran.
 // Composant séparé aussi parce qu'un hook (useLongPress) ne peut pas suivre un return conditionnel.
-const NumberedVerse = memo(function NumberedVerse({ verse, verseKey, isHighlighted, note, onOpenMenu }) {
-  const openMenu = () => onOpenMenu({ key: verseKey, text: verse.text });
+const NumberedVerse = memo(function NumberedVerse({ verse, bookCode, verseKey, isHighlighted, note, onOpenMenu }) {
+  const reference = { book: bookCode, chapter: verse.chapter, verse: verse.verse };
+  const openMenu = () => onOpenMenu({ key: verseKey, text: verse.text, reference });
   const longPressHandlers = useLongPress(openMenu);
 
   return (

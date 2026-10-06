@@ -27,7 +27,8 @@ import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from
 import { withClient, inTransaction } from './database.js';
 import { readBibleSource } from './bibleSource.js';
 import { readParallelLinks } from './parallels/parallelsFile.js';
-import { matchParallels, requireFullMatch, written } from './parallels/parallelRules.js';
+import { matchParallels, requireFullMatch } from './parallels/parallelRules.js';
+import { VerseReference } from '../src/domain/VerseReference.js';
 import { placeholdersFor, verseKind } from './sqlRows.js';
 
 const BATCH_SIZE = 1000;
@@ -50,7 +51,8 @@ validateCharacters(characters, { passageSlugs: passages.map((passage) => passage
 const charactersToWrite = publishable(characters, { withProposals });
 const appearances = characterAppearances(charactersToWrite, passageTexts(passages, source.verses));
 const groupOfBook = assignBookGroups(bibleGroups, books.map((book) => book.code));
-const { parallels, unmatched } = matchParallels(readParallelLinks(), source.verses);
+// Vérifiés dans l'ordre de lecture du site (celui de la base) : une plage doit aller dans cet ordre
+const { parallels, unmatched } = matchParallels(readParallelLinks(), verses);
 requireFullMatch(unmatched);
 
 // Soit tout est écrit, soit rien (une erreur au milieu annule tout)
@@ -204,17 +206,19 @@ async function insertAppearances(client, appearances, passageIds, characterIds) 
 // dans la base (« Gn 32,2 » -> id) : plus rapide que trois sous-requêtes pour chacune des 341 000 lignes.
 async function insertParallels(client, parallels) {
   const verseIds = await readVerseIds(client);
-  const rows = parallels.map((parallel) => [
-    verseIds.get(written(parallel.from)), verseIds.get(written(parallel.toStart)), verseIds.get(written(parallel.toEnd)),
-    parallel.votes,
+  const rows = parallels.map(({ from, toStart, toEnd, votes }) => [
+    verseIds.get(String(from)), verseIds.get(String(toStart)), verseIds.get(String(toEnd)), votes,
   ]);
   await insertInBatches(client, 'parallels (from_verse_id, to_start_verse_id, to_end_verse_id, votes)', rows, PARALLEL_BATCH_SIZE);
 }
 
-// Map : référence du verset (« Gn 32,2 ») -> id
+// Map : référence du verset (« Gn 32,2 », le texte d'une VerseReference) -> id. Les lignes sans numéro
+// (ex. « ELLE » dans le Cantique) ne sont pas des versets : aucun parallèle n'y mène.
 async function readVerseIds(client) {
   const result = await client.query(
-    'SELECT verses.id, books.code AS book, verses.chapter, verses.verse FROM verses JOIN books ON books.id = verses.book_id',
+    `SELECT verses.id, books.code AS book, verses.chapter, verses.verse
+     FROM verses JOIN books ON books.id = verses.book_id
+     WHERE verses.verse IS NOT NULL`,
   );
-  return new Map(result.rows.map((row) => [written(row), row.id]));
+  return new Map(result.rows.map((row) => [String(VerseReference.from(row)), row.id]));
 }

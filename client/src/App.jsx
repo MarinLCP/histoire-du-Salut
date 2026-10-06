@@ -4,7 +4,7 @@
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useMemo, useState } from 'react';
-import { Navigate, Route, Routes, useMatch } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
 import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
@@ -27,12 +27,11 @@ const PAGES = [
 function App() {
   const { highlights, toggle: toggleHighlight, merge: mergeHighlights } = useHighlights();
   const { notes, save: saveNote, merge: mergeNotes } = useNotes();
-  // Verset dont le menu est ouvert, { key: "Gn 1,3", text: "..." }, ou null si aucun
+  // Verset dont le menu est ouvert, { key: "Gn 1,3", text, reference, canShowParallels }, ou null si aucun
+  // (canShowParallels : ajouté par la page Bible entière, la seule qui propose les parallèles)
   const [menuVerse, setMenuVerse] = useState(null);
-  // Verset dont les parallèles sont affichés ("Mt 11,14"), ou null
-  const [parallelsKey, setParallelsKey] = useState(null);
-  // Les parallèles ne sont proposés que dans la Bible entière
-  const isBiblePage = useMatch('/bible') !== null;
+  // Verset dont les parallèles sont affichés (le même objet que menuVerse), ou null
+  const [parallelsVerse, setParallelsVerse] = useState(null);
   const { settings, change: changeSettings } = useSettings();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -41,9 +40,9 @@ function App() {
   const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
 
   // Le menu laisse la place au panneau des parallèles
-  function showParallels(key) {
+  function showParallels(verse) {
     setMenuVerse(null);
-    setParallelsKey(key);
+    setParallelsVerse(verse);
   }
 
   return (
@@ -69,13 +68,13 @@ function App() {
           onToggleHighlight={toggleHighlight}
           onSaveNote={saveNote}
           onCopy={copyText}
-          onShowParallels={isBiblePage ? () => showParallels(menuVerse.key) : undefined}
+          onShowParallels={menuVerse.canShowParallels ? () => showParallels(menuVerse) : undefined}
           onClose={() => setMenuVerse(null)}
         />
       )}
 
-      {parallelsKey && (
-        <ParallelsPanel key={parallelsKey} verseKey={parallelsKey} onClose={() => setParallelsKey(null)} />
+      {parallelsVerse && (
+        <ParallelsPanel key={parallelsVerse.key} verse={parallelsVerse} onClose={() => setParallelsVerse(null)} />
       )}
 
       {isSettingsOpen && (

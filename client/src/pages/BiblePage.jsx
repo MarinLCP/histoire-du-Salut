@@ -4,7 +4,7 @@
 // La suite se charge au fil du défilement (même mécanisme que la timeline : useCursorPagination).
 // À gauche, la frise en mode Bible entière.
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Link, useLocation } from 'react-router';
 import Chapter from '../components/Chapter.jsx';
 import ListStatus from '../components/ListStatus.jsx';
@@ -32,6 +32,11 @@ const TAB_NAMES = ["Vue d'ensemble", 'Livres', 'Chapitres'];
 // annotations : surlignages, notes et ouverture du menu d'un verset (partagés par toutes les pages)
 function BiblePage({ annotations }) {
   const { search } = useLocation();
+  // Dans la Bible entière, le menu d'un verset propose aussi ses parallèles
+  const bibleAnnotations = useMemo(
+    () => ({ ...annotations, openMenu: (verse) => annotations.openMenu({ ...verse, canShowParallels: true }) }),
+    [annotations],
+  );
   // Un clic dans la frise vers un chapitre pas encore chargé : la lecture recommence à ce chapitre
   const [jumpStart, jumpTo] = useJump();
 
@@ -40,7 +45,7 @@ function BiblePage({ annotations }) {
       <section aria-labelledby="bible-page-title">
         <h1 className="bible-page-title" id="bible-page-title">La Bible entière</h1>
         {/* key : une autre adresse (autre lien, ou retour au début) = une lecture recommencée de zéro */}
-        <BibleReading key={search} search={search} jumpStart={jumpStart} annotations={annotations} />
+        <BibleReading key={search} search={search} jumpStart={jumpStart} annotations={bibleAnnotations} />
       </section>
     </ReadingWithFrise>
   );

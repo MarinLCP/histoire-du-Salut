@@ -9,5 +9,5 @@ import { parseCrossReferences } from './crossReferences.js';
 const ZIP_PATH = fileURLToPath(new URL('../../data/cross-references.zip', import.meta.url));
 
 export function readParallelLinks() {
-  return parseCrossReferences(readSingleFileZip(readFileSync(ZIP_PATH)).text);
+  return parseCrossReferences(readSingleFileZip(readFileSync(ZIP_PATH)));
 }

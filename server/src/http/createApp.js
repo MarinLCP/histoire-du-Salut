@@ -14,7 +14,7 @@ import { errorHandler } from './errorHandler.js';
  * @param {(bookCode: string, label: string) => Promise<object>} dependencies.findChapter
  * @param {() => Promise<object[]>} dependencies.getHistoryOverview
  * @param {() => Promise<object[]>} dependencies.getBibleOverview
- * @param {(origin: object, query: object) => Promise<object>} dependencies.getParallels
+ * @param {(verse: { book: string, chapter: string, verse: string }, query: object) => Promise<object>} dependencies.getParallels
  * @param {() => Promise<void>} dependencies.pingDatabase
  * @param {string} dependencies.clientBuildDirectory - le site React construit (client/dist)
  */

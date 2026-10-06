@@ -116,7 +116,8 @@ histoire-du-Salut/
 │   │   │   ├── 005_contract_passages.sql ← fin du changement : passages = versets de début et de fin (contract)
 │   │   │   ├── 006_sections.sql     ← les sous-chapitres (intertitres posés sur un verset)
 │   │   │   ├── 007_characters.sql   ← les personnages et leurs apparitions dans les épisodes
-│   │   │   └── 008_parallels.sql    ← les parallèles : verset → verset ou plage, votes
+│   │   │   ├── 008_parallels.sql    ← les parallèles : verset → verset ou plage, votes
+│   │   │   └── 009_drop_parallels_index.sql ← retire un index en double (la clé primaire suffit)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -153,6 +154,7 @@ histoire-du-Salut/
 │   │   │   ├── identifier.js        ← règle commune des identifiants (slugs, pictogrammes)
 │   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
 │   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
+│   │   │   ├── VerseReference.js    ← value object : la référence d'un verset (Gn 32,2), API et seed
 │   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux, avec son kind)
 │   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts → sous-chapitres
 │   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres → sous-chapitres
@@ -182,7 +184,7 @@ histoire-du-Salut/
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
 │   └── test/                        ← en miroir de src/ et scripts/
-│       ├── domain/                  ← identifier, PassageSlug, PageRequest, arbres de la frise (unitaires, sans base)
+│       ├── domain/                  ← identifier, PassageSlug, PageRequest, VerseReference, arbres de la frise (unitaires, sans base)
 │       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles (faux repository)
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
@@ -241,7 +243,7 @@ histoire-du-Salut/
     │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre, parallèles)
     │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode, gardé en mémoire)
     │   ├── bible/
-    │   │   ├── reference.js         ← références : "Gn 1,3" (verset, et sa relecture), "Mc 9,11-13" (plage),
+    │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "Mc 9,11-13" (plage),
     │   │   │                          "La Genèse 1, 1 – 2, 25" (passage)
     │   │   ├── bibleLink.js         ← lien vers un chapitre ou un verset : /bible?livre=Gn&chapitre=3&verset=15
     │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
@@ -305,7 +307,8 @@ histoire-du-Salut/
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
-    │   │   ├── useCursorPagination.js ← liste chargée page par page (timeline et Bible)
+    │   │   ├── useCursorPages.js    ← liste chargée page par page (réponses en double ou périmées ignorées)
+    │   │   ├── useCursorPagination.js ← la même, au fil du défilement (timeline et Bible)
     │   │   ├── useStartCursor.js    ← où commencer une liste ouverte par un lien (passage, chapitre)
     │   │   ├── useLoaded.js         ← une valeur chargée pour une clé (départ, chargée, ou secours)
     │   │   ├── useModalDialog.js    ← une fenêtre <dialog> modale (menu d'un verset, Paramètres)

@@ -4,13 +4,16 @@
 // Lancer : npm run parallels:report
 
 import { readBibleSource } from './bibleSource.js';
+import { canonicalBookOrder, versesInReadingOrder } from './bibleOrder.js';
 import { readParallelLinks } from './parallels/parallelsFile.js';
 import { matchParallels } from './parallels/parallelRules.js';
 
 const SHOWN_PROBLEMS = 30;
 
+const source = readBibleSource();
 const links = readParallelLinks();
-const { parallels, unmatched } = matchParallels(links, readBibleSource().verses);
+// Comme le seed : dans l'ordre de lecture du site (Psaumes après Job), celui de la base
+const { parallels, unmatched } = matchParallels(links, versesInReadingOrder(canonicalBookOrder(source.books), source.verses));
 
 console.log(`${links.length} liens lus, ${links.length - unmatched.length} en correspondance, ${unmatched.length} mis de côté`
   + ` (${parallels.length} parallèles une fois les doublons fusionnés).`);

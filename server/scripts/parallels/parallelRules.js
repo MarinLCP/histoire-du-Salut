@@ -11,16 +11,18 @@ import { toAelf } from './versification.js';
 
 /**
  * @param {Array<{ from: object, to: { start: object, end: object }, votes: number }>} links (crossReferences.js)
- * @param {Array<{ code: string, chapter: string, verse: string }>} sourceVerses les versets de bible.db
+ * @param {Array<{ code: string, chapter: string, verse: string }>} readingVerses les versets de bible.db, dans
+ *   l'ordre de lecture du site (Psaumes après Job : bibleOrder.js), celui de la base
  * @returns {{ parallels: Array<{ from, toStart, toEnd, votes }>, unmatched: Array<{ link, reason }> }}
+ *   (références : des VerseReference)
  */
-export function matchParallels(links, sourceVerses) {
-  const index = indexVerses(sourceVerses);
+export function matchParallels(links, readingVerses) {
+  const index = indexVerses(readingVerses);
   const parallels = new Map();
   const unmatched = [];
 
   for (const link of links) {
-    const parallel = { from: toAelf(link.from), toStart: toAelf(link.to.start), toEnd: toAelf(link.to.end), votes: link.votes };
+    const parallel = toAelfParallel(link);
     const reason = problemWith(parallel, index);
     if (reason) {
       unmatched.push({ link, reason });
@@ -38,25 +40,23 @@ export function requireFullMatch(unmatched) {
     + 'Détail : npm run parallels:report');
 }
 
+function toAelfParallel({ from, to, votes }) {
+  return { from: toAelf(from), toStart: toAelf(to.start), toEnd: toAelf(to.end), votes };
+}
+
 function keepMostVoted(parallels, parallel) {
-  const key = [parallel.from, parallel.toStart, parallel.toEnd].map(written).join(' | ');
+  const key = `${parallel.from} | ${parallel.toStart} | ${parallel.toEnd}`;
   const existing = parallels.get(key);
   if (existing && existing.votes >= parallel.votes) return;
   parallels.set(key, parallel);
 }
 
 function problemWith({ from, toStart, toEnd }, index) {
-  const missing = [from, toStart, toEnd].find((reference) => positionOf(reference, index) === undefined);
-  if (missing) return `verset introuvable : ${written(missing)}`;
-  if (positionOf(toStart, index) > positionOf(toEnd, index)) return `plage à l'envers : ${written(toStart)} – ${written(toEnd)}`;
+  const references = [from, toStart, toEnd];
+  const positions = references.map(({ book, chapter, verse }) => index.positionOf(book, chapter, verse));
+  const missing = positions.indexOf(undefined);
+  if (missing !== -1) return `verset introuvable : ${references[missing]}`;
+  const [, startPosition, endPosition] = positions;
+  if (startPosition > endPosition) return `plage à l'envers : ${toStart} – ${toEnd}`;
   return null;
-}
-
-function positionOf({ book, chapter, verse }, index) {
-  return index.positionOf(book, chapter, verse);
-}
-
-// { book: 'Gn', chapter: '32', verse: 2 } -> "Gn 32,2"
-export function written({ book, chapter, verse }) {
-  return `${book} ${chapter},${verse}`;
 }

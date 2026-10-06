@@ -1,12 +1,7 @@
 // Port (contrat) : ce dont le domaine a besoin pour lire les parallèles d'un verset, sans dire COMMENT.
 // L'implémentation PostgreSQL est dans infrastructure/postgresParallelRepository.js.
 
-/**
- * @typedef {object} VerseReference
- * @property {string} book - le code du livre (ex. "Ml")
- * @property {string} chapter
- * @property {string} verse
- */
+/** @typedef {import('./VerseReference.js').VerseReference} VerseReference */
 
 /**
  * @typedef {object} Parallel

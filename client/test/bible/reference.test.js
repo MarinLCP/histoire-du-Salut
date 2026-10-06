@@ -1,7 +1,7 @@
 // Tests unitaires des références bibliques (fonctions pures).
 
 import { describe, test, expect } from 'vitest';
-import { verseKey, parseVerseKey, rangeReference, passageReference } from '../../src/bible/reference.js';
+import { verseKey, rangeReference, passageReference } from '../../src/bible/reference.js';
 
 describe('verseKey', () => {
   test('construit la référence d\'un verset', () => {
@@ -10,17 +10,6 @@ describe('verseKey', () => {
 
   test('garde les numéros avec lettre tels quels', () => {
     expect(verseKey('Ps', { chapter: '9A', verse: '1a' })).toBe('Ps 9A,1a');
-  });
-});
-
-describe('parseVerseKey', () => {
-  test('relit le livre, le chapitre et le verset d\'une référence', () => {
-    expect(parseVerseKey('Ps 9A,1a')).toEqual({ book: 'Ps', chapter: '9A', verse: '1a' });
-    expect(parseVerseKey('1S 17,4')).toEqual({ book: '1S', chapter: '17', verse: '4' });
-  });
-
-  test('une référence mal formée : null', () => {
-    expect(parseVerseKey('Gn 1')).toBeNull();
   });
 });
 
