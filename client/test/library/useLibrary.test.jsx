@@ -13,7 +13,7 @@ const json = (body, status = 200) => new Response(body === null ? null : JSON.st
 
 // Faux serveur : renvoie `library` à la fusion ; les écritures réussissent (ou échouent si failWrites)
 function fakeServer(library, { failWrites = false } = {}) {
-  const fetchMock = vi.fn(async (url, options) => {
+  const fetchMock = vi.fn(async (url) => {
     if (url === '/api/me/library') return json(library);
     return failWrites ? json({ error: 'Base indisponible.' }, 503) : json(null, 204);
   });

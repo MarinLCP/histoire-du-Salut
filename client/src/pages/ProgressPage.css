@@ -1,0 +1,49 @@
+/* La page « où en est un lecteur » (lien de partage de progression) */
+
+.progress-page {
+  display: grid;
+  gap: 1rem;
+  max-width: var(--reading-width);
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: var(--ui-font);
+}
+
+.progress-page h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.progress-card {
+  display: grid;
+  gap: .5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.progress-card h2 {
+  margin: 0;
+  font-size: .85rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.progress-card p {
+  margin: 0;
+}
+
+.progress-card a {
+  justify-self: start;
+  padding: .55rem .9rem;
+  border-radius: 8px;
+  background: var(--level-2);
+  color: var(--ink-on-dark);
+  text-decoration: none;
+}
+
+.progress-card a:focus-visible {
+  outline: 2px solid var(--level-2);
+  outline-offset: 2px;
+}

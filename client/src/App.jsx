@@ -16,6 +16,7 @@ import { useAccount } from './account/useAccount.js';
 import { downloadJson } from './backup/downloadJson.js';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
+import ProgressPage from './pages/ProgressPage.jsx';
 import { useLibrary } from './library/useLibrary.js';
 import { BookmarksContext } from './library/BookmarksContext.js';
 import { copyText } from './copy/clipboard.js';
@@ -58,6 +59,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HistoryPage annotations={annotations} />} />
             <Route path="/bible" element={<BiblePage annotations={annotations} />} />
+            {/* Où en est un lecteur, depuis le lien qu'il a partagé */}
+            <Route path="/progression/:token" element={<ProgressPage />} />
             {/* Adresse inconnue : retour à l'histoire du salut */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

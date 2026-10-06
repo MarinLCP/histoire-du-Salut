@@ -5,7 +5,7 @@
 //   http/ (Express)  ──>  application/ (use cases)  ──>  domain/ (règles métier)
 //   infrastructure/ (PostgreSQL)  ──implémente──>  domain/PassageRepository.js, domain/BibleRepository.js,
 //                                                  domain/ParallelRepository.js, domain/AccountRepository.js,
-//                                                  domain/LibraryRepository.js
+//                                                  domain/LibraryRepository.js, domain/SharingRepository.js
 //                                                  (et scrypt pour le hachage des mots de passe)
 //
 // Les flèches pointent toujours vers le domaine : il ne dépend de rien (règle de dépendance).
@@ -17,6 +17,7 @@ import { createPostgresParallelRepository } from './infrastructure/postgresParal
 import { createPostgresUserRepository, createPostgresSessionRepository } from './infrastructure/postgresAccountRepository.js';
 import { createScryptPasswordHasher } from './infrastructure/scryptPasswordHasher.js';
 import { createPostgresLibraryRepository } from './infrastructure/postgresLibraryRepository.js';
+import { createPostgresSharingRepository } from './infrastructure/postgresSharingRepository.js';
 import { makeGetPassage } from './application/getPassage.js';
 import { makeGetTimeline } from './application/getTimeline.js';
 import { makeReadBible } from './application/readBible.js';
@@ -30,6 +31,7 @@ import { makeLogOut } from './application/logOut.js';
 import { makeGetCurrentUser } from './application/getCurrentUser.js';
 import { makeDeleteAccount } from './application/deleteAccount.js';
 import { makeLibrary } from './application/library.js';
+import { makeSharing } from './application/sharing.js';
 import { createApp } from './http/createApp.js';
 import { fileURLToPath } from 'node:url';
 
@@ -60,6 +62,10 @@ const app = createApp({
   library: makeLibrary({
     sessionRepository: accountDependencies.sessionRepository,
     libraryRepository: createPostgresLibraryRepository(pool),
+  }),
+  sharing: makeSharing({
+    sessionRepository: accountDependencies.sessionRepository,
+    sharingRepository: createPostgresSharingRepository(pool),
   }),
   // En ligne (Render : NODE_ENV=production), le site est en HTTPS : le cookie de session n'y voyage que chiffré
   secureCookies: process.env.NODE_ENV === 'production',

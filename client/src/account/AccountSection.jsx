@@ -1,10 +1,12 @@
 // La section « Mon compte » du panneau Paramètres : se connecter ou créer un compte ; une fois connecté,
-// l'e-mail du compte, « Se déconnecter » et « Supprimer mon compte » (mot de passe retapé pour confirmer).
+// l'e-mail du compte, « Se déconnecter », « Supprimer mon compte » (mot de passe retapé pour confirmer)
+// et « Partager où j'en suis » (SharingSection).
 // account : useAccount() (branché dans App) ; waitingNotes : le nombre de notes écrites dans ce navigateur,
 // qui rejoindront le compte à la connexion
 
 import { useState } from 'react';
 import SignInForm from './SignInForm.jsx';
+import SharingSection from './SharingSection.jsx';
 import './AccountSection.css';
 
 function AccountSection({ account, waitingNotes = 0 }) {
@@ -46,6 +48,7 @@ function SignedIn({ account }) {
         {!isDeleting && <button type="button" onClick={() => setIsDeleting(true)}>Supprimer mon compte</button>}
       </div>
       {isDeleting && <DeleteAccountForm account={account} onCancel={() => setIsDeleting(false)} />}
+      <SharingSection />
     </>
   );
 }
