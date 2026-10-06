@@ -21,3 +21,6 @@ npm-debug.log*
 # Rapports de Playwright (tests e2e)
 test-results/
 playwright-report/
+
+# Notes et règles de travail personnelles de Marin (restent sur son Mac, jamais sur GitHub)
+Claude.md
