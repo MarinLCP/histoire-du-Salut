@@ -86,4 +86,26 @@ describe('base remplie par le seed', () => {
 
     expect(rows).toEqual(characters.map(({ slug, name }) => ({ slug, name })));
   });
+
+  test('les parallèles : tous écrits, reliés aux bons versets AELF (Ml 4,5 protestant = Ml 3,23)', async () => {
+    const { rows: [{ count }] } = await pool.query('SELECT count(*)::int AS count FROM parallels');
+    const { rows } = await pool.query(
+      `SELECT tb.code AS book, ts.chapter, ts.verse, te.verse AS "endVerse"
+       FROM parallels p
+       JOIN verses f ON f.id = p.from_verse_id JOIN books fb ON fb.id = f.book_id
+       JOIN verses ts ON ts.id = p.to_start_verse_id JOIN books tb ON tb.id = ts.book_id
+       JOIN verses te ON te.id = p.to_end_verse_id
+       WHERE fb.code = 'Mt' AND f.chapter = '11' AND f.verse = '14'
+       ORDER BY p.votes DESC LIMIT 2`,
+    );
+
+    // 341 278 liens du fichier, dont 2 que la conversion rend identiques (2 Co 13,12-13 fusionnés)
+    expect(count).toBe(341277);
+    // « Jean est cet Élie qui doit venir » : les plus votés sont l'annonce d'Élie en Malachie (Ml 4,5 dans
+    // les Bibles protestantes), puis la plage Mc 9,11-13
+    expect(rows).toEqual([
+      { book: 'Ml', chapter: '3', verse: '23', endVerse: '23' },
+      { book: 'Mc', chapter: '9', verse: '11', endVerse: '13' },
+    ]);
+  });
 });

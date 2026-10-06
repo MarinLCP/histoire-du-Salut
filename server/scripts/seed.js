@@ -3,14 +3,14 @@
 //   catholique (Psaumes après Job : voir bibleOrder.js), et bible_groups (db/bible-groups.data.js) ;
 // - l'histoire du salut : epochs et passages (db/epochs.data.js, db/passages.data.js) ;
 // - les sous-chapitres (db/sections.data.js) et les personnages (db/characters.data.js), dont les apparitions
-//   dans les épisodes sont calculées ici, en cherchant leurs noms dans le texte.
+//   dans les épisodes sont calculées ici, en cherchant leurs noms dans le texte ;
+// - les parallèles (data/cross-references.zip, OpenBible.info), convertis en références AELF : le seed
+//   s'arrête si un seul ne correspond à aucun verset (détail : npm run parallels:report).
 // Les fichiers de données sont vérifiés AVANT de toucher à la base. Les données proposées par Claude
 // (status 'proposé') ne sont écrites qu'en local et dans la CI : en ligne (option --production), seules
 // les données validées par Marin le sont.
 // Rejouable : on vide les tables avant de les remplir, dans une transaction (tout ou rien).
 
-import { DatabaseSync } from 'node:sqlite';
-import { fileURLToPath } from 'node:url';
 import { bibleGroups } from '../db/bible-groups.data.js';
 import { epochs } from '../db/epochs.data.js';
 import { passages } from '../db/passages.data.js';
@@ -25,14 +25,19 @@ import { passageTexts } from './verseIndex.js';
 import { publishable } from './dataStatus.js';
 import { canonicalBookOrder, chaptersInReadingOrder, versesInReadingOrder } from './bibleOrder.js';
 import { withClient, inTransaction } from './database.js';
+import { readBibleSource } from './bibleSource.js';
+import { readParallelLinks } from './parallels/parallelsFile.js';
+import { matchParallels, requireFullMatch, written } from './parallels/parallelRules.js';
 import { placeholdersFor, verseKind } from './sqlRows.js';
 
 const BATCH_SIZE = 1000;
-const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
+// Les parallèles sont 341 000 : des lots plus gros, moins d'allers-retours avec la base en ligne
+// (5000 lignes × 4 colonnes = 20 000 paramètres, sous la limite de PostgreSQL : 65 535)
+const PARALLEL_BATCH_SIZE = 5000;
 // En ligne, seulement ce que Marin a validé (voir dataStatus.js)
 const withProposals = !process.argv.includes('--production');
 
-const source = readSource();
+const source = readBibleSource();
 const books = canonicalBookOrder(source.books);
 const chapters = chaptersInReadingOrder(books, source.verses);
 const verses = versesInReadingOrder(books, source.verses);
@@ -45,6 +50,8 @@ validateCharacters(characters, { passageSlugs: passages.map((passage) => passage
 const charactersToWrite = publishable(characters, { withProposals });
 const appearances = characterAppearances(charactersToWrite, passageTexts(passages, source.verses));
 const groupOfBook = assignBookGroups(bibleGroups, books.map((book) => book.code));
+const { parallels, unmatched } = matchParallels(readParallelLinks(), source.verses);
+requireFullMatch(unmatched);
 
 // Soit tout est écrit, soit rien (une erreur au milieu annule tout)
 await withClient((client) => inTransaction(client, async () => {
@@ -58,34 +65,16 @@ await withClient((client) => inTransaction(client, async () => {
   await insertSections(client, sectionsToWrite, bookIds);
   const characterIds = await insertCharacters(client, charactersToWrite);
   await insertAppearances(client, appearances, passageIds, characterIds);
+  await insertParallels(client, parallels);
 }));
 
 console.log(
   `Seed terminé : ${bibleGroups.length} ensembles, ${books.length} livres, ${chapters.length} chapitres, `
   + `${source.verses.length} versets, ${epochs.length} époques, ${passages.length} passages, `
-  + `${sectionsToWrite.length} sous-chapitres, ${charactersToWrite.length} personnages (${appearances.length} apparitions)`
+  + `${sectionsToWrite.length} sous-chapitres, ${charactersToWrite.length} personnages (${appearances.length} apparitions), `
+  + `${parallels.length} parallèles`
   + `${withProposals ? ', propositions comprises.' : ', validés seulement.'}`,
 );
-
-// --- Lecture de la source ---
-
-// Lit les livres et les versets de la source SQLite.
-function readSource() {
-  const database = new DatabaseSync(SOURCE_PATH, { readOnly: true });
-
-  // Dans la source, les rowid suivent l'ordre de lecture de la Bible.
-  // On ne peut pas utiliser la colonne book_id : chaque psaume y a le sien.
-  // L'ordre d'un livre = l'ordre de son premier verset.
-  const books = database
-    .prepare('SELECT book AS code, book_title AS title FROM verses GROUP BY book ORDER BY MIN(rowid)')
-    .all();
-  const verses = database
-    .prepare('SELECT book AS code, chapter, verse, text FROM verses ORDER BY rowid')
-    .all();
-
-  database.close();
-  return { books, verses };
-}
 
 // --- Écriture dans PostgreSQL ---
 
@@ -93,7 +82,7 @@ function readSource() {
 // (ex. des surlignages), Postgres refusera au lieu d'effacer ces données.
 async function clearTables(client) {
   await client.query(
-    'TRUNCATE passage_characters, characters, sections, passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY',
+    'TRUNCATE parallels, passage_characters, characters, sections, passages, epochs, chapters, verses, books, bible_groups RESTART IDENTITY',
   );
 }
 
@@ -130,30 +119,21 @@ async function insertBooks(client, books, groupOfBook, groupIds) {
   return bookIds;
 }
 
-// Insère les versets par lots : une requête de 1000 lignes est bien plus rapide
-// que 1000 requêtes d'une ligne.
+// Insère les versets par lots (position = 1, 2, 3... dans l'ordre de lecture)
 async function insertVerses(client, verses, bookIds) {
-  for (let start = 0; start < verses.length; start += BATCH_SIZE) {
-    const batch = verses.slice(start, start + BATCH_SIZE);
-    await insertVerseBatch(client, batch, start + 1, bookIds);
-  }
+  const rows = verses.map((verse, index) => [
+    bookIds.get(verse.code), verse.chapter, verse.verse, verseKind(verse), verse.text, index + 1,
+  ]);
+  await insertInBatches(client, 'verses (book_id, chapter, verse, kind, text, position)', rows, BATCH_SIZE);
 }
 
-// Insère un lot de versets en une seule requête. firstPosition = position du premier verset du lot.
-async function insertVerseBatch(client, batch, firstPosition, bookIds) {
-  const rows = batch.map((verse, index) => [
-    bookIds.get(verse.code),
-    verse.chapter,
-    verse.verse,
-    verseKind(verse),
-    verse.text,
-    firstPosition + index,
-  ]);
-
-  await client.query(
-    `INSERT INTO verses (book_id, chapter, verse, kind, text, position) VALUES ${placeholdersFor(rows)}`,
-    rows.flat(),
-  );
+// Insère des lignes par lots : une requête de 1000 lignes est bien plus rapide que 1000 requêtes d'une ligne.
+// target : la table et ses colonnes, écrites dans ce fichier (jamais une donnée venue de l'extérieur).
+async function insertInBatches(client, target, rows, batchSize) {
+  for (let start = 0; start < rows.length; start += batchSize) {
+    const batch = rows.slice(start, start + batchSize);
+    await client.query(`INSERT INTO ${target} VALUES ${placeholdersFor(batch)}`, batch.flat());
+  }
 }
 
 // Les chapitres, dans l'ordre de lecture (position 1, 2, 3...), en une seule requête (1 332 lignes)
@@ -218,4 +198,23 @@ async function insertAppearances(client, appearances, passageIds, characterIds) 
     `INSERT INTO passage_characters (passage_id, character_id, mentions) VALUES ${placeholdersFor(rows)}`,
     rows.flat(),
   );
+}
+
+// Insère les parallèles (déjà mis en correspondance, à 100 %). L'id de chaque verset est lu une fois
+// dans la base (« Gn 32,2 » -> id) : plus rapide que trois sous-requêtes pour chacune des 341 000 lignes.
+async function insertParallels(client, parallels) {
+  const verseIds = await readVerseIds(client);
+  const rows = parallels.map((parallel) => [
+    verseIds.get(written(parallel.from)), verseIds.get(written(parallel.toStart)), verseIds.get(written(parallel.toEnd)),
+    parallel.votes,
+  ]);
+  await insertInBatches(client, 'parallels (from_verse_id, to_start_verse_id, to_end_verse_id, votes)', rows, PARALLEL_BATCH_SIZE);
+}
+
+// Map : référence du verset (« Gn 32,2 ») -> id
+async function readVerseIds(client) {
+  const result = await client.query(
+    'SELECT verses.id, books.code AS book, verses.chapter, verses.verse FROM verses JOIN books ON books.id = verses.book_id',
+  );
+  return new Map(result.rows.map((row) => [written(row), row.id]));
 }

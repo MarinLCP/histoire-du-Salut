@@ -3,27 +3,17 @@
 // à aucun verset. Sort en erreur (code 1) s'il en reste un : l'objectif est une correspondance à 100 %.
 // Lancer : npm run parallels:report
 
-import { readFileSync } from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-import { fileURLToPath } from 'node:url';
-import { readSingleFileZip } from './parallels/zipFile.js';
-import { parseCrossReferences } from './parallels/crossReferences.js';
+import { readBibleSource } from './bibleSource.js';
+import { readParallelLinks } from './parallels/parallelsFile.js';
 import { matchParallels } from './parallels/parallelRules.js';
 
-const ZIP_PATH = fileURLToPath(new URL('../data/cross-references.zip', import.meta.url));
-const SOURCE_PATH = fileURLToPath(new URL('../data/bible.db', import.meta.url));
 const SHOWN_PROBLEMS = 30;
 
-const links = parseCrossReferences(readSingleFileZip(readFileSync(ZIP_PATH)).text);
-const { parallels, unmatched } = matchParallels(links, readSourceVerses());
+const links = readParallelLinks();
+const { parallels, unmatched } = matchParallels(links, readBibleSource().verses);
 
-console.log(`${links.length} liens lus, ${parallels.length} en correspondance, ${unmatched.length} mis de côté.`);
+console.log(`${links.length} liens lus, ${links.length - unmatched.length} en correspondance, ${unmatched.length} mis de côté`
+  + ` (${parallels.length} parallèles une fois les doublons fusionnés).`);
 for (const { reason } of unmatched.slice(0, SHOWN_PROBLEMS)) console.log(`  - ${reason}`);
 if (unmatched.length > 0) process.exit(1);
 
-function readSourceVerses() {
-  const database = new DatabaseSync(SOURCE_PATH, { readOnly: true });
-  const verses = database.prepare('SELECT book AS code, chapter, verse FROM verses ORDER BY rowid').all();
-  database.close();
-  return verses;
-}

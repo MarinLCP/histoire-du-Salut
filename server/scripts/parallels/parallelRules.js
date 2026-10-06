@@ -3,7 +3,8 @@
 // Un lien dont une référence ne correspond à rien est mis de côté, avec la raison : le seed refuse
 // d'écrire les parallèles tant qu'il en reste un (correspondance à 100 %).
 // Une plage peut passer d'un livre au suivant (ex. 2 Ch 36,22 – Esd 1,3) : elle doit seulement aller dans
-// l'ordre de la Bible.
+// l'ordre de la Bible. Deux liens que la conversion rend identiques (versets fusionnés dans l'AELF)
+// n'en font qu'un, avec le plus grand nombre de votes.
 
 import { indexVerses } from '../verseIndex.js';
 import { toAelf } from './versification.js';
@@ -15,7 +16,7 @@ import { toAelf } from './versification.js';
  */
 export function matchParallels(links, sourceVerses) {
   const index = indexVerses(sourceVerses);
-  const parallels = [];
+  const parallels = new Map();
   const unmatched = [];
 
   for (const link of links) {
@@ -25,9 +26,23 @@ export function matchParallels(links, sourceVerses) {
       unmatched.push({ link, reason });
       continue;
     }
-    parallels.push(parallel);
+    keepMostVoted(parallels, parallel);
   }
-  return { parallels, unmatched };
+  return { parallels: [...parallels.values()], unmatched };
+}
+
+// Le seed s'arrête si un seul lien ne correspond pas (correspondance à 100 % exigée)
+export function requireFullMatch(unmatched) {
+  if (unmatched.length === 0) return;
+  throw new Error(`${unmatched.length} parallèle(s) sans verset AELF (ex. ${unmatched[0].reason}). `
+    + 'Détail : npm run parallels:report');
+}
+
+function keepMostVoted(parallels, parallel) {
+  const key = [parallel.from, parallel.toStart, parallel.toEnd].map(written).join(' | ');
+  const existing = parallels.get(key);
+  if (existing && existing.votes >= parallel.votes) return;
+  parallels.set(key, parallel);
 }
 
 function problemWith({ from, toStart, toEnd }, index) {

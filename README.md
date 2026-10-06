@@ -115,7 +115,8 @@ histoire-du-Salut/
 │   │   │   ├── 004_bible_groups.sql ← les grands ensembles de la Bible, et celui de chaque livre (expand)
 │   │   │   ├── 005_contract_passages.sql ← fin du changement : passages = versets de début et de fin (contract)
 │   │   │   ├── 006_sections.sql     ← les sous-chapitres (intertitres posés sur un verset)
-│   │   │   └── 007_characters.sql   ← les personnages et leurs apparitions dans les épisodes
+│   │   │   ├── 007_characters.sql   ← les personnages et leurs apparitions dans les épisodes
+│   │   │   └── 008_parallels.sql    ← les parallèles : verset → verset ou plage, votes
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -131,18 +132,20 @@ histoire-du-Salut/
 │   │   ├── dataStatus.js            ← statut « proposé » / « validé » : en ligne, seulement le validé
 │   │   ├── sectionRules.js          ← règles des sous-chapitres (verset de début qui existe, titre, pas de doublon)
 │   │   ├── characterRules.js        ← règles des personnages, et calcul de leurs apparitions (recherche des noms)
+│   │   ├── bibleSource.js           ← lit data/bible.db (livres et versets, dans l'ordre de la source)
 │   │   ├── verseIndex.js            ← retrouver un verset de la source ; le texte de chaque passage
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job), des chapitres et des versets
 │   │   ├── database.js              ← connexion et transaction des scripts (seed, migrations)
 │   │   ├── sqlRows.js               ← petites règles d'écriture du seed ($1, $2... ; verset sans numéro)
 │   │   ├── parallels/               ← les parallèles : du fichier OpenBible.info aux versets de l'AELF
+│   │   │   ├── parallelsFile.js     ← lit les liens de data/cross-references.zip (seed et rapport)
 │   │   │   ├── zipFile.js           ← lit le fichier contenu dans le ZIP (sans dépendance)
 │   │   │   ├── crossReferences.js   ← lit les lignes : verset → verset ou plage, votes (garde les votes ≥ 1)
 │   │   │   ├── versification.js     ← convertit une référence : codes anglais → AELF, décalages de chapitres
 │   │   │   ├── psalms.js            ← les Psaumes : numérotation grecque (9A, 9B...) et titres comptés
-│   │   │   └── parallelRules.js     ← chaque lien converti doit tomber sur un verset AELF (sinon : mis de côté)
+│   │   │   └── parallelRules.js     ← chaque lien converti doit tomber sur un verset AELF ; doublons fusionnés
 │   │   ├── parallelsReport.js       ← npm run parallels:report : correspondance des parallèles (doit être à 100 %)
-│   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) → PostgreSQL
+│   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) + parallèles → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
 │   │   ├── app.js                   ← assemblage : branche PostgreSQL → use cases → Express
@@ -185,7 +188,7 @@ histoire-du-Salut/
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
-│       │   └── seededData.test.js   ← ce que le seed a écrit (époques, pictogrammes, versets, grands ensembles)
+│       │   └── seededData.test.js   ← ce que le seed a écrit (époques, versets, grands ensembles, parallèles...)
 │       └── scripts/
 │           ├── migrations.test.js   ← choix des migrations à appliquer
 │           ├── database.test.js     ← COMMIT / ROLLBACK, connexion toujours fermée (faux client)
