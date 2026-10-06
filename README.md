@@ -105,7 +105,8 @@ histoire-du-Salut/
 │   │                                  (.env et .env.production : jamais commités)
 │   ├── vitest.config.js             ← charge .env pour les tests
 │   ├── data/
-│   │   └── bible.db                 ← source des textes (SQLite, AELF), lue par le seed
+│   │   ├── bible.db                 ← source des textes (SQLite, AELF), lue par le seed
+│   │   └── cross-references.zip     ← les parallèles (OpenBible.info, CC-BY), lus directement dans le ZIP
 │   ├── db/
 │   │   ├── migrations/              ← l'historique du schéma, appliqué dans l'ordre
 │   │   │   ├── 001_initial_schema.sql ← tables books, verses, passages
@@ -134,6 +135,13 @@ histoire-du-Salut/
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job), des chapitres et des versets
 │   │   ├── database.js              ← connexion et transaction des scripts (seed, migrations)
 │   │   ├── sqlRows.js               ← petites règles d'écriture du seed ($1, $2... ; verset sans numéro)
+│   │   ├── parallels/               ← les parallèles : du fichier OpenBible.info aux versets de l'AELF
+│   │   │   ├── zipFile.js           ← lit le fichier contenu dans le ZIP (sans dépendance)
+│   │   │   ├── crossReferences.js   ← lit les lignes : verset → verset ou plage, votes (garde les votes ≥ 1)
+│   │   │   ├── versification.js     ← convertit une référence : codes anglais → AELF, décalages de chapitres
+│   │   │   ├── psalms.js            ← les Psaumes : numérotation grecque (9A, 9B...) et titres comptés
+│   │   │   └── parallelRules.js     ← chaque lien converti doit tomber sur un verset AELF (sinon : mis de côté)
+│   │   ├── parallelsReport.js       ← npm run parallels:report : correspondance des parallèles (doit être à 100 %)
 │   │   └── seed.js                  ← npm run seed : bible.db + fichiers de données (db/*.data.js) → PostgreSQL
 │   ├── src/                         ← Clean Architecture : les dépendances pointent vers domain/
 │   │   ├── index.js                 ← démarre le serveur (app.listen)
@@ -188,6 +196,7 @@ histoire-du-Salut/
 │           ├── characterRules.test.js ← règles des personnages, apparitions (mot entier, livres, exclusions)
 │           ├── dataStatus.test.js   ← seules les données validées partent en ligne
 │           ├── verseIndex.test.js   ← index des versets de la source
+│           ├── parallels/           ← lecture du ZIP et des lignes, conversion vérifiée règle par règle
 │           ├── bibleGroupRules.test.js ← découpage de la Bible en grands ensembles
 │           ├── dataIdentifier.test.js ← slugs et pictogrammes d'une liste de données (bien formés, uniques)
 │           └── bibleOrder.test.js   ← ordre des livres, des chapitres et des versets
