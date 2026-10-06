@@ -30,6 +30,9 @@ import { makeLogIn } from './application/logIn.js';
 import { makeLogOut } from './application/logOut.js';
 import { makeGetCurrentUser } from './application/getCurrentUser.js';
 import { makeDeleteAccount } from './application/deleteAccount.js';
+import { makeVerifyEmail, makeResendEmailCode } from './application/verifyEmail.js';
+import { createPostgresEmailCodeRepository } from './infrastructure/postgresEmailCodeRepository.js';
+import { createBrevoEmailSender, createConsoleEmailSender, createOutboxEmailSender } from './infrastructure/emailSenders.js';
 import { makeLibrary } from './application/library.js';
 import { makeSharing } from './application/sharing.js';
 import { createApp } from './http/createApp.js';
@@ -38,40 +41,65 @@ import { fileURLToPath } from 'node:url';
 const passageRepository = createPostgresPassageRepository(pool);
 const bibleRepository = createPostgresBibleRepository(pool);
 const parallelRepository = createPostgresParallelRepository(pool);
-const accountDependencies = {
-  userRepository: createPostgresUserRepository(pool),
-  sessionRepository: createPostgresSessionRepository(pool),
-  passwordHasher: createScryptPasswordHasher(),
-};
 
-const app = createApp({
-  getPassage: makeGetPassage(passageRepository),
-  getTimeline: makeGetTimeline(passageRepository),
-  readBible: makeReadBible(bibleRepository),
-  findChapter: makeFindChapter(bibleRepository),
-  getHistoryOverview: makeGetHistoryOverview(passageRepository),
-  getBibleOverview: makeGetBibleOverview(bibleRepository),
-  getParallels: makeGetParallels(parallelRepository),
-  accounts: {
-    createAccount: makeCreateAccount(accountDependencies),
-    logIn: makeLogIn(accountDependencies),
-    logOut: makeLogOut(accountDependencies.sessionRepository),
-    getCurrentUser: makeGetCurrentUser(accountDependencies.sessionRepository),
-    deleteAccount: makeDeleteAccount(accountDependencies),
-  },
-  library: makeLibrary({
-    sessionRepository: accountDependencies.sessionRepository,
-    libraryRepository: createPostgresLibraryRepository(pool),
-  }),
-  sharing: makeSharing({
-    sessionRepository: accountDependencies.sessionRepository,
-    sharingRepository: createPostgresSharingRepository(pool),
-  }),
-  // En ligne (Render : NODE_ENV=production), le site est en HTTPS : le cookie de session n'y voyage que chiffré
-  secureCookies: process.env.NODE_ENV === 'production',
-  pingDatabase,
-  // Le site React une fois construit (cd client && npm run build)
-  clientBuildDirectory: fileURLToPath(new URL('../../client/dist', import.meta.url)),
-});
+// Qui envoie les e-mails (codes de validation) :
+// - Brevo, dès que sa clé et l'adresse d'envoi (sur le nom de domaine du site) sont réglées ;
+// - en ligne sans Brevo : personne (la création de compte par e-mail est fermée ; Google marche) ;
+// - en local : le terminal du serveur ; ou, si EMAIL_OUTBOX=1 (parcours e2e), une boîte de test lisible.
+export function chooseEmailSender(env) {
+  if (env.BREVO_API_KEY && env.EMAIL_FROM) {
+    return { emailSender: createBrevoEmailSender({ apiKey: env.BREVO_API_KEY, from: env.EMAIL_FROM }) };
+  }
+  if (env.NODE_ENV === 'production') return { emailSender: null };
+  if (env.EMAIL_OUTBOX === '1') {
+    const outbox = createOutboxEmailSender();
+    return { emailSender: outbox, testOutbox: outbox };
+  }
+  return { emailSender: createConsoleEmailSender() };
+}
 
-export default app;
+// L'app assemblée. Les tests peuvent choisir l'envoyeur d'e-mails (une boîte de test, pour lire les codes).
+export function makeApp({ emailSender, testOutbox } = chooseEmailSender(process.env)) {
+  const accountDependencies = {
+    userRepository: createPostgresUserRepository(pool),
+    sessionRepository: createPostgresSessionRepository(pool),
+    passwordHasher: createScryptPasswordHasher(),
+    emailCodeRepository: createPostgresEmailCodeRepository(pool),
+    emailSender,
+  };
+
+  return createApp({
+    getPassage: makeGetPassage(passageRepository),
+    getTimeline: makeGetTimeline(passageRepository),
+    readBible: makeReadBible(bibleRepository),
+    findChapter: makeFindChapter(bibleRepository),
+    getHistoryOverview: makeGetHistoryOverview(passageRepository),
+    getBibleOverview: makeGetBibleOverview(bibleRepository),
+    getParallels: makeGetParallels(parallelRepository),
+    accounts: {
+      createAccount: makeCreateAccount(accountDependencies),
+      verifyEmail: makeVerifyEmail(accountDependencies),
+      resendEmailCode: makeResendEmailCode(accountDependencies),
+      logIn: makeLogIn(accountDependencies),
+      logOut: makeLogOut(accountDependencies.sessionRepository),
+      getCurrentUser: makeGetCurrentUser(accountDependencies.sessionRepository),
+      deleteAccount: makeDeleteAccount(accountDependencies),
+    },
+    library: makeLibrary({
+      sessionRepository: accountDependencies.sessionRepository,
+      libraryRepository: createPostgresLibraryRepository(pool),
+    }),
+    sharing: makeSharing({
+      sessionRepository: accountDependencies.sessionRepository,
+      sharingRepository: createPostgresSharingRepository(pool),
+    }),
+    // En ligne (Render : NODE_ENV=production), le site est en HTTPS : le cookie de session n'y voyage que chiffré
+    secureCookies: process.env.NODE_ENV === 'production',
+    testOutbox,
+    pingDatabase,
+    // Le site React une fois construit (cd client && npm run build)
+    clientBuildDirectory: fileURLToPath(new URL('../../client/dist', import.meta.url)),
+  });
+}
+
+export default makeApp();

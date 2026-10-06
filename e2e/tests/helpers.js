@@ -1,6 +1,6 @@
 // Gestes et repères communs aux parcours.
 
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { LONG_PRESS_DELAY } from '../../client/src/hooks/longPress.js';
 
 // Le premier verset de la Création (Gn 1,1), trouvé par son texte comme le ferait un utilisateur
@@ -45,4 +45,19 @@ export async function allowClipboard(context, browserName) {
 
 export function readClipboard(page) {
   return page.evaluate(() => navigator.clipboard.readText());
+}
+
+// Le code de validation envoyé à cette adresse (boîte de test du serveur, EMAIL_OUTBOX=1). On attend que
+// l'e-mail soit parti : le serveur répond au clic avant ou après l'envoi, selon la vitesse
+export async function emailCode(page, email) {
+  const latest = () => page.request.get(`/api/test/emails/latest?to=${encodeURIComponent(email)}`);
+  await expect.poll(async () => (await latest()).status()).toBe(200);
+  const { subject } = await (await latest()).json();
+  return subject.match(/\d{6}/)[0];
+}
+
+// Un compte créé et validé par l'API (sans passer par l'écran), connecté dans ce navigateur
+export async function createAccountByApi(page, email, password) {
+  await page.request.post('/api/account', { data: { email, password } });
+  await page.request.post('/api/account/verify', { data: { email, code: await emailCode(page, email) } });
 }

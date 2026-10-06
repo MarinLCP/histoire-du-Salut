@@ -52,4 +52,22 @@ describe('useAccount', () => {
     await expect(result.current.logIn({ email: 'x@y.fr', password: 'faux' })).rejects.toThrow('E-mail ou mot de passe incorrect.');
     expect(result.current.user).toBeNull();
   });
+
+  test('créer un compte : pas encore connecté (il faut le code) ; le bon code connecte', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+      if (url === '/api/account') return json({ verificationNeeded: true, email: 'marin@exemple.fr' }, 202);
+      if (url === '/api/account/verify') return json({ user: { email: 'marin@exemple.fr' } });
+      return json({ user: null });
+    }));
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.user).toBeNull());
+
+    let created;
+    await act(async () => { created = await result.current.createAccount({ email: 'marin@exemple.fr', password: 'un mot de passe long' }); });
+    expect(created).toEqual({ verificationNeeded: true, email: 'marin@exemple.fr' });
+    expect(result.current.user).toBeNull();
+
+    await act(() => result.current.verifyEmail({ email: 'marin@exemple.fr', code: '123456' }));
+    expect(result.current.user).toEqual({ email: 'marin@exemple.fr' });
+  });
 });

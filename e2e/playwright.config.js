@@ -34,6 +34,9 @@ export default defineConfig({
     {
       command: 'npm run dev',
       cwd: '../server',
+      // Les e-mails (codes de validation) restent dans une boîte de test que les parcours lisent
+      // (/api/test/emails/latest) ; jamais en ligne (voir chooseEmailSender, server/src/app.js)
+      env: { EMAIL_OUTBOX: '1' },
       url: 'http://localhost:3000/api/health',
       reuseExistingServer: !isCI,
     },

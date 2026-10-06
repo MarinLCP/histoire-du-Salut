@@ -3,7 +3,7 @@
 
 import { describe, test, expect, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../../src/app.js';
+import { appWithOutbox, signedUpAgent } from './helpers/accounts.js';
 import { pool } from '../../src/infrastructure/db.js';
 
 const TEST_DOMAIN = '@exemple.test';
@@ -14,10 +14,12 @@ afterAll(async () => {
   await pool.end();
 });
 
-async function signedInReader() {
-  const agent = request.agent(app);
-  await agent.post('/api/account').send({ email: `partage-${Math.random().toString(36).slice(2)}${TEST_DOMAIN}`, password: 'un mot de passe long' });
-  return agent;
+const world = appWithOutbox();
+const { app } = world;
+
+// Un lecteur inscrit, validé, connecté (agent : garde son cookie de session)
+function signedInReader() {
+  return signedUpAgent(world, `partage-${Math.random().toString(36).slice(2)}${TEST_DOMAIN}`, 'un mot de passe long');
 }
 
 describe('API du partage de progression', () => {

@@ -31,6 +31,14 @@ export function createPostgresUserRepository(pool) {
       return result.rows[0] ?? null;
     },
 
+    async setPasswordHash(id, passwordHash) {
+      await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [id, passwordHash]);
+    },
+
+    async markEmailVerified(id) {
+      await pool.query('UPDATE users SET email_verified_at = now() WHERE id = $1', [id]);
+    },
+
     // Sessions, notes, surlignages, marque-pages et lien de partage disparaissent avec le compte : ON DELETE CASCADE
     async delete(id) {
       await pool.query('DELETE FROM users WHERE id = $1', [id]);
@@ -38,7 +46,7 @@ export function createPostgresUserRepository(pool) {
   };
 }
 
-const USER_COLUMNS = 'id, email, password_hash AS "passwordHash"';
+const USER_COLUMNS = 'id, email, password_hash AS "passwordHash", email_verified_at AS "emailVerifiedAt"';
 
 /**
  * @param {import('pg').Pool} pool

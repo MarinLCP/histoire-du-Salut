@@ -16,6 +16,8 @@ function fakeAccount(user) {
     createAccount: vi.fn().mockResolvedValue(undefined),
     logOut: vi.fn().mockResolvedValue(undefined),
     deleteAccount: vi.fn().mockResolvedValue(undefined),
+    verifyEmail: vi.fn().mockResolvedValue({ user: { email: 'marin@exemple.fr' } }),
+    resendEmailCode: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -84,5 +86,50 @@ describe('AccountSection', () => {
     expect(screen.getByRole('alert').textContent).toContain('n\'ont pas pu être chargés');
     await userEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
     expect(onRetryLibrary).toHaveBeenCalled();
+  });
+
+  test('créer un compte : le code reçu par e-mail est demandé, puis validé', async () => {
+    const account = fakeAccount(null);
+    account.createAccount.mockResolvedValue({ verificationNeeded: true, email: 'marin@exemple.fr' });
+    render(<AccountSection account={account} />);
+    await userEvent.click(screen.getByRole('button', { name: /Créer un compte/ }));
+    await fillIn('marin@exemple.fr', 'un mot de passe long');
+    await userEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }));
+
+    expect(await screen.findByText(/Un code de 6 chiffres a été envoyé/)).toBeDefined();
+    await userEvent.type(screen.getByLabelText('Code reçu par e-mail'), '123456');
+    await userEvent.click(screen.getByRole('button', { name: 'Valider' }));
+
+    expect(account.verifyEmail).toHaveBeenCalledWith({ email: 'marin@exemple.fr', code: '123456' });
+  });
+
+  test('l\'étape du code : renvoyer un code, ou changer d\'adresse', async () => {
+    const account = fakeAccount(null);
+    account.logIn.mockResolvedValue({ verificationNeeded: true, email: 'marin@exemple.fr' });
+    render(<AccountSection account={account} />);
+    await fillIn('marin@exemple.fr', 'un mot de passe long');
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }));
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Renvoyer le code' }));
+    expect(account.resendEmailCode).toHaveBeenCalledWith('marin@exemple.fr');
+    expect(await screen.findByText('Un nouveau code vient de partir.')).toBeDefined();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Changer d\'adresse' }));
+    expect(screen.getByLabelText('E-mail')).toBeDefined();
+  });
+
+  test('un mauvais code : le message du serveur', async () => {
+    const account = fakeAccount(null);
+    account.createAccount.mockResolvedValue({ verificationNeeded: true, email: 'marin@exemple.fr' });
+    account.verifyEmail.mockRejectedValue(new Error('Code incorrect.'));
+    render(<AccountSection account={account} />);
+    await userEvent.click(screen.getByRole('button', { name: /Créer un compte/ }));
+    await fillIn('marin@exemple.fr', 'un mot de passe long');
+    await userEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }));
+
+    await userEvent.type(await screen.findByLabelText('Code reçu par e-mail'), '000000');
+    await userEvent.click(screen.getByRole('button', { name: 'Valider' }));
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Code incorrect.');
   });
 });

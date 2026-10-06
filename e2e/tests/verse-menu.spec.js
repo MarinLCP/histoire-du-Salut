@@ -1,7 +1,7 @@
 // Parcours : le menu d'un verset (appui long) pour surligner, écrire une note (il faut un compte), copier.
 
 import { test, expect } from '@playwright/test';
-import { allowClipboard, firstVerse, longPress, readClipboard } from './helpers.js';
+import { allowClipboard, emailCode, firstVerse, longPress, readClipboard } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
@@ -45,6 +45,8 @@ test('une note demande un compte : on le crée sur place, la note est gardée, p
   await menu.getByLabel('E-mail').fill(email);
   await menu.getByLabel(/^Mot de passe/).fill(PASSWORD);
   await menu.getByRole('button', { name: 'Créer mon compte' }).click();
+  await menu.getByLabel('Code reçu par e-mail').fill(await emailCode(page, email));
+  await menu.getByRole('button', { name: 'Valider' }).click();
 
   // Le compte créé, la note qui attendait est enregistrée
   await expect(page.getByText(note)).toBeVisible();

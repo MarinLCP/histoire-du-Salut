@@ -3,6 +3,7 @@
 // « Arrêter de partager » rend le lien inutilisable. Le test supprime son compte à la fin.
 
 import { test, expect } from '@playwright/test';
+import { createAccountByApi } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
@@ -13,7 +14,7 @@ test('partager où j\'en suis, l\'ouvrir sans compte, puis arrêter de partager'
   await page.goto('/');
 
   // Un compte, et un marque-page dans l'épisode n° 2 (posé directement : pas besoin de lire pour de vrai)
-  await page.request.post('/api/account', { data: { email, password: PASSWORD } });
+  await createAccountByApi(page, email, PASSWORD);
   await page.request.put('/api/me/bookmarks/history', { data: { position: 2.4 } });
   await page.reload();
 

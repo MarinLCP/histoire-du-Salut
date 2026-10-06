@@ -8,11 +8,22 @@ export function fetchCurrentUser() {
   return getJson('/api/session');
 }
 
-// form : { email, password }. Renvoie { user }, et le lecteur est connecté
+// form : { email, password }. Renvoie { verificationNeeded: true, email } : un code est envoyé par e-mail
 export function createAccount(form) {
   return sendJson('POST', '/api/account', form);
 }
 
+// form : { email, code }. Renvoie { user } : l'adresse est validée, le lecteur est connecté
+export function verifyEmail(form) {
+  return sendJson('POST', '/api/account/verify', form);
+}
+
+// Un nouveau code par e-mail
+export function resendEmailCode(email) {
+  return sendJson('POST', '/api/account/code', { email });
+}
+
+// Renvoie { user } (connecté), ou { verificationNeeded: true, email } (adresse pas encore validée : code envoyé)
 export function logIn(form) {
   return sendJson('POST', '/api/session', form);
 }

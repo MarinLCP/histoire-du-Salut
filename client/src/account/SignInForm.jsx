@@ -1,5 +1,6 @@
 // Le formulaire pour se connecter ou créer un compte (e-mail + mot de passe), avec un lien pour passer
 // de l'un à l'autre. Utilisé dans « Mon compte » (Paramètres) et dans le menu d'un verset (pour garder une note).
+// Une adresse pas encore validée : le formulaire demande alors le code reçu par e-mail (CodeForm).
 // account : useAccount() ; startWith : 'login' ou 'create' (l'onglet ouvert au départ)
 
 import { useState } from 'react';
@@ -20,6 +21,8 @@ function SignInForm({ account, startWith = 'login' }) {
   const [mode, setMode] = useState(startWith);
   const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  // L'adresse à qui un code vient d'être envoyé (il faut le taper), ou null
+  const [pendingEmail, setPendingEmail] = useState(null);
   const settings = MODES[mode];
 
   async function submit(event) {
@@ -28,13 +31,15 @@ function SignInForm({ account, startWith = 'login' }) {
     setIsSending(true);
     setError(null);
     try {
-      await account[settings.action]({ email: form.get('email'), password: form.get('password') });
+      const result = await account[settings.action]({ email: form.get('email'), password: form.get('password') });
+      if (result?.verificationNeeded) setPendingEmail(result.email);
     } catch (submitError) {
       setError(submitError.message);
-      setIsSending(false);
     }
+    setIsSending(false);
   }
 
+  if (pendingEmail) return <CodeForm account={account} email={pendingEmail} onBack={() => setPendingEmail(null)} />;
   return (
     <form className="account-form" onSubmit={submit}>
       <label>
@@ -50,6 +55,47 @@ function SignInForm({ account, startWith = 'login' }) {
       <button type="button" className="account-link" onClick={() => { setMode(settings.switchTo); setError(null); }}>
         {settings.switchLabel}
       </button>
+    </form>
+  );
+}
+
+// Le code de 6 chiffres reçu par e-mail : une fois tapé, le compte est validé et le lecteur connecté
+function CodeForm({ account, email, onBack }) {
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function submit(event) {
+    event.preventDefault();
+    setError(null);
+    try {
+      await account.verifyEmail({ email, code: new FormData(event.currentTarget).get('code') });
+    } catch (verifyError) {
+      setError(verifyError.message);
+    }
+  }
+
+  async function resend() {
+    setError(null);
+    try {
+      await account.resendEmailCode(email);
+      setMessage('Un nouveau code vient de partir.');
+    } catch (resendError) {
+      setError(resendError.message);
+    }
+  }
+
+  return (
+    <form className="account-form" onSubmit={submit}>
+      <p>Un code de 6 chiffres a été envoyé à <strong>{email}</strong>. Pense à regarder les courriers indésirables.</p>
+      <label>
+        Code reçu par e-mail
+        <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required />
+      </label>
+      {message && <p role="status">{message}</p>}
+      {error && <p className="account-error" role="alert">{error}</p>}
+      <button type="submit" className="account-primary">Valider</button>
+      <button type="button" className="account-link" onClick={resend}>Renvoyer le code</button>
+      <button type="button" className="account-link" onClick={onBack}>Changer d'adresse</button>
     </form>
   );
 }

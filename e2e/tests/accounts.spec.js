@@ -1,7 +1,9 @@
-// Parcours : un compte, depuis le panneau Paramètres. Créer un compte, rester connecté après rechargement,
+// Parcours : un compte, depuis le panneau Paramètres. Créer un compte (et valider l'e-mail par le code reçu),
+// rester connecté après rechargement,
 // se déconnecter, se reconnecter, puis supprimer le compte (le test ne laisse rien derrière lui).
 
 import { test, expect } from '@playwright/test';
+import { emailCode } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
@@ -24,6 +26,8 @@ test('créer un compte, rester connecté, se déconnecter, se reconnecter, suppr
 
   await section.getByRole('button', { name: /Créer un compte/ }).click();
   await signIn(section, email, 'Créer mon compte');
+  await section.getByLabel('Code reçu par e-mail').fill(await emailCode(page, email));
+  await section.getByRole('button', { name: 'Valider' }).click();
   await expect(section.getByText(email)).toBeVisible();
 
   // La session tient après un rechargement (cookie)

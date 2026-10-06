@@ -121,7 +121,8 @@ histoire-du-Salut/
 │   │   │   ├── 010_accounts.sql     ← comptes (e-mail, mot de passe haché) et sessions (empreinte du jeton)
 │   │   │   ├── 011_library.sql      ← notes privées, surlignages, marque-pages d'un compte (par référence "Gn 1,3")
 │   │   │   ├── 012_sharing.sql      ← le lien de partage de progression d'un lecteur
-│   │   │   └── 013_given_name.sql   ← pseudo retiré ; prénom donné par Google (lien de partage)
+│   │   │   ├── 013_given_name.sql   ← pseudo retiré ; prénom donné par Google (lien de partage)
+│   │   │   └── 014_email_verification.sql ← e-mail validé par un code (comptes existants : déjà validés)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -167,7 +168,8 @@ histoire-du-Salut/
 │   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   ├── ParallelRepository.js ← port : contrat de lecture des parallèles d'un verset
-│   │   │   ├── AccountRepository.js ← ports des comptes : UserRepository, SessionRepository, PasswordHasher
+│   │   │   ├── AccountRepository.js ← ports des comptes : UserRepository, SessionRepository, PasswordHasher,
+│   │   │   │                          EmailCodeRepository, EmailSender
 │   │   │   ├── library.js           ← règles de la bibliothèque d'un lecteur (note, lecture, position, envoi groupé)
 │   │   │   ├── LibraryRepository.js ← port : notes, surlignages, marque-pages d'un compte
 │   │   │   ├── SharingRepository.js ← port : lien de partage, progression derrière un lien
@@ -181,7 +183,9 @@ histoire-du-Salut/
 │   │   │   ├── getBibleOverview.js  ← vue d'ensemble de la frise, mode Bible entière
 │   │   │   ├── getParallels.js      ← les parallèles d'un verset, les plus votés d'abord (10, puis la suite)
 │   │   │   ├── sessions.js          ← durée d'une session (30 jours) ; qui est connecté ; « il faut être connecté »
-│   │   │   ├── createAccount.js     ← créer un compte (connecté dans la foulée)
+│   │   │   ├── createAccount.js     ← créer un compte : un code est envoyé par e-mail (pas encore de session)
+│   │   │   ├── emailCodes.js        ← règles du code (6 chiffres, 15 min) et e-mail envoyé
+│   │   │   ├── verifyEmail.js       ← valider l'e-mail avec le code (connecté), renvoyer un code
 │   │   │   ├── logIn.js             ← se connecter (même message si e-mail inconnu ou mot de passe faux)
 │   │   │   ├── logOut.js            ← se déconnecter (la session est fermée)
 │   │   │   ├── getCurrentUser.js    ← qui est connecté
@@ -196,6 +200,8 @@ histoire-du-Salut/
 │   │   │   ├── postgresParallelRepository.js ← le SQL des parallèles (rang par votes, aperçu de 5 versets)
 │   │   │   ├── postgresAccountRepository.js  ← le SQL des comptes et des sessions (jeton aléatoire, empreinte SHA-256)
 │   │   │   ├── scryptPasswordHasher.js ← hachage des mots de passe (scrypt, inclus dans Node, sel aléatoire)
+│   │   │   ├── postgresEmailCodeRepository.js ← codes de validation (hachés, 5 essais au plus)
+│   │   │   ├── emailSenders.js      ← envoi des e-mails : Brevo (en ligne), terminal ou boîte de test (en local)
 │   │   │   ├── postgresLibraryRepository.js ← le SQL de la bibliothèque (fusion : la note la plus récente gagne)
 │   │   │   ├── postgresSharingRepository.js ← le SQL du partage (marque-page → épisode et chapitre en cours)
 │   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories
@@ -206,7 +212,7 @@ histoire-du-Salut/
 │   │       │                          /api/books/:code/chapters/:chapter/verses/:verse/parallels
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       ├── privateApi.js        ← adresses propres au lecteur : jamais en cache, corps JSON limité (posé une fois)
-│   │       ├── accountRoutes.js     ← /api/account (créer, supprimer), /api/session (se connecter, se déconnecter, qui)
+│   │       ├── accountRoutes.js     ← /api/account (créer, valider le code, renvoyer, supprimer), /api/session
 │   │       ├── libraryRoutes.js     ← /api/me/library, /api/me/notes/:verset, /api/me/highlights/:verset, /api/me/bookmarks/:lecture
 │   │       ├── sharingRoutes.js     ← /api/me/sharing (lecteur connecté), /api/progress/:jeton (public)
 │   │       ├── sessionCookie.js     ← le cookie de session (httpOnly, Secure en ligne, SameSite=Lax)
@@ -215,7 +221,7 @@ histoire-du-Salut/
 │   └── test/                        ← en miroir de src/ et scripts/
 │       ├── domain/                  ← identifier, PassageSlug, PageRequest, VerseReference, Email, Password, arbres de la frise
 │       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles, comptes (faux repository)
-│       ├── infrastructure/          ← hachage scrypt
+│       ├── infrastructure/          ← hachage scrypt, envoyeurs d'e-mails (et leur choix)
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
@@ -223,7 +229,8 @@ histoire-du-Salut/
 │       │   ├── bible.test.js        ← GET /api/bible (74 livres, sans trou ni doublon), position d'un chapitre
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
 │       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
-│       │   ├── accounts.test.js     ← comptes : créer, cookie, se (dé)connecter, 401/409/429, supprimer
+│       │   ├── helpers/accounts.js  ← une app avec boîte d'e-mails de test ; un lecteur inscrit et validé
+│       │   ├── accounts.test.js     ← comptes : créer, code par e-mail, cookie, se (dé)connecter, 401/409/429/503
 │       │   ├── library.test.js      ← notes, surlignages, marque-pages du compte ; fusion ; chacun ne voit que les siens
 │       │   ├── sharing.test.js      ← lien de partage (prénom Google, sans e-mail ni notes), arrêter de partager
 │       │   ├── attemptLimiter.test.js ← limite d'essais (horloge remplacée)
@@ -253,7 +260,7 @@ histoire-du-Salut/
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
 │       ├── frise.spec.js            ← la frise : zoom, lecture, saut, sous-chapitres, marque-page, mode Bible ; téléphone
 │       ├── characters.spec.js       ← les personnages d'un épisode
-│       ├── accounts.spec.js         ← créer un compte, rester connecté, se (dé)connecter, supprimer le compte
+│       ├── accounts.spec.js         ← créer un compte (code par e-mail), rester connecté, se (dé)connecter, supprimer
 │       ├── sharing.spec.js          ← partager où j'en suis ; le lien ouvert sans compte ; arrêter de partager
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement)
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
@@ -340,7 +347,7 @@ histoire-du-Salut/
     │   │   └── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
     │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
     │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
-    │   │   ├── SignInForm.jsx / .css ← formulaire « Se connecter » / « Créer un compte » (Paramètres, menu d'un verset)
+    │   │   ├── SignInForm.jsx / .css ← « Se connecter » / « Créer un compte », puis le code reçu par e-mail
     │   │   ├── AccountSection.jsx / .css ← la section : formulaire, ou e-mail + Se déconnecter + Supprimer
     │   │   ├── useSharing.js        ← le lien de partage du lecteur connecté
     │   │   └── SharingSection.jsx   ← « Partager où j'en suis » : partager, arrêter de partager

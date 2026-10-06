@@ -9,12 +9,33 @@
  */
 
 /**
+ * @typedef {User & { passwordHash: string, emailVerifiedAt: string | null }} StoredUser
+ *   - emailVerifiedAt : quand l'e-mail a été validé (null : pas encore, pas de session possible)
+ */
+
+/**
  * @typedef {object} UserRepository
  * @property {(email: import('./Email.js').Email, passwordHash: string) => Promise<User | null>} create
- *   - crée le compte ; null si un compte existe déjà avec cet e-mail
- * @property {(email: import('./Email.js').Email) => Promise<(User & { passwordHash: string }) | null>} findByEmail
- * @property {(id: number) => Promise<(User & { passwordHash: string }) | null>} findById
+ *   - crée le compte, pas encore validé ; null si un compte existe déjà avec cet e-mail
+ * @property {(email: import('./Email.js').Email) => Promise<StoredUser | null>} findByEmail
+ * @property {(id: number) => Promise<StoredUser | null>} findById
+ * @property {(id: number, passwordHash: string) => Promise<void>} setPasswordHash
+ * @property {(id: number) => Promise<void>} markEmailVerified
  * @property {(id: number) => Promise<void>} delete - supprime le compte (et tout ce qui lui appartient)
+ */
+
+/**
+ * @typedef {object} EmailCodeRepository - les codes de validation envoyés par e-mail (rangés hachés)
+ * @property {(userId: number, minutes: number) => Promise<string>} create
+ *   - un nouveau code de 6 chiffres (il remplace le précédent), valable `minutes` minutes
+ * @property {(userId: number, code: string) => Promise<'valid' | 'wrong' | 'expired'>} check
+ *   - 'valid' : le code est consommé ; 'wrong' : un essai de moins ; 'expired' : trop vieux, trop d'essais,
+ *     ou aucun code (il faut en demander un nouveau)
+ */
+
+/**
+ * @typedef {object} EmailSender - envoie un e-mail (Brevo en ligne ; le terminal ou une boîte de test en local)
+ * @property {(message: { to: string, subject: string, text: string }) => Promise<void>} send
  */
 
 /**
