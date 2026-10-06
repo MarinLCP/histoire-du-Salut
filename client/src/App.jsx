@@ -10,6 +10,8 @@ import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
 import ParallelsPanel from './parallels/ParallelsPanel.jsx';
 import BackupSection from './backup/BackupSection.jsx';
+import AccountSection from './account/AccountSection.jsx';
+import { useAccount } from './account/useAccount.js';
 import { downloadJson } from './backup/downloadJson.js';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
@@ -33,6 +35,7 @@ function App() {
   // Verset dont les parallèles sont affichés (le même objet que menuVerse), ou null
   const [parallelsVerse, setParallelsVerse] = useState(null);
   const { settings, change: changeSettings } = useSettings();
+  const account = useAccount();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
@@ -79,6 +82,7 @@ function App() {
 
       {isSettingsOpen && (
         <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
+          <AccountSection account={account} />
           <BackupSection highlights={highlights} notes={notes} onDownload={downloadJson}
             onImport={(backup) => { mergeHighlights(backup.highlights); mergeNotes(backup.notes); }} />
         </SettingsPanel>

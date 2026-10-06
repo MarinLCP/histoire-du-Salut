@@ -117,7 +117,8 @@ histoire-du-Salut/
 │   │   │   ├── 006_sections.sql     ← les sous-chapitres (intertitres posés sur un verset)
 │   │   │   ├── 007_characters.sql   ← les personnages et leurs apparitions dans les épisodes
 │   │   │   ├── 008_parallels.sql    ← les parallèles : verset → verset ou plage, votes
-│   │   │   └── 009_drop_parallels_index.sql ← retire un index en double (la clé primaire suffit)
+│   │   │   ├── 009_drop_parallels_index.sql ← retire un index en double (la clé primaire suffit)
+│   │   │   └── 010_accounts.sql     ← comptes (e-mail, mot de passe haché) et sessions (empreinte du jeton)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -155,13 +156,16 @@ histoire-du-Salut/
 │   │   │   ├── PassageSlug.js       ← value object : slug bien formé (API et seed)
 │   │   │   ├── PageRequest.js       ← value object : page de timeline valide (after, limit ≤ 20)
 │   │   │   ├── VerseReference.js    ← value object : la référence d'un verset (Gn 32,2), API et seed
+│   │   │   ├── Email.js             ← value object : adresse e-mail d'un compte (minuscules, bien formée)
+│   │   │   ├── Password.js          ← value object : mot de passe acceptable (10 à 128 caractères), jamais affiché
 │   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux, avec son kind)
 │   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts → sous-chapitres
 │   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres → sous-chapitres
 │   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   ├── ParallelRepository.js ← port : contrat de lecture des parallèles d'un verset
-│   │   │   └── errors.js            ← ValidationError, NotFoundError
+│   │   │   ├── AccountRepository.js ← ports des comptes : UserRepository, SessionRepository, PasswordHasher
+│   │   │   └── errors.js            ← ValidationError, UnauthorizedError, NotFoundError, ConflictError
 │   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
 │   │   │   ├── getPassage.js
 │   │   │   ├── getTimeline.js
@@ -169,12 +173,20 @@ histoire-du-Salut/
 │   │   │   ├── findChapter.js       ← position d'un chapitre (ouvrir la Bible au bon endroit)
 │   │   │   ├── getHistoryOverview.js ← vue d'ensemble de la frise, mode Histoire du salut
 │   │   │   ├── getBibleOverview.js  ← vue d'ensemble de la frise, mode Bible entière
-│   │   │   └── getParallels.js      ← les parallèles d'un verset, les plus votés d'abord (10, puis la suite)
+│   │   │   ├── getParallels.js      ← les parallèles d'un verset, les plus votés d'abord (10, puis la suite)
+│   │   │   ├── sessions.js          ← durée d'une session (30 jours) ; requireUser : « il faut être connecté »
+│   │   │   ├── createAccount.js     ← créer un compte (connecté dans la foulée)
+│   │   │   ├── logIn.js             ← se connecter (même message si e-mail inconnu ou mot de passe faux)
+│   │   │   ├── logOut.js            ← se déconnecter (la session est fermée)
+│   │   │   ├── getCurrentUser.js    ← qui est connecté
+│   │   │   └── deleteAccount.js     ← supprimer son compte (mot de passe retapé)
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
 │   │   │   ├── postgresBibleRepository.js   ← tout le SQL de la Bible entière
 │   │   │   ├── postgresParallelRepository.js ← le SQL des parallèles (rang par votes, aperçu de 5 versets)
+│   │   │   ├── postgresAccountRepository.js  ← le SQL des comptes et des sessions (jeton aléatoire, empreinte SHA-256)
+│   │   │   ├── scryptPasswordHasher.js ← hachage des mots de passe (scrypt, inclus dans Node, sel aléatoire)
 │   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories
 │   │   │   └── rowsByOwner.js       ← range des lignes SQL par passage ou chapitre (une requête pour plusieurs)
 │   │   └── http/                    ← le seul endroit qui connaît Express
@@ -182,10 +194,14 @@ histoire-du-Salut/
 │   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible,
 │   │       │                          /api/books/:code/chapters/:chapter/verses/:verse/parallels
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
-│   │       └── errorHandler.js      ← erreurs métier → 400 / 404
+│   │       ├── accountRoutes.js     ← /api/account (créer, supprimer), /api/session (se connecter, se déconnecter, qui)
+│   │       ├── sessionCookie.js     ← le cookie de session (httpOnly, Secure en ligne, SameSite=Lax)
+│   │       ├── attemptLimiter.js    ← 10 essais de mot de passe ratés en 15 min pour un e-mail : on attend
+│   │       └── errorHandler.js      ← erreurs métier → 400 / 401 / 404 / 409
 │   └── test/                        ← en miroir de src/ et scripts/
-│       ├── domain/                  ← identifier, PassageSlug, PageRequest, VerseReference, arbres de la frise (unitaires, sans base)
-│       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles (faux repository)
+│       ├── domain/                  ← identifier, PassageSlug, PageRequest, VerseReference, Email, Password, arbres de la frise
+│       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles, comptes (faux repository)
+│       ├── infrastructure/          ← hachage scrypt
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
@@ -193,6 +209,8 @@ histoire-du-Salut/
 │       │   ├── bible.test.js        ← GET /api/bible (74 livres, sans trou ni doublon), position d'un chapitre
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
 │       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
+│       │   ├── accounts.test.js     ← comptes : créer, cookie, se (dé)connecter, 401/409/429, supprimer
+│       │   ├── attemptLimiter.test.js ← limite d'essais (horloge remplacée)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
 │       │   └── seededData.test.js   ← ce que le seed a écrit (époques, versets, grands ensembles, parallèles...)
@@ -219,6 +237,7 @@ histoire-du-Salut/
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
 │       ├── frise.spec.js            ← la frise : zoom, lecture, saut, sous-chapitres, marque-page, mode Bible ; téléphone
 │       ├── characters.spec.js       ← les personnages d'un épisode
+│       ├── accounts.spec.js         ← créer un compte, rester connecté, se (dé)connecter, supprimer le compte
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
@@ -238,7 +257,8 @@ histoire-du-Salut/
     │   │                              /bible?livre=Gn&chapitre=3&verset=15 : puis défile jusqu'au verset
     │   ├── index.css                ← couleurs, polices, hauteur de la barre (fixe en haut), « Revenir au début »
     │   ├── api/
-    │   │   ├── http.js              ← getJson : lecture d'une réponse, messages d'erreur clairs
+    │   │   ├── http.js              ← getJson / sendJson : lecture d'une réponse, messages d'erreur clairs
+    │   │   ├── account.api.js       ← appels à l'API des comptes (le cookie de session voyage tout seul)
     │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
     │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre, parallèles)
     │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode, gardé en mémoire)
@@ -299,6 +319,10 @@ histoire-du-Salut/
     │   │   ├── backup.js            ← règles : créer, relire, fusionner une sauvegarde (fichier JSON)
     │   │   ├── downloadJson.js      ← faire télécharger un fichier JSON
     │   │   └── BackupSection.jsx    ← « Télécharger une sauvegarde » / « Importer une sauvegarde »
+    │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
+    │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
+    │   │   ├── SignInForm.jsx       ← formulaire « Se connecter » / « Créer un compte »
+    │   │   └── AccountSection.jsx / .css ← la section : formulaire, ou e-mail + Se déconnecter + Supprimer
     │   ├── settings/                ← les Paramètres (bouton de la barre du haut, panneau à droite)
     │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
@@ -329,6 +353,7 @@ histoire-du-Salut/
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
+        ├── account/                 ← section « Mon compte », useAccount
         ├── settings/                ← règles des réglages, panneau
         ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source)
         ├── backup/                  ← règles de la sauvegarde, section du panneau

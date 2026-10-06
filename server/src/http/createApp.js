@@ -5,6 +5,7 @@
 import express from 'express';
 import { join } from 'node:path';
 import { errorHandler } from './errorHandler.js';
+import { accountRoutes } from './accountRoutes.js';
 
 /**
  * @param {object} dependencies
@@ -15,16 +16,21 @@ import { errorHandler } from './errorHandler.js';
  * @param {() => Promise<object[]>} dependencies.getHistoryOverview
  * @param {() => Promise<object[]>} dependencies.getBibleOverview
  * @param {(verse: { book: string, chapter: string, verse: string }, query: object) => Promise<object>} dependencies.getParallels
+ * @param {object} [dependencies.accounts] - les use cases des comptes (voir accountRoutes.js)
+ * @param {boolean} [dependencies.secureCookies] - cookies seulement en HTTPS (vrai en ligne)
  * @param {() => Promise<void>} dependencies.pingDatabase
  * @param {string} dependencies.clientBuildDirectory - le site React construit (client/dist)
  */
 export function createApp({
   getPassage, getTimeline, readBible, findChapter, getHistoryOverview, getBibleOverview, getParallels,
-  pingDatabase, clientBuildDirectory,
+  accounts, secureCookies = false, pingDatabase, clientBuildDirectory,
 }) {
   const app = express();
 
   app.get('/api/health', healthHandler(pingDatabase));
+
+  // Les comptes : /api/account (créer, supprimer) et /api/session (se connecter, se déconnecter, qui est connecté)
+  if (accounts) app.use('/api', accountRoutes(accounts, secureCookies));
 
   // Un passage avec ses versets (ex. /api/passages/creation)
   app.get('/api/passages/:slug', async (req, res) => {

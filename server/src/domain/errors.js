@@ -16,3 +16,19 @@ export class NotFoundError extends Error {
     this.name = 'NotFoundError';
   }
 }
+
+// Il faut être connecté, ou les identifiants sont faux (ex. mot de passe incorrect)
+export class UnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+// Ce qui est demandé entre en conflit avec ce qui existe (ex. un compte existe déjà avec cet e-mail)
+export class ConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ConflictError';
+  }
+}

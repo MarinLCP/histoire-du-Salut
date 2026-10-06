@@ -1,0 +1,41 @@
+// Tests de la limite d'essais de mot de passe (horloge remplacée : pas besoin d'attendre 15 minutes).
+
+import { describe, test, expect } from 'vitest';
+import { createAttemptLimiter } from '../../src/http/attemptLimiter.js';
+
+describe('createAttemptLimiter', () => {
+  const clock = () => {
+    let time = 0;
+    return { now: () => time, advance: (ms) => { time += ms; } };
+  };
+
+  test('bloqué après 3 échecs, pour cet e-mail seulement', () => {
+    const limiter = createAttemptLimiter({ maxFailures: 3, windowMs: 1000, now: clock().now });
+
+    ['a', 'a', 'a'].forEach((key) => limiter.recordFailure(key));
+
+    expect(limiter.isBlocked('a')).toBe(true);
+    expect(limiter.isBlocked('b')).toBe(false);
+  });
+
+  test('débloqué une fois la fenêtre passée', () => {
+    const { now, advance } = clock();
+    const limiter = createAttemptLimiter({ maxFailures: 2, windowMs: 1000, now });
+    limiter.recordFailure('a');
+    limiter.recordFailure('a');
+
+    advance(1000);
+
+    expect(limiter.isBlocked('a')).toBe(false);
+  });
+
+  test('une connexion réussie remet le compteur à zéro', () => {
+    const limiter = createAttemptLimiter({ maxFailures: 2, windowMs: 1000, now: clock().now });
+    limiter.recordFailure('a');
+
+    limiter.reset('a');
+    limiter.recordFailure('a');
+
+    expect(limiter.isBlocked('a')).toBe(false);
+  });
+});

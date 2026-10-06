@@ -1,11 +1,13 @@
-// Middleware d'erreurs : traduit les erreurs métier du domaine en codes HTTP, en UN seul endroit.
+// Middleware d'erreurs : traduit les erreurs métier du domaine en codes HTTP (400, 401, 404, 409), en UN seul endroit.
 // Express le reconnaît à ses 4 paramètres ; Express 5 lui envoie aussi les erreurs des routes async.
 
-import { NotFoundError, ValidationError } from '../domain/errors.js';
+import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '../domain/errors.js';
 
 const STATUS_BY_ERROR = [
   [ValidationError, 400],
+  [UnauthorizedError, 401],
   [NotFoundError, 404],
+  [ConflictError, 409],
 ];
 
 export function errorHandler(error, req, res, next) {
