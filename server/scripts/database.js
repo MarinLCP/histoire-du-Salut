@@ -17,14 +17,5 @@ export async function withClient(work, newClient = connect) {
   }
 }
 
-// Une transaction : soit tout le travail est enregistré (COMMIT), soit rien (ROLLBACK), et l'erreur remonte
-export async function inTransaction(client, work) {
-  await client.query('BEGIN');
-  try {
-    await work();
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  }
-}
+// Une transaction (tout ou rien) : la même que l'API, écrite une seule fois
+export { inTransaction } from '../src/infrastructure/transaction.js';

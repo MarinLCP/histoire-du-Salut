@@ -7,6 +7,7 @@ export function fetchSharing() {
   return getJson('/api/me/sharing');
 }
 
+// Renvoie { displayName } : le pseudo tel qu'il est rangé
 export function saveDisplayName(displayName) {
   return sendJson('PUT', '/api/me/profile', { displayName });
 }

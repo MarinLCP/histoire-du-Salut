@@ -1,18 +1,13 @@
 // Les adresses de la bibliothèque du lecteur connecté (/api/me/...) : notes privées, surlignages, marque-pages.
 // Traduit HTTP en appels de use cases (application/library.js) : aucune règle métier ici.
 // Une note ou un surlignage est désigné par la référence de son verset, encodée dans l'adresse
-// (ex. /api/me/notes/Gn%201%2C3). Réponses propres au lecteur : jamais en cache (no-store).
+// (ex. /api/me/notes/Gn%201%2C3). Corps JSON et « jamais en cache » : réglés dans createApp.js (privateApi.js).
 
 import express from 'express';
 import { readSessionToken } from './sessionCookie.js';
 
 export function libraryRoutes(library) {
   const router = express.Router();
-  // Une bibliothèque entière peut être envoyée d'un coup (première connexion) : 1 Mo au plus
-  router.use(express.json({ limit: '1mb' }), (req, res, next) => {
-    res.set('Cache-Control', 'no-store');
-    next();
-  });
   // Une écriture : rien à renvoyer (204) ; action(token, req) appelle le use case
   const noContent = (action) => async (req, res) => {
     await action(readSessionToken(req), req);

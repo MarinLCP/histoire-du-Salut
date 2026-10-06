@@ -53,7 +53,8 @@ export function createPostgresSharingRepository(pool) {
 }
 
 // Le marque-page de chaque lecture est une position continue (ex. 12.4 = dans l'épisode n° 12) :
-// sa partie entière désigne l'épisode (passages.position) ou le chapitre (chapters.position)
+// sa partie entière désigne l'épisode (passages.position) ou le chapitre (chapters.position).
+// ::int : comparer deux entiers permet d'utiliser l'index de position
 const PROGRESS = `
   SELECT u.display_name,
          p.position AS episode, p.slug AS episode_slug, p.title AS episode_title,
@@ -62,9 +63,9 @@ const PROGRESS = `
   FROM progress_shares s
   JOIN users u ON u.id = s.user_id
   LEFT JOIN user_bookmarks hb ON hb.user_id = u.id AND hb.mode = 'history'
-  LEFT JOIN passages p ON p.position = floor(hb.position)
+  LEFT JOIN passages p ON p.position = floor(hb.position)::int
   LEFT JOIN user_bookmarks bb ON bb.user_id = u.id AND bb.mode = 'bible'
-  LEFT JOIN chapters c ON c.position = floor(bb.position)
+  LEFT JOIN chapters c ON c.position = floor(bb.position)::int
   LEFT JOIN books b ON b.id = c.book_id
   WHERE s.token = $1 AND u.display_name IS NOT NULL
 `;

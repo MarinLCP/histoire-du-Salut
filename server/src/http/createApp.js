@@ -8,6 +8,7 @@ import { errorHandler } from './errorHandler.js';
 import { accountRoutes } from './accountRoutes.js';
 import { libraryRoutes } from './libraryRoutes.js';
 import { sharingRoutes } from './sharingRoutes.js';
+import { PRIVATE_PATHS, LIBRARY_JSON, privateApi } from './privateApi.js';
 
 /**
  * @param {object} dependencies
@@ -33,6 +34,10 @@ export function createApp({
 
   app.get('/api/health', healthHandler(pingDatabase));
 
+  // Les adresses propres au lecteur : pas de cache, corps JSON limité (privateApi.js). La bibliothèque
+  // envoyée d'un coup est lue d'abord, avec sa limite plus grande (express.json ne relit pas un corps déjà lu)
+  app.use('/api/me/library', LIBRARY_JSON);
+  app.use(PRIVATE_PATHS, privateApi());
   // Les comptes : /api/account (créer, supprimer) et /api/session (se connecter, se déconnecter, qui est connecté)
   if (accounts) app.use('/api', accountRoutes(accounts, secureCookies));
   // Ce que le lecteur connecté garde dans son compte : /api/me/library, /api/me/notes/:key...

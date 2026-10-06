@@ -12,7 +12,8 @@ const PASSWORD = 'un mot de passe long';
 const GN_1_3 = encodeURIComponent('Gn 1,3');
 
 afterAll(async () => {
-  await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
+  // Seulement les comptes de CE fichier : les autres fichiers de test tournent en même temps
+  await pool.query('DELETE FROM users WHERE email LIKE $1', [`bibliotheque-%${TEST_DOMAIN}`]);
   await pool.end();
 });
 

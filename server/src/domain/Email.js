@@ -12,9 +12,16 @@ const MAX_LENGTH = 254;
 export class Email {
   /** @param {unknown} text */
   constructor(text) {
-    const value = typeof text === 'string' ? text.trim().toLowerCase() : '';
+    const value = Email.normalize(text);
     if (value.length > MAX_LENGTH || !FORMAT.test(value)) throw new ValidationError('Adresse e-mail invalide.');
     this.value = value;
     Object.freeze(this);
+  }
+
+  // La forme rangée d'une adresse (minuscules, sans espaces autour), même mal formée : sert aussi de clé
+  // à la limite d'essais de connexion (http/accountRoutes.js)
+  /** @param {unknown} text @returns {string} */
+  static normalize(text) {
+    return typeof text === 'string' ? text.trim().toLowerCase() : '';
   }
 }

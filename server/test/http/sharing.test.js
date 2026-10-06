@@ -9,7 +9,8 @@ import { pool } from '../../src/infrastructure/db.js';
 const TEST_DOMAIN = '@exemple.test';
 
 afterAll(async () => {
-  await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
+  // Seulement les comptes de CE fichier : les autres fichiers de test tournent en même temps
+  await pool.query('DELETE FROM users WHERE email LIKE $1', [`partage-%${TEST_DOMAIN}`]);
   await pool.end();
 });
 
@@ -29,7 +30,8 @@ describe('API du partage de progression', () => {
 
   test('avec un pseudo : un lien, toujours le même, qui montre où on en est (sans compte, sans e-mail)', async () => {
     const reader = await signedInReader();
-    await reader.put('/api/me/profile').send({ displayName: '  Marin ' });
+    const profile = await reader.put('/api/me/profile').send({ displayName: '  Marin ' });
+    expect(profile.body).toEqual({ displayName: 'Marin' });
     await reader.put('/api/me/bookmarks/history').send({ position: 2.4 });
     await reader.put('/api/me/bookmarks/bible').send({ position: 3.1 });
 

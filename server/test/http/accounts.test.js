@@ -13,7 +13,8 @@ const PASSWORD = 'un mot de passe long';
 const newEmail = () => `lecteur-${Math.random().toString(36).slice(2)}${TEST_DOMAIN}`;
 
 afterAll(async () => {
-  await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
+  // Seulement les comptes de CE fichier : les autres fichiers de test tournent en même temps
+  await pool.query('DELETE FROM users WHERE email LIKE $1', [`lecteur-%${TEST_DOMAIN}`]);
   await pool.end();
 });
 
@@ -104,6 +105,32 @@ describe('API des comptes', () => {
     const res = await request(app).get('/api/overview/bible');
 
     expect(res.headers['cache-control']).not.toBe('no-store');
+  });
+
+  test('des essais envoyés tous en même temps : 10 au plus sont vérifiés, les autres attendent (429)', async () => {
+    const email = newEmail();
+    await request(app).post('/api/account').send({ email, password: PASSWORD });
+
+    const responses = await Promise.all(Array.from({ length: 15 }, () => request(app).post('/api/session').send({ email, password: 'pas le bon mot' })));
+    const statuses = responses.map((res) => res.status);
+
+    expect(statuses.filter((status) => status === 401)).toHaveLength(10);
+    expect(statuses.filter((status) => status === 429)).toHaveLength(5);
+  }, 30000);
+
+  test('une session expirée ne vaut plus rien (ni « qui est connecté », ni « à moi »)', async () => {
+    const agent = request.agent(app);
+    const email = newEmail();
+    await agent.post('/api/account').send({ email, password: PASSWORD });
+
+    await pool.query(
+      `UPDATE sessions SET expires_at = now() - interval '1 day'
+       WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
+      [email],
+    );
+
+    expect((await agent.get('/api/session')).body).toEqual({ user: null });
+    expect((await agent.get('/api/me/library')).status).toBe(401);
   });
 
   test('supprimer un compte sans être connecté : 401', async () => {

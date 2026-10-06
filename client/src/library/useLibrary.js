@@ -1,17 +1,18 @@
 // Hook React : la bibliothèque du lecteur (notes privées, surlignages, marque-pages), au bon endroit :
-// - pas connecté : surlignages et marque-page dans le navigateur ; pas de notes (il faut un compte). Les
-//   notes déjà écrites dans ce navigateur (avant les comptes, ou importées) attendent la connexion ;
-// - connecté : à l'ouverture, ce qui est dans le navigateur rejoint le compte (le plus récent gagne), puis
-//   le navigateur est vidé (les notes sont privées : un appareil peut être partagé). Ensuite, chaque
-//   changement est affiché tout de suite et écrit dans le compte (annulé si l'écriture échoue).
+// - pas connecté (status 'local') : surlignages et marque-page dans le navigateur ; pas de notes (il faut un
+//   compte). Les notes déjà écrites dans ce navigateur (avant les comptes, ou importées) attendent la connexion ;
+// - connecté : à l'ouverture, ce qui est dans le navigateur rejoint le compte (le plus récent gagne), puis le
+//   navigateur est vidé (les notes sont privées : un appareil peut être partagé). Pendant ce temps, status vaut
+//   'loading' ; ensuite 'ready' (chaque changement est affiché tout de suite et écrit dans le compte, annulé si
+//   l'écriture échoue), ou 'failed' (retry() réessaie).
 // user : useAccount().user (undefined : pas encore su ; null : pas connecté ; { email })
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toggleHighlight as toggledHighlights } from '../highlights/highlights.js';
 import { loadHighlights, saveHighlights } from '../highlights/highlights.storage.js';
 import { setNote } from '../notes/notes.js';
 import { loadNotes, saveNotes } from '../notes/notes.storage.js';
-import { loadBookmarks, saveBookmark as saveLocalBookmark } from '../frise/bookmark.storage.js';
+import { loadBookmarks, saveBookmark as saveLocalBookmark, clearBookmarks } from '../frise/bookmark.storage.js';
 import { useStoredMap } from '../storage/useStoredMap.js';
 import { mergeInto } from '../backup/backup.js';
 import * as libraryApi from '../api/library.api.js';
@@ -21,81 +22,122 @@ const NO_NOTES = new Map();
 export function useLibrary(user) {
   const [localNotes, setLocalNotes] = useStoredMap(loadNotes, saveNotes);
   const [localHighlights, setLocalHighlights] = useStoredMap(loadHighlights, saveHighlights);
-  const [localBookmarks] = useState(loadBookmarks);
-  // La bibliothèque du compte, une fois chargée : { email, notes, highlights, bookmarks } (des Map)
-  const [accountLibrary, setAccountLibrary] = useState(null);
   const email = user?.email ?? null;
-  const loaded = email !== null && accountLibrary?.email === email ? accountLibrary : null;
-
-  useAccountLoading(email, { setAccountLibrary, setLocalNotes, setLocalHighlights });
-
-  const updateLoaded = (change) => setAccountLibrary((previous) => ({ ...previous, ...change(previous) }));
-  const bookmarks = useMemo(() => ({
-    saved: loaded ? loaded.bookmarks : localBookmarks,
-    save: (mode, position) => {
-      saveLocalBookmark(mode, position);
-      if (email) libraryApi.saveBookmark(mode, position).catch(() => {});
-    },
-  }), [loaded, localBookmarks, email]);
+  const account = useAccountLibrary(email, { setLocalNotes, setLocalHighlights });
+  const loaded = account.status === 'ready' ? account.library : null;
+  const bookmarks = useBookmarks(email, loaded?.bookmarks ?? null);
 
   return {
+    status: account.status,
+    retry: account.retry,
     notes: loaded ? loaded.notes : NO_NOTES,
     highlights: loaded ? loaded.highlights : localHighlights,
     // Les notes écrites dans ce navigateur, qui attendent la connexion
-    waitingNotes: loaded ? NO_NOTES : localNotes,
-    // Enregistrer une note demande un compte, chargé
-    canSaveNotes: loaded !== null,
+    waitingNotes: localNotes,
     bookmarks,
+    // Sans compte : la note tapée est mise de côté, et rejoint le compte à la connexion (le plus récent gagne)
+    holdNote: account.holdNote,
+    releaseNote: account.releaseNote,
 
     toggleHighlight(key) {
       if (!loaded) return setLocalHighlights((previous) => toggledHighlights(previous, key));
-      const write = loaded.highlights.has(key) ? libraryApi.removeHighlight : libraryApi.addHighlight;
-      const toggle = () => updateLoaded((previous) => ({ highlights: toggledHighlights(previous.highlights, key) }));
-      toggle();
-      write(key).catch(toggle);
+      account.toggleHighlight(key);
     },
-
-    saveNote(key, text) {
-      if (!loaded) return;
-      const before = loaded.notes.get(key);
-      updateLoaded((previous) => ({ notes: setNote(previous.notes, key, text) }));
-      const write = text.trim() === '' ? libraryApi.deleteNote(key) : libraryApi.saveNote(key, text);
-      write.catch(() => updateLoaded((previous) => ({ notes: restored(previous.notes, key, before) })));
-    },
-
-    // Une sauvegarde importée (fichier) : dans le compte si on est connecté, sinon dans le navigateur
+    saveNote: account.saveNote,
+    // Une sauvegarde importée (fichier) : dans le compte s'il est chargé, sinon dans le navigateur.
+    // Renvoie une promesse, rejetée si l'envoi au compte échoue (le message est à afficher)
     importBackup({ highlights, notes }) {
-      if (!loaded) {
-        setLocalHighlights((previous) => mergeInto(previous, highlights));
-        setLocalNotes((previous) => mergeInto(previous, notes));
-        return;
-      }
-      libraryApi.mergeLibrary({ highlights: Object.fromEntries(highlights), notes: Object.fromEntries(notes) })
-        .then((library) => setAccountLibrary({ email, ...asMaps(library) }))
-        .catch(() => {});
+      if (loaded) return account.importBackup({ highlights, notes });
+      setLocalHighlights((previous) => mergeInto(previous, highlights));
+      setLocalNotes((previous) => mergeInto(previous, notes));
+      return Promise.resolve();
     },
   };
 }
 
-// À la connexion (ou à l'ouverture, déjà connecté) : envoie ce qui est dans le navigateur, reçoit la
-// bibliothèque du compte, puis vide le navigateur. Serveur injoignable : on reste sur le navigateur.
-function useAccountLoading(email, { setAccountLibrary, setLocalNotes, setLocalHighlights }) {
+// La bibliothèque du compte : chargement (avec ce qui attend dans le navigateur), état, écritures
+function useAccountLibrary(email, { setLocalNotes, setLocalHighlights }) {
+  // { email, status: 'ready' | 'failed', library: { notes, highlights, bookmarks } (des Map) }
+  const [state, setState] = useState(null);
+  const [attempt, setAttempt] = useState(0);
+  const heldNote = useRef(null);
+  const current = email !== null && state?.email === email ? state : null;
+  const status = email === null ? 'local' : (current?.status ?? 'loading');
+
   useEffect(() => {
     if (!email) return;
     let ignore = false;
-    const local = { notes: Object.fromEntries(loadNotes()), highlights: Object.fromEntries(loadHighlights()), bookmarks: Object.fromEntries(loadBookmarks()) };
-    libraryApi.mergeLibrary(local)
+    const waiting = browserLibrary(heldNote.current);
+    const load = isEmpty(waiting) ? libraryApi.fetchLibrary() : libraryApi.mergeLibrary(waiting);
+    load
       .then((library) => {
         if (ignore) return;
+        heldNote.current = null;
         setLocalNotes(new Map());
         setLocalHighlights(new Map());
-        setAccountLibrary({ email, ...asMaps(library) });
+        clearBookmarks();
+        setState({ email, status: 'ready', library: asMaps(library) });
       })
-      .catch(() => {});
+      .catch(() => { if (!ignore) setState({ email, status: 'failed' }); });
     return () => {
       ignore = true;
     };
-  }, [email, setAccountLibrary, setLocalNotes, setLocalHighlights]);
+  }, [email, attempt, setLocalNotes, setLocalHighlights]);
+
+  const update = (change) => setState((previous) => ({ ...previous, library: { ...previous.library, ...change(previous.library) } }));
+
+  return {
+    status,
+    library: current?.library,
+    retry() {
+      setState(null);
+      setAttempt((count) => count + 1);
+    },
+    holdNote(key, text) {
+      heldNote.current = { key, text, updatedAt: new Date().toISOString() };
+    },
+    releaseNote() {
+      heldNote.current = null;
+    },
+    toggleHighlight(key) {
+      const write = current.library.highlights.has(key) ? libraryApi.removeHighlight : libraryApi.addHighlight;
+      const toggle = () => update((library) => ({ highlights: toggledHighlights(library.highlights, key) }));
+      toggle();
+      write(key).catch(toggle);
+    },
+    saveNote(key, text) {
+      if (status !== 'ready') return;
+      const before = current.library.notes.get(key);
+      update((library) => ({ notes: setNote(library.notes, key, text) }));
+      const write = text.trim() === '' ? libraryApi.deleteNote(key) : libraryApi.saveNote(key, text);
+      write.catch(() => update((library) => ({ notes: restored(library.notes, key, before) })));
+    },
+    importBackup({ highlights, notes }) {
+      return libraryApi.mergeLibrary({ highlights: Object.fromEntries(highlights), notes: Object.fromEntries(notes) })
+        .then((library) => setState({ email, status: 'ready', library: asMaps(library) }));
+    },
+  };
+}
+
+// Le marque-page, pour la frise (BookmarksContext) : le même objet tant que le compte ne change pas
+// (surligner ou noter ne redessine pas la frise). saved : ceux du compte, ou null (ceux du navigateur).
+function useBookmarks(email, accountBookmarks) {
+  const save = useCallback((mode, position) => {
+    if (!email) return saveLocalBookmark(mode, position);
+    libraryApi.saveBookmark(mode, position).catch(() => {});
+  }, [email]);
+  return useMemo(() => ({ saved: accountBookmarks, save }), [accountBookmarks, save]);
+}
+
+// Ce qui attend dans le navigateur (et la note mise de côté), au format d'échange avec le serveur
+function browserLibrary(heldNote) {
+  const notes = Object.fromEntries(loadNotes());
+  if (heldNote) notes[heldNote.key] = { text: heldNote.text, updatedAt: heldNote.updatedAt };
+  return { notes, highlights: Object.fromEntries(loadHighlights()), bookmarks: Object.fromEntries(loadBookmarks()) };
+}
+
+function isEmpty({ notes, highlights, bookmarks }) {
+  return [notes, highlights, bookmarks].every((group) => Object.keys(group).length === 0);
 }
 
 function asMaps({ notes, highlights, bookmarks }) {
@@ -105,7 +147,7 @@ function asMaps({ notes, highlights, bookmarks }) {
 // La note d'avant (ou plus de note) : pour annuler une écriture qui a échoué
 function restored(notes, key, before) {
   const next = new Map(notes);
+  next.delete(key);
   if (before) next.set(key, before);
-  else next.delete(key);
   return next;
 }

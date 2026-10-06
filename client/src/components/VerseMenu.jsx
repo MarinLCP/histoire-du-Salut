@@ -13,10 +13,11 @@ import './VerseMenu.css';
 
 // onCopy(text) : copie le texte et renvoie une promesse (injectée par App, remplacée par un faux dans les tests)
 // onShowParallels : ouvre le panneau des parallèles ; absent = pas de bouton (histoire du salut)
-// canSaveNotes : un compte est connecté (et chargé) ; account : useAccount(), pour en créer un ici
+// noteStatus : où vont les notes (useLibrary().status) ; account : useAccount(), pour en créer un ici ;
+// onHoldNote(key, text) / onReleaseNote() : mettre de côté (ou oublier) la note tapée sans compte
 function VerseMenu({
-  verseKey, verseText, isHighlighted, note, onToggleHighlight, onSaveNote, canSaveNotes, account, onCopy,
-  onShowParallels, onClose,
+  verseKey, verseText, isHighlighted, note, onToggleHighlight, onSaveNote, noteStatus, account, onHoldNote,
+  onReleaseNote, onCopy, onShowParallels, onClose,
 }) {
   const { dialogRef, backdropProps } = useModalDialog(onClose);
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -36,7 +37,8 @@ function VerseMenu({
       <div className="verse-menu-content">
         <h2 className="verse-menu-title">{verseKey}</h2>
         {isEditingNote ? (
-          <NoteEditor note={note} canSave={canSaveNotes} account={account} onSave={saveNoteAndClose}
+          <NoteEditor note={note} status={noteStatus} account={account} onSave={saveNoteAndClose}
+            onHold={(text) => onHoldNote(verseKey, text)} onRelease={onReleaseNote} onDone={onClose}
             onCancel={() => setIsEditingNote(false)} />
         ) : (
           <VerseActions
@@ -70,16 +72,27 @@ function VerseActions({ isHighlighted, note, copiedText, onToggleHighlight, onEd
 
 const COPY_LABELS = { idle: 'Copier le verset', done: 'Verset copié ✓', failed: 'Copie impossible' };
 
-function NoteEditor({ note, canSave, account, onSave, onCancel }) {
+// status : où vont les notes (useLibrary) : 'ready' (compte chargé), 'local' (pas de compte),
+// 'loading' / 'failed' (compte pas encore chargé, ou injoignable)
+function NoteEditor({ note, status, account, onSave, onHold, onRelease, onDone, onCancel }) {
   const [text, setText] = useState(note?.text ?? '');
   const [isAskingAccount, setIsAskingAccount] = useState(false);
+  const canWait = status === 'ready' || status === 'local';
 
-  // Le compte vient d'être créé (ou ouvert) et chargé : la note qui attendait est enregistrée
+  // Le compte vient d'être créé (ou ouvert) et chargé : la note mise de côté l'a rejoint, le menu se ferme
   useEffect(() => {
-    if (isAskingAccount && canSave) onSave(text);
-  }, [isAskingAccount, canSave, onSave, text]);
+    if (isAskingAccount && status === 'ready') onDone();
+  }, [isAskingAccount, status, onDone]);
 
-  if (isAskingAccount) return <AccountPrompt account={account} onCancel={() => setIsAskingAccount(false)} />;
+  function save() {
+    if (status === 'ready') return onSave(text);
+    onHold(text);
+    setIsAskingAccount(true);
+  }
+
+  if (isAskingAccount) {
+    return <AccountPrompt account={account} onCancel={() => { onRelease(); setIsAskingAccount(false); }} />;
+  }
   return (
     <>
       <textarea
@@ -91,10 +104,9 @@ function NoteEditor({ note, canSave, account, onSave, onCancel }) {
         rows={5}
         autoFocus
       />
+      {!canWait && <p className="verse-menu-status" role="status">{NOT_READY[status]}</p>}
       <div className="verse-menu-buttons">
-        <button className="verse-menu-primary" onClick={() => (canSave ? onSave(text) : setIsAskingAccount(true))}>
-          Enregistrer
-        </button>
+        <button className="verse-menu-primary" onClick={save} disabled={!canWait}>Enregistrer</button>
         {note && <button onClick={() => onSave('')}>Supprimer la note</button>}
         <button onClick={onCancel}>Annuler</button>
       </div>
@@ -102,7 +114,13 @@ function NoteEditor({ note, canSave, account, onSave, onCancel }) {
   );
 }
 
-// Sans compte : la note attend (son texte est gardé) le temps de créer un compte ou de se connecter
+const NOT_READY = {
+  loading: 'Ton compte se charge…',
+  failed: 'Ton compte ne répond pas : réessaie depuis Paramètres, dans un instant.',
+};
+
+// Sans compte : la note est mise de côté le temps de créer un compte ou de se connecter ; elle le rejoint
+// ensuite (si le compte a déjà une note sur ce verset, la plus récente gagne : celle-ci)
 function AccountPrompt({ account, onCancel }) {
   return (
     <div className="verse-menu-account">

@@ -12,41 +12,48 @@ const SHARE_MESSAGES = { shared: 'Lien partagé.', copied: 'Lien copié : colle-
 
 function SharingSection() {
   const { sharing, error, saveDisplayName, openShare, closeShare } = useSharing();
-  const [isEditingName, setIsEditingName] = useState(false);
   const [message, setMessage] = useState(null);
 
   if (error) return <p role="alert">{error}</p>;
   if (!sharing) return null;
 
-  async function share() {
-    try {
-      const token = sharing.token ?? await openShare();
-      setMessage(SHARE_MESSAGES[await shareUrl({ title: SHARE_TITLE, url: progressLink(globalThis.location.origin, token) })]);
-    } catch (shareError) {
-      setMessage(shareError.message);
-    }
-  }
+  // Chaque action affiche son résultat, ou son erreur
+  const report = (action) => action().then(setMessage, (actionError) => setMessage(actionError.message));
+  const share = () => report(async () => {
+    const token = sharing.token ?? await openShare();
+    const url = progressLink(globalThis.location.origin, token);
+    return SHARE_MESSAGES[await shareUrl({ title: SHARE_TITLE, url })];
+  });
+  const stopSharing = () => report(() => closeShare().then(() => 'Le lien ne mène plus nulle part.'));
 
   return (
     <div className="account-sharing">
       <h4>Partager où j'en suis</h4>
-      {!sharing.displayName || isEditingName
-        ? <DisplayNameForm current={sharing.displayName} onSave={(name) => saveDisplayName(name).then(() => setIsEditingName(false))} />
-        : (
-          <p>
-            Ton pseudo : <strong>{sharing.displayName}</strong>{' '}
-            <button type="button" className="account-link" onClick={() => setIsEditingName(true)}>Modifier</button>
-          </p>
-        )}
+      <DisplayNameLine displayName={sharing.displayName} onSave={saveDisplayName} />
       {sharing.displayName && (
-        <div className="account-actions">
+        <div className="settings-actions">
           <button type="button" onClick={share}>{sharing.token ? 'Partager à nouveau' : 'Partager où j\'en suis'}</button>
-          {sharing.token && <button type="button" onClick={() => closeShare().then(() => setMessage('Le lien ne mène plus nulle part.'))}>Arrêter de partager</button>}
+          {sharing.token && <button type="button" onClick={stopSharing}>Arrêter de partager</button>}
         </div>
       )}
       {message && <p role="status">{message}</p>}
     </div>
   );
+}
+
+// Le pseudo : son nom et « Modifier », ou le formulaire (s'il n'y en a pas encore, ou pour le modifier)
+function DisplayNameLine({ displayName, onSave }) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  if (displayName && !isEditing) {
+    return (
+      <p>
+        Ton pseudo : <strong>{displayName}</strong>{' '}
+        <button type="button" className="account-link" onClick={() => setIsEditing(true)}>Modifier</button>
+      </p>
+    );
+  }
+  return <DisplayNameForm current={displayName} onSave={(name) => onSave(name).then(() => setIsEditing(false))} />;
 }
 
 // Le pseudo affiché sur le lien (2 à 30 caractères)

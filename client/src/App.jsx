@@ -77,11 +77,13 @@ function App() {
           note={notes.get(menuVerse.key)}
           onToggleHighlight={library.toggleHighlight}
           onSaveNote={library.saveNote}
-          canSaveNotes={library.canSaveNotes}
+          noteStatus={library.status}
           account={account}
+          onHoldNote={library.holdNote}
+          onReleaseNote={library.releaseNote}
           onCopy={copyText}
           onShowParallels={menuVerse.canShowParallels ? () => showParallels(menuVerse) : undefined}
-          onClose={() => setMenuVerse(null)}
+          onClose={() => { library.releaseNote(); setMenuVerse(null); }}
         />
       )}
 
@@ -91,8 +93,9 @@ function App() {
 
       {isSettingsOpen && (
         <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
-          <AccountSection account={account} waitingNotes={library.waitingNotes.size} />
-          <BackupSection highlights={highlights} notes={library.canSaveNotes ? notes : library.waitingNotes}
+          <AccountSection account={account} waitingNotes={library.waitingNotes.size}
+            libraryStatus={library.status} onRetryLibrary={library.retry} />
+          <BackupSection highlights={highlights} notes={library.status === 'ready' ? notes : library.waitingNotes}
             onDownload={downloadJson} onImport={library.importBackup} />
         </SettingsPanel>
       )}

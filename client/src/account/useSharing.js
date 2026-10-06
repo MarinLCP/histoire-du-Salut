@@ -24,7 +24,8 @@ export function useSharing() {
   return {
     sharing,
     error,
-    saveDisplayName: (displayName) => sharingApi.saveDisplayName(displayName).then(() => update({ displayName: displayName.trim() })),
+    // Le serveur renvoie le pseudo tel qu'il l'a rangé (sans espaces autour)
+    saveDisplayName: (displayName) => sharingApi.saveDisplayName(displayName).then(update),
     openShare: () => sharingApi.openShare().then(({ token }) => {
       update({ token });
       return token;

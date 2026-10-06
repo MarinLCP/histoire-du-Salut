@@ -7,7 +7,7 @@
 import { ValidationError } from './errors.js';
 import { VerseReference } from './VerseReference.js';
 
-export const READING_MODES = ['history', 'bible'];
+const READING_MODES = ['history', 'bible'];
 const MAX_NOTE_LENGTH = 10000;
 // Au-delà, un envoi n'est pas celui d'un lecteur (garde-fou contre un envoi énorme)
 const MAX_ITEMS = 10000;

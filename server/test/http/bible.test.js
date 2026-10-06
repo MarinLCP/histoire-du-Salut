@@ -46,7 +46,7 @@ describe('GET /api/bible', () => {
     expect(chapters).toHaveLength(count);
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys).toContain('Ps 9A');
-  });
+  }, 20000);
 
   test('les 74 livres, de la Genèse à l\'Apocalypse, avec les Psaumes juste après Job', async () => {
     const bookOrder = [...new Set((await readWholeBible()).map((chapter) => chapter.book.code))];
@@ -54,7 +54,8 @@ describe('GET /api/bible', () => {
     expect(bookOrder).toHaveLength(74);
     expect([bookOrder[0], bookOrder.at(-1)]).toEqual(['Gn', 'Ap']);
     expect(bookOrder[bookOrder.indexOf('Jb') + 1]).toBe('Ps');
-  });
+    // Toute la Bible page par page (267 requêtes), pendant que d'autres tests occupent le processeur
+  }, 20000);
 
   test('après le dernier chapitre : une page vide, et ce n\'est pas une erreur', async () => {
     const res = await request(app).get('/api/bible?after=999999');

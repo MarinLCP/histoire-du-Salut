@@ -13,3 +13,8 @@ export function saveBookmark(mode, position) {
   bookmarks.set(mode, position);
   storage.save(bookmarks);
 }
+
+// Vide les marque-pages du navigateur (ils ont rejoint le compte du lecteur)
+export function clearBookmarks() {
+  storage.save(new Map());
+}

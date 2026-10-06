@@ -31,7 +31,7 @@ export function createPostgresUserRepository(pool) {
       return result.rows[0] ?? null;
     },
 
-    // Les sessions (et plus tard les notes...) disparaissent avec le compte : ON DELETE CASCADE
+    // Sessions, notes, surlignages, marque-pages et lien de partage disparaissent avec le compte : ON DELETE CASCADE
     async delete(id) {
       await pool.query('DELETE FROM users WHERE id = $1', [id]);
     },

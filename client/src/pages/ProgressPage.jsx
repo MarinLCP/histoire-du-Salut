@@ -6,6 +6,7 @@ import { Link, useParams } from 'react-router';
 import ListStatus from '../components/ListStatus.jsx';
 import { fetchProgress } from '../api/sharing.api.js';
 import { chapterLink } from '../bible/bibleLink.js';
+import { passageLink } from '../share/shareLink.js';
 import { useLoaded } from '../hooks/useLoaded.js';
 import './ProgressPage.css';
 
@@ -43,7 +44,8 @@ function HistoryProgress({ history }) {
     <article className="progress-card">
       <h2>L'histoire du salut</h2>
       <p>Épisode {history.episode} sur {history.total} : <strong>{history.title}</strong></p>
-      <Link to={`/?passage=${encodeURIComponent(history.slug)}`}>Lire au même endroit</Link>
+      {/* Origine vide : un lien dans le site ("/?passage=chute") */}
+      <Link to={passageLink('', history.slug)}>Lire au même endroit</Link>
     </article>
   );
 }

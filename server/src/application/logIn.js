@@ -4,7 +4,7 @@
 
 import { Email } from '../domain/Email.js';
 import { UnauthorizedError, ValidationError } from '../domain/errors.js';
-import { SESSION_DAYS } from './sessions.js';
+import { SESSION_DAYS, typedPassword } from './sessions.js';
 
 const WRONG_CREDENTIALS = 'E-mail ou mot de passe incorrect.';
 
@@ -13,8 +13,7 @@ export function makeLogIn({ userRepository, sessionRepository, passwordHasher })
   /** @param {{ email?: unknown, password?: unknown }} form */
   return async function logIn(form) {
     const user = await findUser(userRepository, form.email);
-    const password = typeof form.password === 'string' ? form.password : '';
-    const isRight = await passwordHasher.matches(password, user?.passwordHash ?? null);
+    const isRight = await passwordHasher.matches(typedPassword(form), user?.passwordHash ?? null);
     if (!user || !isRight) throw new UnauthorizedError(WRONG_CREDENTIALS);
 
     const token = await sessionRepository.open(user.id, SESSION_DAYS);

@@ -2,21 +2,28 @@
 // l'e-mail du compte, « Se déconnecter », « Supprimer mon compte » (mot de passe retapé pour confirmer)
 // et « Partager où j'en suis » (SharingSection).
 // account : useAccount() (branché dans App) ; waitingNotes : le nombre de notes écrites dans ce navigateur,
-// qui rejoindront le compte à la connexion
+// qui rejoindront le compte à la connexion ; libraryStatus / onRetryLibrary : le chargement du compte
+// (useLibrary), pour dire s'il a échoué et réessayer
 
 import { useState } from 'react';
 import SignInForm from './SignInForm.jsx';
 import SharingSection from './SharingSection.jsx';
 import './AccountSection.css';
 
-function AccountSection({ account, waitingNotes = 0 }) {
+function AccountSection({ account, waitingNotes = 0, libraryStatus, onRetryLibrary }) {
   return (
-    <section className="account-section" aria-labelledby="account-title">
+    <section className="settings-section account-section" aria-labelledby="account-title">
       <h3 id="account-title">Mon compte</h3>
       {account.user === null && waitingNotes > 0 && (
         <p className="account-waiting">
           {waitingNotes > 1 ? `${waitingNotes} notes écrites` : '1 note écrite'} sur cet appareil t'attendent :
           connecte-toi ou crée un compte pour les retrouver.
+        </p>
+      )}
+      {libraryStatus === 'failed' && (
+        <p className="account-waiting" role="alert">
+          Tes notes et surlignages n'ont pas pu être chargés.{' '}
+          <button type="button" className="account-link" onClick={onRetryLibrary}>Réessayer</button>
         </p>
       )}
       <AccountContent account={account} />
@@ -43,7 +50,7 @@ function SignedIn({ account }) {
   return (
     <>
       <p>Connecté : <strong>{account.user.email}</strong></p>
-      <div className="account-actions">
+      <div className="settings-actions">
         <button type="button" onClick={account.logOut}>Se déconnecter</button>
         {!isDeleting && <button type="button" onClick={() => setIsDeleting(true)}>Supprimer mon compte</button>}
       </div>

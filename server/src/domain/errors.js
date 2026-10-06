@@ -1,34 +1,22 @@
 // Erreurs métier : elles disent CE QUI ne va pas, sans rien savoir de HTTP.
-// C'est la couche http/ (errorHandler.js) qui les traduit en 400 ou 404.
+// C'est la couche http/ (errorHandler.js) qui les traduit en 400, 401, 404 ou 409.
+
+// La base commune : chaque erreur porte le nom de sa classe (ex. « ValidationError »)
+class DomainError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = new.target.name;
+  }
+}
 
 // Une demande mal formée (ex. limit=1000)
-export class ValidationError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
-
-// Ce qui est demandé n'existe pas (ex. un passage inconnu)
-export class NotFoundError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'NotFoundError';
-  }
-}
+export class ValidationError extends DomainError {}
 
 // Il faut être connecté, ou les identifiants sont faux (ex. mot de passe incorrect)
-export class UnauthorizedError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'UnauthorizedError';
-  }
-}
+export class UnauthorizedError extends DomainError {}
+
+// Ce qui est demandé n'existe pas (ex. un passage inconnu)
+export class NotFoundError extends DomainError {}
 
 // Ce qui est demandé entre en conflit avec ce qui existe (ex. un compte existe déjà avec cet e-mail)
-export class ConflictError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ConflictError';
-  }
-}
+export class ConflictError extends DomainError {}

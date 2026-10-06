@@ -8,9 +8,8 @@ import BackupSection from '../../src/backup/BackupSection.jsx';
 const highlights = new Map([['Gn 1,3', { createdAt: '2026-10-01' }], ['Ex 3,14', { createdAt: '2026-10-02' }]]);
 const notes = new Map([['Gn 1,1', { text: 'Au commencement', updatedAt: '2026-10-02' }]]);
 
-function renderSection() {
+function renderSection(onImport = vi.fn().mockResolvedValue(undefined)) {
   const onDownload = vi.fn();
-  const onImport = vi.fn();
   render(<BackupSection highlights={highlights} notes={notes} onDownload={onDownload} onImport={onImport} />);
   return { onDownload, onImport };
 }
@@ -56,5 +55,14 @@ describe('BackupSection', () => {
 
     expect(await screen.findByText('Ce fichier n\'est pas une sauvegarde de L\'histoire d\'un Salut.')).toBeDefined();
     expect(onImport).not.toHaveBeenCalled();
+  });
+
+  test('un import qui échoue (compte injoignable) affiche l\'erreur, pas « Importé »', async () => {
+    renderSection(vi.fn().mockRejectedValue(new Error('Base indisponible.')));
+
+    chooseFile(JSON.stringify({ format: 'histoire-du-salut', version: 1, highlights: { 'Jn 3,16': {} }, notes: {} }));
+
+    expect(await screen.findByText('Base indisponible.')).toBeDefined();
+    expect(screen.queryByText(/Importé/)).toBeNull();
   });
 });

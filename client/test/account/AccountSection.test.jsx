@@ -76,4 +76,13 @@ describe('AccountSection', () => {
 
     expect(account.deleteAccount).toHaveBeenCalledWith({ password: 'un mot de passe long' });
   });
+
+  test('le compte n\'a pas pu être chargé : un message, et « Réessayer »', async () => {
+    const onRetryLibrary = vi.fn();
+    render(<AccountSection account={fakeAccount({ email: 'marin@exemple.fr' })} libraryStatus="failed" onRetryLibrary={onRetryLibrary} />);
+
+    expect(screen.getByRole('alert').textContent).toContain('n\'ont pas pu être chargés');
+    await userEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
+    expect(onRetryLibrary).toHaveBeenCalled();
+  });
 });

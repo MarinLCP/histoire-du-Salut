@@ -1,13 +1,19 @@
 // Le formulaire pour se connecter ou créer un compte (e-mail + mot de passe), avec un lien pour passer
-// de l'un à l'autre. Utilisé dans « Mon compte » (Paramètres) et, plus tard, quand il faut un compte.
+// de l'un à l'autre. Utilisé dans « Mon compte » (Paramètres) et dans le menu d'un verset (pour garder une note).
 // account : useAccount() ; startWith : 'login' ou 'create' (l'onglet ouvert au départ)
 
 import { useState } from 'react';
 import './SignInForm.css';
 
 const MODES = {
-  login: { action: 'logIn', submit: 'Se connecter', switchTo: 'create', switchLabel: 'Pas encore de compte ? Créer un compte', autoComplete: 'current-password' },
-  create: { action: 'createAccount', submit: 'Créer mon compte', switchTo: 'login', switchLabel: 'Déjà un compte ? Se connecter', autoComplete: 'new-password' },
+  login: {
+    action: 'logIn', submit: 'Se connecter', switchTo: 'create', switchLabel: 'Pas encore de compte ? Créer un compte',
+    autoComplete: 'current-password', passwordHint: '', minLength: undefined,
+  },
+  create: {
+    action: 'createAccount', submit: 'Créer mon compte', switchTo: 'login', switchLabel: 'Déjà un compte ? Se connecter',
+    autoComplete: 'new-password', passwordHint: ' (10 caractères au moins)', minLength: 10,
+  },
 };
 
 function SignInForm({ account, startWith = 'login' }) {
@@ -36,8 +42,8 @@ function SignInForm({ account, startWith = 'login' }) {
         <input name="email" type="email" autoComplete="email" required />
       </label>
       <label>
-        Mot de passe{mode === 'create' && ' (10 caractères au moins)'}
-        <input name="password" type="password" autoComplete={settings.autoComplete} minLength={mode === 'create' ? 10 : undefined} required />
+        Mot de passe{settings.passwordHint}
+        <input name="password" type="password" autoComplete={settings.autoComplete} minLength={settings.minLength} required />
       </label>
       {error && <p className="account-error" role="alert">{error}</p>}
       <button type="submit" className="account-primary" disabled={isSending}>{settings.submit}</button>

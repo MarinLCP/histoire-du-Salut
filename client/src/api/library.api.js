@@ -2,9 +2,14 @@
 // Format d'échange, le même que dans le navigateur :
 //   { notes: { "Gn 1,3": { text, updatedAt } }, highlights: { "Gn 1,3": { createdAt } }, bookmarks: { history: 12.4 } }
 
-import { sendJson } from './http.js';
+import { getJson, sendJson } from './http.js';
 
 const versePath = (kind, key) => `/api/me/${kind}/${encodeURIComponent(key)}`;
+
+// Toute la bibliothèque du compte (quand le navigateur n'a rien à y ajouter)
+export function fetchLibrary() {
+  return getJson('/api/me/library');
+}
 
 // Ajoute au compte ce qui était dans le navigateur (le plus récent gagne) ; renvoie toute la bibliothèque
 export function mergeLibrary(library) {

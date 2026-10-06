@@ -1,7 +1,7 @@
 // La section « Mes notes et surlignages » du panneau Paramètres : les télécharger dans un fichier,
 // ou importer un fichier (sur un autre appareil, ou après avoir vidé le navigateur).
 // onDownload(fileName, backup) : fait télécharger le fichier (injecté par App : downloadJson) ;
-// onImport({ highlights, notes }) : ajoute ce qui a été importé.
+// onImport({ highlights, notes }) : ajoute ce qui a été importé (promesse, rejetée si l'envoi au compte échoue).
 
 import { useState } from 'react';
 import { createBackup, readBackup, backupFileName } from './backup.js';
@@ -20,7 +20,7 @@ function BackupSection({ highlights, notes, onDownload, onImport }) {
     if (!file) return;
     try {
       const backup = readBackup(await file.text());
-      onImport(backup);
+      await onImport(backup);
       setMessage(`Importé : ${counted(backup.highlights.size, backup.notes.size)}.`);
     } catch (error) {
       setMessage(error.message);
@@ -30,10 +30,10 @@ function BackupSection({ highlights, notes, onDownload, onImport }) {
   }
 
   return (
-    <section className="settings-backup" aria-labelledby="backup-title">
+    <section className="settings-section" aria-labelledby="backup-title">
       <h3 id="backup-title">Mes notes et surlignages</h3>
       <p>{counted(highlights.size, notes.size)}</p>
-      <div className="settings-backup-actions">
+      <div className="settings-actions">
         <button type="button" onClick={download}>Télécharger une sauvegarde</button>
         <label className="settings-backup-import">
           Importer une sauvegarde

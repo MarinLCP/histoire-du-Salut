@@ -1,9 +1,9 @@
 // Use cases de la bibliothèque du lecteur connecté : tout lire, y ajouter ce qui était dans le navigateur
 // (première connexion), enregistrer ou retirer une note, un surlignage, un marque-page.
 // Regroupés dans un fichier : chacun tient en deux lignes (vérifier, puis déléguer au repository).
-// Toujours « à moi » : requireUser (sessions.js) refuse sans session valide (401).
+// Toujours « à moi » : requireUserId (sessions.js) refuse sans session valide (401).
 
-import { requireUser } from './sessions.js';
+import { requireUserId } from './sessions.js';
 import { verseKey, noteText, readingMode, readingPosition, libraryFrom } from '../domain/library.js';
 
 /**
@@ -11,7 +11,7 @@ import { verseKey, noteText, readingMode, readingPosition, libraryFrom } from '.
  *   libraryRepository: import('../domain/LibraryRepository.js').LibraryRepository }} dependencies
  */
 export function makeLibrary({ sessionRepository, libraryRepository }) {
-  const userId = async (token) => (await requireUser(sessionRepository, token)).id;
+  const userId = (token) => requireUserId(sessionRepository, token);
 
   return {
     async getLibrary(token) {

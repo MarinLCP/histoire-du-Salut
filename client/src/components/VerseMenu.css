@@ -69,3 +69,8 @@
 .verse-menu-account p {
   margin: 0;
 }
+
+.verse-menu-status {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+}

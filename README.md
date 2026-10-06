@@ -139,7 +139,7 @@ histoire-du-Salut/
 │   │   ├── bibleSource.js           ← lit data/bible.db (livres et versets, dans l'ordre de la source)
 │   │   ├── verseIndex.js            ← retrouver un verset de la source ; le texte de chaque passage
 │   │   ├── bibleOrder.js            ← ordre des livres (Psaumes après Job), des chapitres et des versets
-│   │   ├── database.js              ← connexion et transaction des scripts (seed, migrations)
+│   │   ├── database.js              ← connexion des scripts (seed, migrations) ; transaction : src/infrastructure
 │   │   ├── sqlRows.js               ← petites règles d'écriture du seed ($1, $2... ; verset sans numéro)
 │   │   ├── parallels/               ← les parallèles : du fichier OpenBible.info aux versets de l'AELF
 │   │   │   ├── parallelsFile.js     ← lit les liens de data/cross-references.zip (seed et rapport)
@@ -180,7 +180,7 @@ histoire-du-Salut/
 │   │   │   ├── getHistoryOverview.js ← vue d'ensemble de la frise, mode Histoire du salut
 │   │   │   ├── getBibleOverview.js  ← vue d'ensemble de la frise, mode Bible entière
 │   │   │   ├── getParallels.js      ← les parallèles d'un verset, les plus votés d'abord (10, puis la suite)
-│   │   │   ├── sessions.js          ← durée d'une session (30 jours) ; requireUser : « il faut être connecté »
+│   │   │   ├── sessions.js          ← durée d'une session (30 jours) ; qui est connecté ; « il faut être connecté »
 │   │   │   ├── createAccount.js     ← créer un compte (connecté dans la foulée)
 │   │   │   ├── logIn.js             ← se connecter (même message si e-mail inconnu ou mot de passe faux)
 │   │   │   ├── logOut.js            ← se déconnecter (la session est fermée)
@@ -190,6 +190,7 @@ histoire-du-Salut/
 │   │   │   └── sharing.js           ← partager où j'en suis : pseudo, ouvrir / fermer le lien, progression
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
+│   │   │   ├── transaction.js       ← inTransaction : tout ou rien (API et scripts)
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
 │   │   │   ├── postgresBibleRepository.js   ← tout le SQL de la Bible entière
 │   │   │   ├── postgresParallelRepository.js ← le SQL des parallèles (rang par votes, aperçu de 5 versets)
@@ -204,6 +205,7 @@ histoire-du-Salut/
 │   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible,
 │   │       │                          /api/books/:code/chapters/:chapter/verses/:verse/parallels
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
+│   │       ├── privateApi.js        ← adresses propres au lecteur : jamais en cache, corps JSON limité (posé une fois)
 │   │       ├── accountRoutes.js     ← /api/account (créer, supprimer), /api/session (se connecter, se déconnecter, qui)
 │   │       ├── libraryRoutes.js     ← /api/me/library, /api/me/notes/:verset, /api/me/highlights/:verset, /api/me/bookmarks/:lecture
 │   │       ├── sharingRoutes.js     ← /api/me/profile, /api/me/sharing (lecteur connecté), /api/progress/:jeton (public)

@@ -2,7 +2,7 @@
 // connecté), et lire la progression derrière un lien (n'importe qui, sans compte).
 // Regroupés dans un fichier : chacun tient en quelques lignes (vérifier, puis déléguer au repository).
 
-import { requireUser } from './sessions.js';
+import { requireUserId } from './sessions.js';
 import { DisplayName } from '../domain/DisplayName.js';
 import { NotFoundError, ValidationError } from '../domain/errors.js';
 
@@ -11,15 +11,18 @@ import { NotFoundError, ValidationError } from '../domain/errors.js';
  *   sharingRepository: import('../domain/SharingRepository.js').SharingRepository }} dependencies
  */
 export function makeSharing({ sessionRepository, sharingRepository }) {
-  const userId = async (token) => (await requireUser(sessionRepository, token)).id;
+  const userId = (token) => requireUserId(sessionRepository, token);
 
   return {
     // { displayName, token } : le pseudo et le lien du lecteur connecté (null s'il n'en a pas)
     async getSharing(sessionToken) {
       return sharingRepository.find(await userId(sessionToken));
     },
+    // Renvoie { displayName } : le pseudo tel qu'il est rangé (sans espaces autour)
     async setDisplayName(sessionToken, body) {
-      await sharingRepository.setDisplayName(await userId(sessionToken), new DisplayName(body?.displayName));
+      const displayName = new DisplayName(body?.displayName);
+      await sharingRepository.setDisplayName(await userId(sessionToken), displayName);
+      return { displayName: displayName.value };
     },
     // Le lien est montré sous un pseudo : il en faut un d'abord
     async openShare(sessionToken) {

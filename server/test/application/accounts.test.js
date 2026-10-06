@@ -127,4 +127,13 @@ describe('les comptes', () => {
     await deleteAccount(token, { password: FORM.password });
     expect(world.users.size).toBe(0);
   });
+
+  test('supprimer un compte déjà supprimé depuis un autre appareil : 401, pas une erreur inattendue', async () => {
+    const deleteAccount = makeDeleteAccount(world.dependencies);
+    const { token } = await createAccount(FORM);
+    // La session existe encore, mais plus le compte
+    world.dependencies.sessionRepository.findUser = async () => ({ id: 999, email: 'parti@exemple.fr' });
+
+    await expect(deleteAccount(token, { password: FORM.password })).rejects.toThrow('Mot de passe incorrect.');
+  });
 });

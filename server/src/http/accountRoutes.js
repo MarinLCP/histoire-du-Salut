@@ -1,10 +1,9 @@
 // Les adresses des comptes : créer, se connecter, se déconnecter, qui est connecté, supprimer son compte.
 // Ce fichier traduit HTTP (corps JSON, cookie, codes) en appels de use cases : aucune règle métier ici.
-// Cache-Control: no-store : une réponse qui dépend du lecteur connecté ne doit jamais être gardée en cache
-// (ni par le navigateur, ni par un intermédiaire comme Cloudflare).
+// Corps JSON et « jamais en cache » : réglés une fois pour toutes les adresses privées (privateApi.js).
 
 import express from 'express';
-import { UnauthorizedError } from '../domain/errors.js';
+import { Email } from '../domain/Email.js';
 import { readSessionToken, setSessionCookie, clearSessionCookie } from './sessionCookie.js';
 import { createAttemptLimiter } from './attemptLimiter.js';
 
@@ -18,12 +17,6 @@ export function accountRoutes({ createAccount, logIn, logOut, getCurrentUser, de
   const router = express.Router();
   const loginLimiter = createAttemptLimiter(LOGIN_LIMIT);
 
-  // Seulement pour les adresses des comptes : le reste de l'API (Bible, frise...) garde son cache
-  router.use(['/account', '/session'], express.json({ limit: '10kb' }), (req, res, next) => {
-    res.set('Cache-Control', 'no-store');
-    next();
-  });
-
   router.get('/session', async (req, res) => {
     res.json({ user: await getCurrentUser(readSessionToken(req)) });
   });
@@ -35,7 +28,7 @@ export function accountRoutes({ createAccount, logIn, logOut, getCurrentUser, de
   });
 
   router.post('/session', async (req, res) => {
-    const key = String(req.body?.email ?? '').trim().toLowerCase();
+    const key = Email.normalize(req.body?.email);
     if (loginLimiter.isBlocked(key)) {
       return res.status(429).json({ error: 'Trop de tentatives. Réessaie dans quelques minutes.' });
     }
@@ -59,14 +52,11 @@ export function accountRoutes({ createAccount, logIn, logOut, getCurrentUser, de
   return router;
 }
 
-// Un échec de connexion compte pour la limite ; une réussite la remet à zéro
+// Chaque essai compte AVANT la vérification (qui prend ~100 ms) : sinon, des milliers d'essais envoyés en
+// même temps passeraient tous avant que le premier échec soit compté. Une réussite remet le compteur à zéro.
 async function logInCounting(limiter, key, attempt) {
-  try {
-    const result = await attempt();
-    limiter.reset(key);
-    return result;
-  } catch (error) {
-    if (error instanceof UnauthorizedError) limiter.recordFailure(key);
-    throw error;
-  }
+  limiter.recordFailure(key);
+  const result = await attempt();
+  limiter.reset(key);
+  return result;
 }

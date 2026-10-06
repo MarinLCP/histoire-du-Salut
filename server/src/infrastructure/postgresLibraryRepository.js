@@ -1,6 +1,8 @@
 // Implémentation PostgreSQL du port LibraryRepository (domain/LibraryRepository.js) : notes, surlignages et
 // marque-pages d'un compte (tables de la migration 011).
 
+import { inTransaction } from './transaction.js';
+
 /**
  * @param {import('pg').Pool} pool
  * @returns {import('../domain/LibraryRepository.js').LibraryRepository}
@@ -25,14 +27,11 @@ export function createPostgresLibraryRepository(pool) {
     async merge(userId, { notes, highlights, bookmarks }) {
       const client = await pool.connect();
       try {
-        await client.query('BEGIN');
-        await client.query(MERGE_NOTES, [userId, ...columns(notes, ['verseKey', 'text', 'updatedAt'])]);
-        await client.query(MERGE_HIGHLIGHTS, [userId, ...columns(highlights, ['verseKey', 'createdAt'])]);
-        await client.query(MERGE_BOOKMARKS, [userId, ...columns(bookmarks, ['mode', 'position'])]);
-        await client.query('COMMIT');
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
+        await inTransaction(client, async () => {
+          await client.query(MERGE_NOTES, [userId, ...columns(notes, ['verseKey', 'text', 'updatedAt'])]);
+          await client.query(MERGE_HIGHLIGHTS, [userId, ...columns(highlights, ['verseKey', 'createdAt'])]);
+          await client.query(MERGE_BOOKMARKS, [userId, ...columns(bookmarks, ['mode', 'position'])]);
+        });
       } finally {
         client.release();
       }
