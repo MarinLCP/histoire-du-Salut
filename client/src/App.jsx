@@ -1,16 +1,18 @@
-// Assemble l'app : la barre de navigation, les pages (une adresse chacune), et le menu d'un verset
-// (surligner, noter, copier), partagé par toutes les pages.
+// Assemble l'app : la barre de navigation, les deux lectures (une adresse chacune), le menu d'un verset
+// (surligner, noter, copier), partagé par les deux, et le panneau Paramètres.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useMemo, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
+import SettingsPanel from './settings/SettingsPanel.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
 import { useHighlights } from './highlights/useHighlights.js';
 import { useNotes } from './notes/useNotes.js';
 import { copyText } from './copy/clipboard.js';
+import { useSettings } from './settings/useSettings.js';
 
 // Les pages du site
 const PAGES = [
@@ -23,6 +25,8 @@ function App() {
   const { notes, save: saveNote } = useNotes();
   // Verset dont le menu est ouvert, { key: "Gn 1,3", text: "..." }, ou null si aucun
   const [menuVerse, setMenuVerse] = useState(null);
+  const { settings, change: changeSettings } = useSettings();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
@@ -30,7 +34,7 @@ function App() {
 
   return (
     <>
-      <NavBar pages={PAGES} />
+      <NavBar pages={PAGES} onOpenSettings={() => setIsSettingsOpen(true)} />
       <main>
         <Routes>
           <Route path="/" element={<HistoryPage annotations={annotations} />} />
@@ -53,6 +57,10 @@ function App() {
           onCopy={copyText}
           onClose={() => setMenuVerse(null)}
         />
+      )}
+
+      {isSettingsOpen && (
+        <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)} />
       )}
     </>
   );

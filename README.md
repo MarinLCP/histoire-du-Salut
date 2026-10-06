@@ -200,6 +200,7 @@ histoire-du-Salut/
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
 │       ├── frise.spec.js            ← la frise : zoom, lecture, saut, sous-chapitres, marque-page, mode Bible ; téléphone
 │       ├── characters.spec.js       ← les personnages d'un épisode
+│       ├── settings.spec.js         ← Paramètres : texte plus grand, thème sombre, retenus après rechargement
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
@@ -224,7 +225,7 @@ histoire-du-Salut/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "La Genèse 1, 1 – 2, 25" (passage)
     │   │   └── bibleLink.js         ← lien vers un chapitre : /bible?livre=Gn&chapitre=3 (créer / relire)
     │   ├── components/              ← ce qui s'affiche à l'écran
-    │   │   ├── NavBar.jsx / .css    ← la barre de navigation entre les pages (toujours visible en haut)
+    │   │   ├── NavBar.jsx / .css    ← la barre du haut : les deux lectures, et le bouton Paramètres
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
     │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, personnages, « Lire tout le chapitre », Partager, versets
@@ -267,18 +268,24 @@ histoire-du-Salut/
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
+    │   ├── settings/                ← les Paramètres (bouton de la barre du haut, panneau à droite)
+    │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
+    │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
+    │   │   ├── useSettings.js       ← branchement React (appliqués et sauvegardés à chaque changement)
+    │   │   └── SettingsPanel.jsx / .css ← le panneau
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
     │   │   ├── useCursorPagination.js ← liste chargée page par page (timeline et Bible)
     │   │   ├── useStartCursor.js    ← où commencer une liste ouverte par un lien (passage, chapitre)
     │   │   ├── useLoaded.js         ← une valeur chargée pour une clé (départ, chargée, ou secours)
+    │   │   ├── useModalDialog.js    ← une fenêtre <dialog> modale (menu d'un verset, Paramètres)
     │   │   └── useMediaQuery.js     ← une règle de taille d'écran est-elle vraie (ex. écran étroit)
     │   └── storage/                 ← outils partagés par surlignages et notes
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
-        ├── App.test.jsx             ← routage : chaque adresse affiche sa page (et la frise sur /)
+        ├── App.test.jsx             ← routage, frise sur /, panneau Paramètres
         ├── setup.js                 ← préparation commune à tous les tests (vide le cache et le stockage)
         ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
@@ -290,6 +297,7 @@ histoire-du-Salut/
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
+        ├── settings/                ← règles des réglages, panneau
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
         └── storage/versionedStorage.test.js ← mécanisme commun de sauvegarde

@@ -2,21 +2,16 @@
 // Utilise la balise <dialog> du navigateur : fond grisé, touche Échap et focus sont gérés pour nous.
 // Affiché comme un panneau qui monte du bas de l'écran (bottom sheet), pratique au pouce sur mobile.
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import StatusButton from './StatusButton.jsx';
 import { formatVerseForCopy } from '../copy/copyVerse.js';
+import { useModalDialog } from '../hooks/useModalDialog.js';
 import './VerseMenu.css';
 
 // onCopy(text) : copie le texte et renvoie une promesse (injectée par App, remplacée par un faux dans les tests)
 function VerseMenu({ verseKey, verseText, isHighlighted, note, onToggleHighlight, onSaveNote, onCopy, onClose }) {
-  const dialogRef = useRef(null);
+  const { dialogRef, backdropProps } = useModalDialog(onClose);
   const [isEditingNote, setIsEditingNote] = useState(false);
-  const closeOnBackdrop = useBackdropClose(dialogRef, onClose);
-
-  useEffect(() => {
-    // En dev, le StrictMode lance cet effet deux fois : on n'ouvre que si ce n'est pas déjà fait
-    if (!dialogRef.current.open) dialogRef.current.showModal();
-  }, []);
 
   function toggleHighlightAndClose() {
     onToggleHighlight(verseKey);
@@ -29,7 +24,7 @@ function VerseMenu({ verseKey, verseText, isHighlighted, note, onToggleHighlight
   }
 
   return (
-    <dialog ref={dialogRef} className="verse-menu" onClose={onClose} {...closeOnBackdrop}>
+    <dialog ref={dialogRef} className="verse-menu" onClose={onClose} {...backdropProps}>
       <div className="verse-menu-content">
         <h2 className="verse-menu-title">{verseKey}</h2>
         {isEditingNote ? (
@@ -85,24 +80,6 @@ function NoteEditor({ note, onSave, onCancel }) {
       </div>
     </>
   );
-}
-
-// Ferme le menu quand on touche le fond grisé, autour du panneau.
-// L'appui doit COMMENCER sur le fond : sinon, le doigt qui se lève à la fin de l'appui long
-// (le menu vient de s'ouvrir sous lui) refermerait aussitôt le menu.
-function useBackdropClose(dialogRef, onClose) {
-  const pressStartedOnBackdropRef = useRef(false);
-  // Le panneau a un contenu sans marge interne : un clic sur <dialog> lui-même est forcément sur le fond
-  const isBackdrop = (event) => event.target === dialogRef.current;
-
-  return {
-    onPointerDown: (event) => {
-      pressStartedOnBackdropRef.current = isBackdrop(event);
-    },
-    onClick: (event) => {
-      if (pressStartedOnBackdropRef.current && isBackdrop(event)) onClose();
-    },
-  };
 }
 
 export default VerseMenu;

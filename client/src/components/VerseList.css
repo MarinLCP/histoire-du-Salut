@@ -2,6 +2,8 @@
 
 .verse {
   margin: 0 0 0.75rem;
+  /* La taille du texte choisie dans les Paramètres */
+  font-size: calc(1rem * var(--reading-scale));
   /* Le texte AELF contient des retours à la ligne (vers poétiques) : on les respecte */
   white-space: pre-line;
   /* Un verset a un menu (appui long ou clic droit) : curseur "menu contextuel" sur ordinateur */
@@ -48,7 +50,7 @@
   margin: -0.25rem 0 1rem 0.5rem;
   padding-left: 0.75rem;
   border-left: 3px solid var(--highlight);
-  font-size: 0.9em;
+  font-size: calc(0.9rem * var(--reading-scale));
   font-style: italic;
   color: var(--text-muted);
   white-space: pre-line;

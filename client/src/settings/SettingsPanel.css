@@ -1,0 +1,97 @@
+/* Le panneau Paramètres : il glisse depuis le bord droit, par-dessus la lecture (fond grisé derrière) */
+
+.settings-panel {
+  margin: 0 0 0 auto;
+  width: min(22rem, 100vw);
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  background: var(--background);
+  color: var(--text);
+  box-shadow: -8px 0 24px rgb(0 0 0 / .2);
+}
+
+.settings-panel::backdrop {
+  background: rgb(0 0 0 / .35);
+}
+
+.settings-content {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.25rem 1.25rem 2rem;
+  font: .9rem/1.4 var(--ui-font);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font: 600 1.1rem/1.2 var(--ui-font);
+}
+
+.settings-close {
+  padding: .5rem .8rem;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings-choice {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings-choice legend {
+  margin-bottom: .5rem;
+  font-weight: 600;
+}
+
+/* Les choix côte à côte, comme un interrupteur à plusieurs positions */
+.settings-options {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.settings-options label {
+  flex: 1;
+}
+
+.settings-options input {
+  position: absolute;
+  opacity: 0;
+}
+
+.settings-options span {
+  display: block;
+  padding: .6rem .3rem;
+  text-align: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.settings-options label + label span {
+  border-left: 1px solid var(--border);
+}
+
+.settings-options input:checked + span {
+  background: var(--level-2);
+  color: var(--ink-on-dark);
+}
+
+.settings-options input:focus-visible + span,
+.settings-close:focus-visible {
+  outline: 2px solid var(--level-2);
+  outline-offset: -2px;
+}

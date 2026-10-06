@@ -22,6 +22,9 @@
   --ink-on-light: #0d1630;
   --ink-on-dark: #ffffff;
 
+  /* Taille du texte choisie dans les Paramètres (settings.js) : 1 = normale */
+  --reading-scale: 1;
+
   color-scheme: light dark;
   color: var(--text);
   background: var(--background);
@@ -29,13 +32,27 @@
   font: 19px/1.6 Georgia, 'Times New Roman', serif;
 }
 
+/* Thème sombre : celui du téléphone ou de l'ordinateur (thème « Automatique »), ou choisi dans les Paramètres.
+   Les mêmes couleurs dans les deux blocs ; data-theme="light" garde le clair même si l'appareil est en sombre. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --text: #ece8e1;
     --text-muted: #a39d93;
     --background: #1b1a18;
     --highlight: #54461a;
   }
+}
+
+:root[data-theme="dark"] {
+  --text: #ece8e1;
+  --text-muted: #a39d93;
+  --background: #1b1a18;
+  --highlight: #54461a;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {

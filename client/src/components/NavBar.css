@@ -35,3 +35,37 @@
   outline: 2px solid var(--text-muted);
   outline-offset: 2px;
 }
+
+/* Le bouton Paramètres, au bord droit de la barre (les lectures restent au centre) */
+.settings-button {
+  position: absolute;
+  right: .75rem;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 99px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.settings-button:hover {
+  color: var(--text);
+}
+
+.settings-button:focus-visible {
+  outline: 2px solid var(--text-muted);
+  outline-offset: 2px;
+}
+
+.settings-button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
