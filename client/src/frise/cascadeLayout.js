@@ -10,7 +10,7 @@
 // et le navigateur le fait glisser vers sa nouvelle place (transition CSS).
 
 import { staircase } from './staircase.js';
-import { pathKey } from './nodePath.js';
+import { pathKey, startsWith } from './nodePath.js';
 
 export const MAX_STEPS = 12; // au-delà, les petites marches seraient trop fines pour être vues
 const EDGE_MARGIN = 4; // un peu d'air à droite, pour que la dernière marche ne colle pas au bord
@@ -24,6 +24,7 @@ const STRIPS_LAYER = 1000; // les bandes passent au-dessus de l'escalier
 const BOAT_FROM_RIGHT = 38;
 const BOAT_ABOVE = 22;
 const BOAT_MIN_TOP = -6; // sans sortir du cadre en haut
+const RIBBON_FROM_RIGHT = 26; // le ruban du marque-page dépasse du haut du bloc, près de son bord droit
 
 // Les réglages du grand escalier : le premier bloc garde la place d'un titre (plus large une fois zoomé :
 // il y a moins de blocs), et une marche plus large rendrait l'escalier plat
@@ -118,4 +119,13 @@ export function boatPlace(blocks, { rank, fraction }) {
 
 function boatAnchor(block) {
   return { left: block.left + block.width - BOAT_FROM_RIGHT, top: block.top - BOAT_ABOVE };
+}
+
+// Où poser le ruban du marque-page : sur le bloc de l'escalier qui contient la position retenue
+// (bookmarkNodePath, son chemin dans l'arbre), avec le titre de ce bloc ; null si elle n'est dans aucun
+export function ribbonPlace(blocks, bookmarkNodePath) {
+  if (bookmarkNodePath.length === 0) return null;
+  const block = blocks.find((candidate) => candidate.role === 'stair' && startsWith(bookmarkNodePath, candidate.nodePath));
+  if (!block) return null;
+  return { left: block.left + block.width - RIBBON_FROM_RIGHT, top: block.top, title: block.node.title };
 }

@@ -2,7 +2,7 @@
 // path : le chemin des nœuds dans lesquels on est entré ([] = vue d'ensemble, [1, 0] = 1er enfant du 2e nœud).
 
 import { describe, test, expect } from 'vitest';
-import { layoutCascade, boatPlace, MAX_STEPS } from '../../src/frise/cascadeLayout.js';
+import { layoutCascade, boatPlace, ribbonPlace, MAX_STEPS } from '../../src/frise/cascadeLayout.js';
 
 // Un nœud de l'API (forme commune à tous les niveaux) avec `childCount` enfants
 const node = (title, childCount = 0) => ({
@@ -141,5 +141,24 @@ describe('boatPlace : le bateau glisse d\'un bloc de l\'escalier au suivant, au 
   test('les blocs de l\'escalier portent leur écume ; le premier n\'en a pas', () => {
     expect(stairs[0].foam).toBeNull();
     expect(stairs[1].foam).not.toBeNull();
+  });
+});
+
+describe('ribbonPlace : le ruban du marque-page, sur le bloc de l\'escalier qui contient la position retenue', () => {
+  test('vue d\'ensemble : sur l\'époque qui contient le marque-page, au bord droit de son haut', () => {
+    const blocks = layoutCascade(deep, [], box);
+    const epoch1 = blocks.find((block) => block.key === '1');
+
+    expect(ribbonPlace(blocks, [1, 0, 2])).toEqual({ left: epoch1.left + epoch1.width - 26, top: epoch1.top, title: 'Époque 1' });
+  });
+
+  test('zoomé ailleurs (le marque-page n\'est dans aucun bloc de l\'escalier) : pas de ruban', () => {
+    const blocks = layoutCascade(deep, [0], box);
+
+    expect(ribbonPlace(blocks, [1, 0])).toBeNull();
+  });
+
+  test('pas de marque-page : pas de ruban', () => {
+    expect(ribbonPlace(layoutCascade(deep, [], box), [])).toBeNull();
   });
 });

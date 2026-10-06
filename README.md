@@ -198,7 +198,7 @@ histoire-du-Salut/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
-│       ├── frise.spec.js            ← la frise : zoom, lecture, saut au clic, sous-chapitres, mode Bible ; téléphone
+│       ├── frise.spec.js            ← la frise : zoom, lecture, saut, sous-chapitres, marque-page, mode Bible ; téléphone
 │       ├── characters.spec.js       ← les personnages d'un épisode
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
@@ -257,6 +257,9 @@ histoire-du-Salut/
     │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu)
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
+    │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
+    │   │   ├── useBookmark.js       ← le marque-page : retenu pendant la lecture, montré à la visite suivante
+    │   │   ├── bookmark.storage.js  ← sauvegarde du marque-page dans le navigateur (une position par lecture)
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
     │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche ; < 1100 px : panneau (2/3 de l'écran), onglet « Frise »
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
@@ -276,7 +279,7 @@ histoire-du-Salut/
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
         ├── App.test.jsx             ← routage : chaque adresse affiche sa page (et la frise sur /)
-        ├── setup.js                 ← préparation commune à tous les tests (vide le cache de la frise)
+        ├── setup.js                 ← préparation commune à tous les tests (vide le cache et le stockage)
         ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink

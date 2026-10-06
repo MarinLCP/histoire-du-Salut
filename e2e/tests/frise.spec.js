@@ -112,6 +112,24 @@ test('Bible entière : ensembles → livres → dizaines → chapitres, et la le
   await expect(frise.getByRole('button', { name: 'Chapitre 23', exact: true })).toHaveAttribute('aria-current', 'location');
 });
 
+test('marque-page : après avoir lu, un ruban montre où on s\'était arrêté ; un clic y ramène', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
+  await page.goto('/');
+  await page.getByRole('heading', { name: "L'appel d'Abraham" }).scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 200);
+  // L'app retient la position une fois la lecture posée
+  await page.waitForTimeout(2500);
+
+  await page.goto('/');
+  const ribbon = page.getByRole('button', { name: /Reprendre la lecture.*Les patriarches/ });
+  await expect(ribbon).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'La Création' })).toBeInViewport();
+
+  await ribbon.click();
+  await expect(page.getByRole('heading', { name: "L'appel d'Abraham" })).toBeInViewport();
+  await expect(ribbon).toHaveCount(0);
+});
+
 test('sur téléphone : la frise est rangée dans un panneau, ouvert par l\'onglet « Frise »', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Sur ordinateur, la frise est toujours visible');
   await page.goto('/');

@@ -117,4 +117,18 @@ describe('Frise', () => {
     expect(await screen.findByRole('button', { name: 'Les origines', current: 'location' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Les patriarches' }).getAttribute('aria-current')).toBeNull();
   });
+
+  test('marque-page : un ruban sur le bloc où on s\'était arrêté ; un clic y ramène, puis il disparaît', async () => {
+    localStorage.setItem('bookmarks', JSON.stringify({ version: 1, bookmarks: { history: 3.4 } }));
+    const onJump = vi.fn();
+    renderFrise(onJump);
+
+    const ribbon = await screen.findByRole('button', { name: /Reprendre la lecture/ });
+    expect(ribbon.getAttribute('aria-label')).toContain('Les patriarches');
+
+    fireEvent.click(ribbon);
+
+    expect(onJump).toHaveBeenCalledWith(3.4);
+    expect(screen.queryByRole('button', { name: /Reprendre la lecture/ })).toBeNull();
+  });
 });

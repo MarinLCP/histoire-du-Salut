@@ -10,7 +10,8 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Icon } from './Icon.jsx';
 import { Boat } from './Boat.jsx';
-import { layoutCascade, boatPlace } from './cascadeLayout.js';
+import { BookmarkRibbon } from './BookmarkRibbon.jsx';
+import { layoutCascade, boatPlace, ribbonPlace } from './cascadeLayout.js';
 import { pathAfterClick, pathOfTab, pressedTab } from './cascadeNavigation.js';
 import { readingPath, currentStair } from './readingSync.js';
 import { startsWith } from './nodePath.js';
@@ -18,6 +19,7 @@ import { INITIAL_VIEW, viewAt, viewAfterReading } from './cascadeView.js';
 import { useElementSize } from './useElementSize.js';
 import { useOverview } from './useOverview.js';
 import { useReadingPosition } from './useReadingPosition.js';
+import { useBookmark } from './useBookmark.js';
 import './Frise.css';
 
 // mode : 'history' (histoire du salut) ou 'bible' (Bible entière)
@@ -28,6 +30,8 @@ function Frise({ mode, tabNames, onJump }) {
   const readingAt = useReadingPosition();
   const [stageRef, size] = useElementSize();
   const [view, setView] = useState(INITIAL_VIEW);
+  // Le marque-page de la visite précédente (un ruban sur le bloc où on s'était arrêté)
+  const { bookmark, forget: forgetBookmark } = useBookmark(mode, readingAt);
 
   // La lecture a changé de nœud : la frise la suit, au même niveau de zoom (voir cascadeView.js).
   // Mise à jour pendant l'affichage : React recommence aussitôt, sans effet ni affichage intermédiaire
@@ -53,6 +57,12 @@ function Frise({ mode, tabNames, onJump }) {
     [tree, view.path, size],
   );
   const stair = blocks.length > 0 ? currentStair(tree, view.path, readingAt) : null;
+  const ribbon = ribbonPlace(blocks, readingPath(tree, bookmark));
+
+  function resumeReading() {
+    onJump(bookmark);
+    forgetBookmark();
+  }
 
   return (
     <nav className="frise" aria-label="Frise">
@@ -72,6 +82,7 @@ function Frise({ mode, tabNames, onJump }) {
           <CascadeBlock key={block.key} block={block} isRead={startsWith(reading, block.nodePath)} onOpen={openBlock} />
         ))}
         {stair && <Boat {...boatPlace(blocks, stair)} />}
+        {ribbon && <BookmarkRibbon {...ribbon} onResume={resumeReading} />}
       </div>
     </nav>
   );
