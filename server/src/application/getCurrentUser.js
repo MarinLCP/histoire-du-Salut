@@ -1,4 +1,5 @@
-// Use case : qui est connecté ? Renvoie { email } du lecteur, ou null (pas connecté, ou session expirée).
+// Use case : qui est connecté ? Renvoie { email, hasPassword } du lecteur, ou null (pas connecté, ou session
+// expirée). hasPassword : faux pour un compte Google sans mot de passe (pour supprimer son compte autrement).
 // Le site l'appelle à l'ouverture, pour savoir quoi afficher dans « Mon compte ».
 
 import { findSessionUser } from './sessions.js';
@@ -8,6 +9,6 @@ export function makeGetCurrentUser(sessionRepository) {
   /** @param {string | undefined} token */
   return async function getCurrentUser(token) {
     const user = await findSessionUser(sessionRepository, token);
-    return user ? { email: user.email } : null;
+    return user ? { email: user.email, hasPassword: user.hasPassword } : null;
   };
 }

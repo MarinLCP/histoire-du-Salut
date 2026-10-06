@@ -54,7 +54,7 @@ describe('useAccount', () => {
   });
 
   test('créer un compte : pas encore connecté (il faut le code) ; le bon code connecte', async () => {
-    vi.stubGlobal('fetch', vi.fn(async (url, options) => {
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
       if (url === '/api/account') return json({ verificationNeeded: true, email: 'marin@exemple.fr' }, 202);
       if (url === '/api/account/verify') return json({ user: { email: 'marin@exemple.fr' } });
       return json({ user: null });

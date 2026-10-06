@@ -40,8 +40,35 @@ function SignInForm({ account, startWith = 'login' }) {
   }
 
   if (pendingEmail) return <CodeForm account={account} email={pendingEmail} onBack={() => setPendingEmail(null)} />;
+  const switchMode = () => { setMode(settings.switchTo); setError(null); };
   return (
-    <form className="account-form" onSubmit={submit}>
+    <div className="account-sign-in">
+      {account.options?.google && <GoogleButton />}
+      {mode === 'create' && account.options?.emailSignUp === false
+        ? <EmailSignUpSoon onSwitch={switchMode} />
+        : <EmailForm settings={settings} error={error} isSending={isSending} onSubmit={submit} onSwitch={switchMode} />}
+    </div>
+  );
+}
+
+// La page de connexion de Google s'ouvre (un vrai lien : on quitte le site, puis on y revient connecté)
+function GoogleButton() {
+  return <a className="account-google" href="/api/auth/google">Continuer avec Google</a>;
+}
+
+// En ligne, avant le nom de domaine : pas encore d'e-mails, donc pas de compte par e-mail
+function EmailSignUpSoon({ onSwitch }) {
+  return (
+    <div className="account-form">
+      <p>La création de compte par e-mail arrive bientôt : utilise « Continuer avec Google ».</p>
+      <button type="button" className="account-link" onClick={onSwitch}>Déjà un compte ? Se connecter</button>
+    </div>
+  );
+}
+
+function EmailForm({ settings, error, isSending, onSubmit, onSwitch }) {
+  return (
+    <form className="account-form" onSubmit={onSubmit}>
       <label>
         E-mail
         <input name="email" type="email" autoComplete="email" required />
@@ -52,9 +79,7 @@ function SignInForm({ account, startWith = 'login' }) {
       </label>
       {error && <p className="account-error" role="alert">{error}</p>}
       <button type="submit" className="account-primary" disabled={isSending}>{settings.submit}</button>
-      <button type="button" className="account-link" onClick={() => { setMode(settings.switchTo); setError(null); }}>
-        {settings.switchLabel}
-      </button>
+      <button type="button" className="account-link" onClick={onSwitch}>{settings.switchLabel}</button>
     </form>
   );
 }

@@ -3,17 +3,20 @@
 // et « Partager où j'en suis » (SharingSection).
 // account : useAccount() (branché dans App) ; waitingNotes : le nombre de notes écrites dans ce navigateur,
 // qui rejoindront le compte à la connexion ; libraryStatus / onRetryLibrary : le chargement du compte
-// (useLibrary), pour dire s'il a échoué et réessayer
+// (useLibrary), pour dire s'il a échoué et réessayer ; googleFailed : on revient d'une connexion Google ratée
 
 import { useState } from 'react';
 import SignInForm from './SignInForm.jsx';
 import SharingSection from './SharingSection.jsx';
 import './AccountSection.css';
 
-function AccountSection({ account, waitingNotes = 0, libraryStatus, onRetryLibrary }) {
+function AccountSection({ account, waitingNotes = 0, libraryStatus, onRetryLibrary, googleFailed = false }) {
   return (
     <section className="settings-section account-section" aria-labelledby="account-title">
       <h3 id="account-title">Mon compte</h3>
+      {googleFailed && account.user === null && (
+        <p className="account-waiting" role="alert">La connexion avec Google n'a pas abouti. Réessaie.</p>
+      )}
       {account.user === null && waitingNotes > 0 && (
         <p className="account-waiting">
           {waitingNotes > 1 ? `${waitingNotes} notes écrites` : '1 note écrite'} sur cet appareil t'attendent :
@@ -60,14 +63,16 @@ function SignedIn({ account }) {
   );
 }
 
+// Confirmer avec son mot de passe ; un compte Google sans mot de passe écrit SUPPRIMER
 function DeleteAccountForm({ account, onCancel }) {
   const [error, setError] = useState(null);
+  const hasPassword = account.user.hasPassword !== false;
 
   async function submit(event) {
     event.preventDefault();
-    const password = new FormData(event.currentTarget).get('password');
+    const form = new FormData(event.currentTarget);
     try {
-      await account.deleteAccount({ password });
+      await account.deleteAccount(hasPassword ? { password: form.get('password') } : { confirmation: form.get('confirmation') });
     } catch (deleteError) {
       setError(deleteError.message);
     }
@@ -76,10 +81,17 @@ function DeleteAccountForm({ account, onCancel }) {
   return (
     <form className="account-form" onSubmit={submit}>
       <p>Ton compte et tout ce qu'il contient seront effacés, sans retour possible.</p>
-      <label>
-        Mot de passe, pour confirmer
-        <input name="password" type="password" autoComplete="current-password" required />
-      </label>
+      {hasPassword ? (
+        <label>
+          Mot de passe, pour confirmer
+          <input name="password" type="password" autoComplete="current-password" required />
+        </label>
+      ) : (
+        <label>
+          Écris SUPPRIMER pour confirmer
+          <input name="confirmation" autoComplete="off" required />
+        </label>
+      )}
       {error && <p className="account-error" role="alert">{error}</p>}
       <button type="submit" className="account-danger">Supprimer définitivement</button>
       <button type="button" className="account-link" onClick={onCancel}>Annuler</button>

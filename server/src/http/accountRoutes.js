@@ -29,6 +29,9 @@ export function accountRoutes(accounts, secureCookies) {
     res.json({ user: result.user });
   };
 
+  // Ce que le site peut proposer : « Continuer avec Google », créer un compte par e-mail
+  router.get('/auth/options', (req, res) => res.json(accounts.options));
+
   router.get('/session', async (req, res) => {
     res.json({ user: await getCurrentUser(readSessionToken(req)) });
   });

@@ -5,7 +5,7 @@
 
 import express from 'express';
 
-export const PRIVATE_PATHS = ['/api/account', '/api/session', '/api/me', '/api/progress'];
+export const PRIVATE_PATHS = ['/api/account', '/api/session', '/api/me', '/api/progress', '/api/auth'];
 // Une bibliothèque entière peut être envoyée d'un coup (première connexion, import d'une sauvegarde)
 export const LIBRARY_JSON = express.json({ limit: '1mb' });
 

@@ -33,6 +33,8 @@ import { makeDeleteAccount } from './application/deleteAccount.js';
 import { makeVerifyEmail, makeResendEmailCode } from './application/verifyEmail.js';
 import { createPostgresEmailCodeRepository } from './infrastructure/postgresEmailCodeRepository.js';
 import { createBrevoEmailSender, createConsoleEmailSender, createOutboxEmailSender } from './infrastructure/emailSenders.js';
+import { createGoogleIdentity } from './infrastructure/googleIdentity.js';
+import { makeSignInWithGoogle } from './application/signInWithGoogle.js';
 import { makeLibrary } from './application/library.js';
 import { makeSharing } from './application/sharing.js';
 import { createApp } from './http/createApp.js';
@@ -58,8 +60,23 @@ export function chooseEmailSender(env) {
   return { emailSender: createConsoleEmailSender() };
 }
 
-// L'app assemblée. Les tests peuvent choisir l'envoyeur d'e-mails (une boîte de test, pour lire les codes).
-export function makeApp({ emailSender, testOutbox } = chooseEmailSender(process.env)) {
+// « Continuer avec Google », seulement si ses identifiants sont réglés (Google Cloud Console). APP_URL : l'adresse
+// du site (en ligne : https://histoire-du-salut.onrender.com) ; l'adresse de retour doit être la même que chez Google.
+export function chooseGoogleIdentity(env) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return null;
+  const appUrl = env.APP_URL ?? 'http://localhost:5173';
+  return createGoogleIdentity({
+    clientId: env.GOOGLE_CLIENT_ID,
+    clientSecret: env.GOOGLE_CLIENT_SECRET,
+    redirectUri: `${appUrl}/api/auth/google/callback`,
+  });
+}
+
+// L'app assemblée. Les tests peuvent choisir l'envoyeur d'e-mails (une boîte de test, pour lire les codes)
+// et l'identité Google (une fausse).
+export function makeApp({
+  emailSender, testOutbox, googleIdentity = chooseGoogleIdentity(process.env),
+} = { ...chooseEmailSender(process.env) }) {
   const accountDependencies = {
     userRepository: createPostgresUserRepository(pool),
     sessionRepository: createPostgresSessionRepository(pool),
@@ -84,7 +101,9 @@ export function makeApp({ emailSender, testOutbox } = chooseEmailSender(process.
       logOut: makeLogOut(accountDependencies.sessionRepository),
       getCurrentUser: makeGetCurrentUser(accountDependencies.sessionRepository),
       deleteAccount: makeDeleteAccount(accountDependencies),
+      options: { google: googleIdentity !== null, emailSignUp: emailSender !== null },
     },
+    google: googleIdentity && { googleIdentity, signInWithGoogle: makeSignInWithGoogle(accountDependencies) },
     library: makeLibrary({
       sessionRepository: accountDependencies.sessionRepository,
       libraryRepository: createPostgresLibraryRepository(pool),

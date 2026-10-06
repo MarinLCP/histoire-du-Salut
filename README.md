@@ -122,7 +122,8 @@ histoire-du-Salut/
 │   │   │   ├── 011_library.sql      ← notes privées, surlignages, marque-pages d'un compte (par référence "Gn 1,3")
 │   │   │   ├── 012_sharing.sql      ← le lien de partage de progression d'un lecteur
 │   │   │   ├── 013_given_name.sql   ← pseudo retiré ; prénom donné par Google (lien de partage)
-│   │   │   └── 014_email_verification.sql ← e-mail validé par un code (comptes existants : déjà validés)
+│   │   │   ├── 014_email_verification.sql ← e-mail validé par un code (comptes existants : déjà validés)
+│   │   │   └── 015_google_sign_in.sql ← mot de passe facultatif, identifiant Google (google_sub)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -169,7 +170,7 @@ histoire-du-Salut/
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   ├── ParallelRepository.js ← port : contrat de lecture des parallèles d'un verset
 │   │   │   ├── AccountRepository.js ← ports des comptes : UserRepository, SessionRepository, PasswordHasher,
-│   │   │   │                          EmailCodeRepository, EmailSender
+│   │   │   │                          EmailCodeRepository, EmailSender, GoogleIdentity
 │   │   │   ├── library.js           ← règles de la bibliothèque d'un lecteur (note, lecture, position, envoi groupé)
 │   │   │   ├── LibraryRepository.js ← port : notes, surlignages, marque-pages d'un compte
 │   │   │   ├── SharingRepository.js ← port : lien de partage, progression derrière un lien
@@ -186,6 +187,7 @@ histoire-du-Salut/
 │   │   │   ├── createAccount.js     ← créer un compte : un code est envoyé par e-mail (pas encore de session)
 │   │   │   ├── emailCodes.js        ← règles du code (6 chiffres, 15 min) et e-mail envoyé
 │   │   │   ├── verifyEmail.js       ← valider l'e-mail avec le code (connecté), renvoyer un code
+│   │   │   ├── signInWithGoogle.js  ← se connecter avec Google : relier, reprendre (vol de compte évité) ou créer
 │   │   │   ├── logIn.js             ← se connecter (même message si e-mail inconnu ou mot de passe faux)
 │   │   │   ├── logOut.js            ← se déconnecter (la session est fermée)
 │   │   │   ├── getCurrentUser.js    ← qui est connecté
@@ -202,6 +204,7 @@ histoire-du-Salut/
 │   │   │   ├── scryptPasswordHasher.js ← hachage des mots de passe (scrypt, inclus dans Node, sel aléatoire)
 │   │   │   ├── postgresEmailCodeRepository.js ← codes de validation (hachés, 5 essais au plus)
 │   │   │   ├── emailSenders.js      ← envoi des e-mails : Brevo (en ligne), terminal ou boîte de test (en local)
+│   │   │   ├── googleIdentity.js    ← OpenID Connect avec Google (adresse de connexion, échange du code, vérifications)
 │   │   │   ├── postgresLibraryRepository.js ← le SQL de la bibliothèque (fusion : la note la plus récente gagne)
 │   │   │   ├── postgresSharingRepository.js ← le SQL du partage (marque-page → épisode et chapitre en cours)
 │   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories
@@ -215,13 +218,14 @@ histoire-du-Salut/
 │   │       ├── accountRoutes.js     ← /api/account (créer, valider le code, renvoyer, supprimer), /api/session
 │   │       ├── libraryRoutes.js     ← /api/me/library, /api/me/notes/:verset, /api/me/highlights/:verset, /api/me/bookmarks/:lecture
 │   │       ├── sharingRoutes.js     ← /api/me/sharing (lecteur connecté), /api/progress/:jeton (public)
+│   │       ├── googleRoutes.js      ← /api/auth/google (aller) et /callback (retour) : state, PKCE, nonce
 │   │       ├── sessionCookie.js     ← le cookie de session (httpOnly, Secure en ligne, SameSite=Lax)
 │   │       ├── attemptLimiter.js    ← 10 essais de mot de passe ratés en 15 min pour un e-mail : on attend
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 401 / 404 / 409
 │   └── test/                        ← en miroir de src/ et scripts/
 │       ├── domain/                  ← identifier, PassageSlug, PageRequest, VerseReference, Email, Password, arbres de la frise
 │       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles, comptes (faux repository)
-│       ├── infrastructure/          ← hachage scrypt, envoyeurs d'e-mails (et leur choix)
+│       ├── infrastructure/          ← hachage scrypt, envoyeurs d'e-mails (et leur choix), identité Google
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
@@ -231,6 +235,7 @@ histoire-du-Salut/
 │       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
 │       │   ├── helpers/accounts.js  ← une app avec boîte d'e-mails de test ; un lecteur inscrit et validé
 │       │   ├── accounts.test.js     ← comptes : créer, code par e-mail, cookie, se (dé)connecter, 401/409/429/503
+│       │   ├── google.test.js       ← Continuer avec Google (faux Google) : créer, relier, vol de compte évité, state
 │       │   ├── library.test.js      ← notes, surlignages, marque-pages du compte ; fusion ; chacun ne voit que les siens
 │       │   ├── sharing.test.js      ← lien de partage (prénom Google, sans e-mail ni notes), arrêter de partager
 │       │   ├── attemptLimiter.test.js ← limite d'essais (horloge remplacée)
@@ -347,7 +352,7 @@ histoire-du-Salut/
     │   │   └── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
     │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
     │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
-    │   │   ├── SignInForm.jsx / .css ← « Se connecter » / « Créer un compte », puis le code reçu par e-mail
+    │   │   ├── SignInForm.jsx / .css ← « Continuer avec Google » ; « Se connecter » / « Créer un compte », puis le code
     │   │   ├── AccountSection.jsx / .css ← la section : formulaire, ou e-mail + Se déconnecter + Supprimer
     │   │   ├── useSharing.js        ← le lien de partage du lecteur connecté
     │   │   └── SharingSection.jsx   ← « Partager où j'en suis » : partager, arrêter de partager

@@ -74,3 +74,27 @@
   opacity: .6;
   cursor: progress;
 }
+
+/* « Continuer avec Google », puis « ou », puis le formulaire e-mail */
+.account-sign-in {
+  display: grid;
+  gap: .9rem;
+}
+
+.account-google {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--text);
+  font: 500 .9rem var(--ui-font);
+  text-decoration: none;
+}
+
+.account-google:focus-visible {
+  outline: 2px solid var(--level-2);
+  outline-offset: 2px;
+}

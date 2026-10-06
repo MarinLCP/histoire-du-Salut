@@ -46,7 +46,7 @@ describe('créer un compte et valider l\'e-mail', () => {
     expect(res.body).toEqual({ user: { email } });
     expect(res.headers['set-cookie'][0]).toMatch(/^session=.+HttpOnly; SameSite=Lax/);
     expect(res.headers['cache-control']).toBe('no-store');
-    expect((await agent.get('/api/session')).body).toEqual({ user: { email } });
+    expect((await agent.get('/api/session')).body).toEqual({ user: { email, hasPassword: true } });
     expect((await agent.post('/api/account/verify').send({ email, code })).status).toBe(400);
   });
 
@@ -128,7 +128,7 @@ describe('se connecter, se déconnecter, supprimer son compte', () => {
 
     const res = await agent.post('/api/session').send({ email: email.toUpperCase(), password: PASSWORD });
     expect(res.status).toBe(200);
-    expect((await agent.get('/api/session')).body).toEqual({ user: { email } });
+    expect((await agent.get('/api/session')).body).toEqual({ user: { email, hasPassword: true } });
   });
 
   test('se connecter à un compte pas encore validé : 202, un nouveau code, pas de session', async () => {

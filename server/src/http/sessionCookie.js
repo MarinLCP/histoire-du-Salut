@@ -8,10 +8,16 @@ import { SESSION_DAYS } from '../application/sessions.js';
 const NAME = 'session';
 const MAX_AGE_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
 
-// Le jeton de session envoyé par le navigateur, ou undefined (lu à la main : pas besoin de cookie-parser)
+// Le jeton de session envoyé par le navigateur, ou undefined
 export function readSessionToken(req) {
+  return readCookie(req, NAME);
+}
+
+// La valeur d'un cookie, ou undefined (lu à la main : pas besoin de cookie-parser). Nos valeurs (base64url)
+// n'ont jamais de « = » ni de « ; »
+export function readCookie(req, name) {
   const cookies = (req.headers.cookie ?? '').split(';').map((cookie) => cookie.trim().split('='));
-  const found = cookies.find(([name]) => name === NAME);
+  const found = cookies.find(([cookieName]) => cookieName === name);
   return found?.[1] || undefined;
 }
 

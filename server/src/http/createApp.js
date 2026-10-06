@@ -8,6 +8,7 @@ import { errorHandler } from './errorHandler.js';
 import { accountRoutes } from './accountRoutes.js';
 import { libraryRoutes } from './libraryRoutes.js';
 import { sharingRoutes } from './sharingRoutes.js';
+import { googleRoutes } from './googleRoutes.js';
 import { PRIVATE_PATHS, LIBRARY_JSON, privateApi } from './privateApi.js';
 
 /**
@@ -20,6 +21,7 @@ import { PRIVATE_PATHS, LIBRARY_JSON, privateApi } from './privateApi.js';
  * @param {() => Promise<object[]>} dependencies.getBibleOverview
  * @param {(verse: { book: string, chapter: string, verse: string }, query: object) => Promise<object>} dependencies.getParallels
  * @param {object} [dependencies.accounts] - les use cases des comptes (voir accountRoutes.js)
+ * @param {object} [dependencies.google] - « Continuer avec Google » (voir googleRoutes.js) ; absent : pas de Google
  * @param {object} [dependencies.library] - les use cases de la bibliothèque du lecteur (voir libraryRoutes.js)
  * @param {object} [dependencies.sharing] - les use cases du partage de progression (voir sharingRoutes.js)
  * @param {boolean} [dependencies.secureCookies] - cookies seulement en HTTPS (vrai en ligne)
@@ -30,7 +32,7 @@ import { PRIVATE_PATHS, LIBRARY_JSON, privateApi } from './privateApi.js';
  */
 export function createApp({
   getPassage, getTimeline, readBible, findChapter, getHistoryOverview, getBibleOverview, getParallels,
-  accounts, library, sharing, secureCookies = false, testOutbox, pingDatabase, clientBuildDirectory,
+  accounts, google, library, sharing, secureCookies = false, testOutbox, pingDatabase, clientBuildDirectory,
 }) {
   const app = express();
 
@@ -42,6 +44,8 @@ export function createApp({
   app.use(PRIVATE_PATHS, privateApi());
   // Les comptes : /api/account (créer, supprimer) et /api/session (se connecter, se déconnecter, qui est connecté)
   if (accounts) app.use('/api', accountRoutes(accounts, secureCookies));
+  // Se connecter avec Google : /api/auth/google (aller) et /api/auth/google/callback (retour)
+  if (google) app.use('/api', googleRoutes(google, secureCookies));
   // Ce que le lecteur connecté garde dans son compte : /api/me/library, /api/me/notes/:key...
   if (library) app.use('/api/me', libraryRoutes(library));
   // Partager où on en est : le lien (/api/me/sharing), et ce que montre un lien (/api/progress/:token)

@@ -3,9 +3,14 @@
 
 import { getJson, sendJson } from './http.js';
 
-// Renvoie { user } : { email } du lecteur connecté, ou null
+// Renvoie { user } : { email, hasPassword } du lecteur connecté, ou null
 export function fetchCurrentUser() {
   return getJson('/api/session');
+}
+
+// Renvoie { google, emailSignUp } : ce que le site peut proposer (Google réglé ? création par e-mail ouverte ?)
+export function fetchAuthOptions() {
+  return getJson('/api/auth/options');
 }
 
 // form : { email, password }. Renvoie { verificationNeeded: true, email } : un code est envoyé par e-mail

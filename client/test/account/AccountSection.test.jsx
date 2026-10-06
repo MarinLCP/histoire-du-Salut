@@ -132,4 +132,36 @@ describe('AccountSection', () => {
 
     expect((await screen.findByRole('alert')).textContent).toBe('Code incorrect.');
   });
+
+  test('Google réglé : « Continuer avec Google » mène à la page de Google', () => {
+    render(<AccountSection account={{ ...fakeAccount(null), options: { google: true, emailSignUp: true } }} />);
+
+    expect(screen.getByRole('link', { name: 'Continuer avec Google' }).getAttribute('href')).toBe('/api/auth/google');
+  });
+
+  test('création par e-mail pas encore ouverte : le formulaire renvoie vers Google', async () => {
+    render(<AccountSection account={{ ...fakeAccount(null), options: { google: true, emailSignUp: false } }} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /Créer un compte/ }));
+
+    expect(screen.getByText(/arrive bientôt/)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Créer mon compte' })).toBeNull();
+  });
+
+  test('compte Google sans mot de passe : supprimer en écrivant SUPPRIMER', async () => {
+    const account = fakeAccount({ email: 'marin@gmail.com', hasPassword: false });
+    render(<AccountSection account={account} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer mon compte' }));
+    await userEvent.type(screen.getByLabelText('Écris SUPPRIMER pour confirmer'), 'SUPPRIMER');
+    fireEvent.submit(screen.getByRole('button', { name: 'Supprimer définitivement' }));
+
+    expect(account.deleteAccount).toHaveBeenCalledWith({ confirmation: 'SUPPRIMER' });
+  });
+
+  test('retour d\'une connexion Google ratée : un message', () => {
+    render(<AccountSection account={fakeAccount(null)} googleFailed />);
+
+    expect(screen.getByRole('alert').textContent).toContain('connexion avec Google n\'a pas abouti');
+  });
 });

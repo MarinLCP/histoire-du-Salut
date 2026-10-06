@@ -31,6 +31,25 @@ export function createPostgresUserRepository(pool) {
       return result.rows[0] ?? null;
     },
 
+    async findByGoogleSub(googleSub) {
+      const result = await pool.query(`SELECT ${USER_COLUMNS} FROM users WHERE google_sub = $1`, [googleSub]);
+      return result.rows[0] ?? null;
+    },
+
+    async createFromGoogle(email, googleSub, givenName) {
+      const result = await pool.query(
+        `INSERT INTO users (email, google_sub, given_name, email_verified_at) VALUES ($1, $2, $3, now())
+         ON CONFLICT (email) DO NOTHING
+         RETURNING id, email`,
+        [email.value, googleSub, givenName],
+      );
+      return result.rows[0] ?? null;
+    },
+
+    async linkGoogle(id, googleSub, givenName) {
+      await pool.query('UPDATE users SET google_sub = $2, given_name = $3 WHERE id = $1', [id, googleSub, givenName]);
+    },
+
     async setPasswordHash(id, passwordHash) {
       await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [id, passwordHash]);
     },
@@ -67,7 +86,7 @@ export function createPostgresSessionRepository(pool) {
 
     async findUser(token) {
       const result = await pool.query(
-        `SELECT u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id
+        `SELECT u.id, u.email, u.password_hash IS NOT NULL AS "hasPassword" FROM sessions s JOIN users u ON u.id = s.user_id
          WHERE s.token_hash = $1 AND s.expires_at > now()`,
         [fingerprint(token)],
       );

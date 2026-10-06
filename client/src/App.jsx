@@ -5,7 +5,7 @@
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useCallback, useMemo, useState } from 'react';
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
@@ -41,7 +41,9 @@ function App() {
   const isWide = useMediaQuery(WIDE_SCREEN);
   const isParallelsDocked = isWide && parallelsVerse !== null;
   const { settings, change: changeSettings } = useSettings();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Retour d'une connexion Google ratée (/?connexion=echec) : Paramètres s'ouvre et le dit
+  const googleFailed = new URLSearchParams(useLocation().search).get('connexion') === 'echec';
+  const [isSettingsOpen, setIsSettingsOpen] = useState(googleFailed);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
@@ -102,7 +104,7 @@ function App() {
       {isSettingsOpen && (
         <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
           <AccountSection account={account} waitingNotes={library.waitingNotes.size}
-            libraryStatus={library.status} onRetryLibrary={library.retry} />
+            libraryStatus={library.status} onRetryLibrary={library.retry} googleFailed={googleFailed} />
         </SettingsPanel>
       )}
     </>

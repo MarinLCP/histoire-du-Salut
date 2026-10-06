@@ -3,12 +3,19 @@
 // en cas d'échec, elles rejettent avec le message à afficher (ex. « E-mail ou mot de passe incorrect. »).
 // createAccount et logIn renvoient ce que dit le serveur : { verificationNeeded, email } quand il faut d'abord
 // taper le code reçu par e-mail (verifyEmail).
+// options : ce que le site peut proposer ({ google, emailSignUp }) ; avant de le savoir : rien de plus que l'e-mail.
+// La connexion avec Google, elle, passe par une page de Google (lien /api/auth/google), pas par ce hook.
 
 import { useEffect, useState } from 'react';
 import * as accountApi from '../api/account.api.js';
+import { useLoaded } from '../hooks/useLoaded.js';
+
+const DEFAULT_OPTIONS = { google: false, emailSignUp: true };
+const loadOptions = () => accountApi.fetchAuthOptions();
 
 export function useAccount() {
   const [user, setUser] = useState(undefined);
+  const options = useLoaded('options', loadOptions, DEFAULT_OPTIONS, DEFAULT_OPTIONS);
 
   // Qui est connecté, à l'ouverture du site (serveur injoignable : comme personne)
   useEffect(() => {
@@ -29,6 +36,7 @@ export function useAccount() {
 
   return {
     user,
+    options,
     createAccount: (form) => accountApi.createAccount(form).then(signInWith),
     verifyEmail: (form) => accountApi.verifyEmail(form).then(signInWith),
     resendEmailCode: (email) => accountApi.resendEmailCode(email),

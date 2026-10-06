@@ -41,7 +41,7 @@ function fakeAccounts() {
     },
     async findUser(token) {
       const user = users.get(sessions.get(token)?.userId);
-      return user ? { id: user.id, email: user.email } : null;
+      return user ? { id: user.id, email: user.email, hasPassword: user.passwordHash !== null } : null;
     },
     close: async (token) => { sessions.delete(token); },
   };
@@ -186,7 +186,7 @@ describe('les comptes', () => {
     const getCurrentUser = makeGetCurrentUser(world.dependencies.sessionRepository);
     const { token } = await validatedAccount();
 
-    await expect(getCurrentUser(token)).resolves.toEqual({ email: 'marin@exemple.fr' });
+    await expect(getCurrentUser(token)).resolves.toEqual({ email: 'marin@exemple.fr', hasPassword: true });
     await expect(getCurrentUser('jeton-inconnu')).resolves.toBeNull();
     await expect(getCurrentUser(undefined)).resolves.toBeNull();
   });
