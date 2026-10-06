@@ -14,7 +14,6 @@ import { setNote } from '../notes/notes.js';
 import { loadNotes, saveNotes } from '../notes/notes.storage.js';
 import { loadBookmarks, saveBookmark as saveLocalBookmark, clearBookmarks } from '../frise/bookmark.storage.js';
 import { useStoredMap } from '../storage/useStoredMap.js';
-import { mergeInto } from '../backup/backup.js';
 import * as libraryApi from '../api/library.api.js';
 
 const NO_NOTES = new Map();
@@ -44,14 +43,6 @@ export function useLibrary(user) {
       account.toggleHighlight(key);
     },
     saveNote: account.saveNote,
-    // Une sauvegarde importée (fichier) : dans le compte s'il est chargé, sinon dans le navigateur.
-    // Renvoie une promesse, rejetée si l'envoi au compte échoue (le message est à afficher)
-    importBackup({ highlights, notes }) {
-      if (loaded) return account.importBackup({ highlights, notes });
-      setLocalHighlights((previous) => mergeInto(previous, highlights));
-      setLocalNotes((previous) => mergeInto(previous, notes));
-      return Promise.resolve();
-    },
   };
 }
 
@@ -111,10 +102,6 @@ function useAccountLibrary(email, { setLocalNotes, setLocalHighlights }) {
       update((library) => ({ notes: setNote(library.notes, key, text) }));
       const write = text.trim() === '' ? libraryApi.deleteNote(key) : libraryApi.saveNote(key, text);
       write.catch(() => update((library) => ({ notes: restored(library.notes, key, before) })));
-    },
-    importBackup({ highlights, notes }) {
-      return libraryApi.mergeLibrary({ highlights: Object.fromEntries(highlights), notes: Object.fromEntries(notes) })
-        .then((library) => setState({ email, status: 'ready', library: asMaps(library) }));
     },
   };
 }

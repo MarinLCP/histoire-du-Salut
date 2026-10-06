@@ -1,4 +1,4 @@
-// Les adresses du partage de progression : /api/me/sharing et /api/me/profile (lecteur connecté), et
+// Les adresses du partage de progression : /api/me/sharing (lecteur connecté), et
 // /api/progress/:token (public : ce que montre un lien de partage). Aucune règle métier ici.
 // Corps JSON et « jamais en cache » (elles suivent la lecture) : réglés dans createApp.js (privateApi.js).
 
@@ -14,7 +14,6 @@ export function sharingRoutes(sharing) {
     await sharing.closeShare(readSessionToken(req));
     res.status(204).end();
   });
-  router.put('/me/profile', async (req, res) => res.json(await sharing.setDisplayName(readSessionToken(req), req.body)));
   router.get('/progress/:token', async (req, res) => res.json(await sharing.getProgress(req.params.token)));
 
   return router;

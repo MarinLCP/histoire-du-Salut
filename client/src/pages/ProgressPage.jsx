@@ -1,5 +1,5 @@
 // Page « où en est un lecteur » (adresse /progression/<jeton>), ouverte depuis un lien qu'il a partagé :
-// son pseudo, l'épisode de l'histoire du salut et le chapitre de la Bible entière où il en est, avec de quoi
+// son prénom (s'il s'est connecté avec Google), l'épisode de l'histoire du salut et le chapitre de la Bible entière où il en est, avec de quoi
 // lire au même endroit. Pas besoin de compte pour l'ouvrir ; ni e-mail ni notes (elles sont privées).
 
 import { Link, useParams } from 'react-router';
@@ -31,8 +31,8 @@ function ProgressContent({ progress }) {
   }
   return (
     <>
-      <h1 id="progress-title">Où en est {progress.displayName}</h1>
-      {!progress.history && !progress.bible && <p>{progress.displayName} n'a pas encore commencé sa lecture.</p>}
+      <h1 id="progress-title">{progress.name ? `Où en est ${progress.name}` : 'Où en est la personne qui t\'a envoyé ce lien'}</h1>
+      {!progress.history && !progress.bible && <p>{progress.name ?? 'Elle'} n'a pas encore commencé sa lecture.</p>}
       {progress.history && <HistoryProgress history={progress.history} />}
       {progress.bible && <BibleProgress bible={progress.bible} />}
     </>

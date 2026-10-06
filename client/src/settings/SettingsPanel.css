@@ -74,8 +74,7 @@
   gap: .5rem;
 }
 
-.settings-actions button,
-.settings-backup-import {
+.settings-actions button {
   /* 44px : taille minimale recommandée pour une cible au doigt */
   min-height: 44px;
   padding: .55rem .8rem;
@@ -87,15 +86,6 @@
   cursor: pointer;
 }
 
-/* La sauvegarde : le vrai sélecteur de fichiers est caché : c'est l'étiquette, stylée comme un bouton, qu'on clique */
-.settings-backup-import input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.settings-backup-import:focus-within,
 .settings-actions button:focus-visible {
   outline: 2px solid var(--level-2);
   outline-offset: 2px;

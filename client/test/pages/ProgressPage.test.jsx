@@ -26,7 +26,7 @@ afterEach(() => {
 describe('ProgressPage', () => {
   test('l\'épisode et le chapitre où en est le lecteur, avec de quoi lire au même endroit', async () => {
     renderAt('abc', new Response(JSON.stringify({
-      displayName: 'Marin',
+      name: 'Marin',
       history: { episode: 2, total: 32, slug: 'chute', title: 'La chute' },
       bible: { book: { code: 'Gn', title: 'La Genèse' }, chapter: '3' },
     })));
@@ -39,7 +39,7 @@ describe('ProgressPage', () => {
   });
 
   test('pas encore commencé', async () => {
-    renderAt('abc', new Response(JSON.stringify({ displayName: 'Marin', history: null, bible: null })));
+    renderAt('abc', new Response(JSON.stringify({ name: 'Marin', history: null, bible: null })));
 
     expect(await screen.findByText('Marin n\'a pas encore commencé sa lecture.')).toBeDefined();
   });

@@ -1,4 +1,4 @@
-// Implémentation PostgreSQL du port SharingRepository (domain/SharingRepository.js) : pseudo, lien de partage
+// Implémentation PostgreSQL du port SharingRepository (domain/SharingRepository.js) : lien de partage
 // (migration 012) et progression (marque-pages du compte, migration 011, rapprochés des épisodes et chapitres).
 
 import { randomBytes } from 'node:crypto';
@@ -9,18 +9,9 @@ import { randomBytes } from 'node:crypto';
  */
 export function createPostgresSharingRepository(pool) {
   return {
-    async find(userId) {
-      const result = await pool.query(
-        `SELECT u.display_name AS "displayName", s.token
-         FROM users u LEFT JOIN progress_shares s ON s.user_id = u.id
-         WHERE u.id = $1`,
-        [userId],
-      );
-      return result.rows[0];
-    },
-
-    async setDisplayName(userId, displayName) {
-      await pool.query('UPDATE users SET display_name = $2 WHERE id = $1', [userId, displayName.value]);
+    async findToken(userId) {
+      const result = await pool.query('SELECT token FROM progress_shares WHERE user_id = $1', [userId]);
+      return result.rows[0]?.token ?? null;
     },
 
     // Un seul lien par lecteur : s'il existe déjà, c'est le même (ON CONFLICT : pas de doublon)
@@ -43,7 +34,7 @@ export function createPostgresSharingRepository(pool) {
       const row = result.rows[0];
       if (!row) return null;
       return {
-        displayName: row.display_name,
+        name: row.given_name,
         history: row.episode === null ? null
           : { episode: row.episode, total: row.episode_total, slug: row.episode_slug, title: row.episode_title },
         bible: row.chapter === null ? null : { book: { code: row.book_code, title: row.book_title }, chapter: row.chapter },
@@ -56,7 +47,7 @@ export function createPostgresSharingRepository(pool) {
 // sa partie entière désigne l'épisode (passages.position) ou le chapitre (chapters.position).
 // ::int : comparer deux entiers permet d'utiliser l'index de position
 const PROGRESS = `
-  SELECT u.display_name,
+  SELECT u.given_name,
          p.position AS episode, p.slug AS episode_slug, p.title AS episode_title,
          (SELECT count(*)::int FROM passages) AS episode_total,
          c.label AS chapter, b.code AS book_code, b.title AS book_title
@@ -67,5 +58,5 @@ const PROGRESS = `
   LEFT JOIN user_bookmarks bb ON bb.user_id = u.id AND bb.mode = 'bible'
   LEFT JOIN chapters c ON c.position = floor(bb.position)::int
   LEFT JOIN books b ON b.id = c.book_id
-  WHERE s.token = $1 AND u.display_name IS NOT NULL
+  WHERE s.token = $1
 `;

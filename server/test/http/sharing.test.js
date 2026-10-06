@@ -21,17 +21,14 @@ async function signedInReader() {
 }
 
 describe('API du partage de progression', () => {
-  test('pas de pseudo : pas de lien (400), et rien n\'est partagé au départ', async () => {
+  test('rien n\'est partagé au départ', async () => {
     const reader = await signedInReader();
 
-    expect((await reader.get('/api/me/sharing')).body).toEqual({ displayName: null, token: null });
-    expect((await reader.post('/api/me/sharing')).status).toBe(400);
+    expect((await reader.get('/api/me/sharing')).body).toEqual({ token: null });
   });
 
-  test('avec un pseudo : un lien, toujours le même, qui montre où on en est (sans compte, sans e-mail)', async () => {
+  test('un lien, toujours le même, qui montre où on en est (sans compte, sans e-mail ; compte e-mail : sans nom)', async () => {
     const reader = await signedInReader();
-    const profile = await reader.put('/api/me/profile').send({ displayName: '  Marin ' });
-    expect(profile.body).toEqual({ displayName: 'Marin' });
     await reader.put('/api/me/bookmarks/history').send({ position: 2.4 });
     await reader.put('/api/me/bookmarks/bible').send({ position: 3.1 });
 
@@ -41,24 +38,27 @@ describe('API du partage de progression', () => {
     const res = await request(app).get(`/api/progress/${token}`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
-      displayName: 'Marin',
+      name: null,
       history: { episode: 2, total: 32, slug: 'chute', title: 'La chute' },
       bible: { book: { code: 'Gn', title: 'La Genèse' }, chapter: '3' },
     });
     expect(JSON.stringify(res.body)).not.toContain(TEST_DOMAIN);
   });
 
-  test('pas encore commencé : history et bible à null', async () => {
+  test('le prénom donné par Google, quand le compte en a un', async () => {
     const reader = await signedInReader();
-    await reader.put('/api/me/profile').send({ displayName: 'Lecteur' });
     const { token } = (await reader.post('/api/me/sharing')).body;
+    await pool.query(
+      `UPDATE users SET given_name = 'Marin'
+       WHERE id = (SELECT user_id FROM progress_shares WHERE token = $1)`,
+      [token],
+    );
 
-    expect((await request(app).get(`/api/progress/${token}`)).body).toEqual({ displayName: 'Lecteur', history: null, bible: null });
+    expect((await request(app).get(`/api/progress/${token}`)).body).toEqual({ name: 'Marin', history: null, bible: null });
   });
 
   test('« Arrêter de partager » : le lien ne mène plus nulle part (404)', async () => {
     const reader = await signedInReader();
-    await reader.put('/api/me/profile').send({ displayName: 'Marin' });
     const { token } = (await reader.post('/api/me/sharing')).body;
 
     expect((await reader.delete('/api/me/sharing')).status).toBe(204);
@@ -67,11 +67,8 @@ describe('API du partage de progression', () => {
     expect((await reader.get('/api/me/sharing')).body.token).toBeNull();
   });
 
-  test('un lien inventé : 404 ; un pseudo invalide : 400 ; sans être connecté : 401', async () => {
-    const reader = await signedInReader();
-
+  test('un lien inventé : 404 ; sans être connecté : 401', async () => {
     expect((await request(app).get('/api/progress/lien-invente')).status).toBe(404);
-    expect((await reader.put('/api/me/profile').send({ displayName: '<b>' })).status).toBe(400);
     expect((await request(app).get('/api/me/sharing')).status).toBe(401);
   });
 });

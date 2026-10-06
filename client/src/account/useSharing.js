@@ -1,6 +1,6 @@
-// Hook React : le partage de progression du lecteur connecté (pseudo et lien), chargé à l'affichage.
-// sharing vaut null tant qu'il n'est pas chargé, puis { displayName, token }. Les actions rejettent avec
-// le message à afficher en cas d'échec.
+// Hook React : le lien de partage de progression du lecteur connecté, chargé à l'affichage.
+// sharing vaut null tant qu'il n'est pas chargé, puis { token } (token : null s'il ne partage pas).
+// Les actions rejettent avec le message à afficher en cas d'échec.
 
 import { useEffect, useState } from 'react';
 import * as sharingApi from '../api/sharing.api.js';
@@ -19,17 +19,13 @@ export function useSharing() {
     };
   }, []);
 
-  const update = (change) => setSharing((previous) => ({ ...previous, ...change }));
-
   return {
     sharing,
     error,
-    // Le serveur renvoie le pseudo tel qu'il l'a rangé (sans espaces autour)
-    saveDisplayName: (displayName) => sharingApi.saveDisplayName(displayName).then(update),
     openShare: () => sharingApi.openShare().then(({ token }) => {
-      update({ token });
+      setSharing({ token });
       return token;
     }),
-    closeShare: () => sharingApi.closeShare().then(() => update({ token: null })),
+    closeShare: () => sharingApi.closeShare().then(() => setSharing({ token: null })),
   };
 }

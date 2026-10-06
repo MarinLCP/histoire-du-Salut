@@ -120,7 +120,8 @@ histoire-du-Salut/
 │   │   │   ├── 009_drop_parallels_index.sql ← retire un index en double (la clé primaire suffit)
 │   │   │   ├── 010_accounts.sql     ← comptes (e-mail, mot de passe haché) et sessions (empreinte du jeton)
 │   │   │   ├── 011_library.sql      ← notes privées, surlignages, marque-pages d'un compte (par référence "Gn 1,3")
-│   │   │   └── 012_sharing.sql      ← pseudo d'un lecteur, et son lien de partage de progression
+│   │   │   ├── 012_sharing.sql      ← le lien de partage de progression d'un lecteur
+│   │   │   └── 013_given_name.sql   ← pseudo retiré ; prénom donné par Google (lien de partage)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -160,7 +161,6 @@ histoire-du-Salut/
 │   │   │   ├── VerseReference.js    ← value object : la référence d'un verset (Gn 32,2), API et seed
 │   │   │   ├── Email.js             ← value object : adresse e-mail d'un compte (minuscules, bien formée)
 │   │   │   ├── Password.js          ← value object : mot de passe acceptable (10 à 128 caractères), jamais affiché
-│   │   │   ├── DisplayName.js       ← value object : pseudo affiché sur un lien de partage (2 à 30 caractères)
 │   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux, avec son kind)
 │   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts → sous-chapitres
 │   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres → sous-chapitres
@@ -170,7 +170,7 @@ histoire-du-Salut/
 │   │   │   ├── AccountRepository.js ← ports des comptes : UserRepository, SessionRepository, PasswordHasher
 │   │   │   ├── library.js           ← règles de la bibliothèque d'un lecteur (note, lecture, position, envoi groupé)
 │   │   │   ├── LibraryRepository.js ← port : notes, surlignages, marque-pages d'un compte
-│   │   │   ├── SharingRepository.js ← port : pseudo, lien de partage, progression derrière un lien
+│   │   │   ├── SharingRepository.js ← port : lien de partage, progression derrière un lien
 │   │   │   └── errors.js            ← ValidationError, UnauthorizedError, NotFoundError, ConflictError
 │   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
 │   │   │   ├── getPassage.js
@@ -187,7 +187,7 @@ histoire-du-Salut/
 │   │   │   ├── getCurrentUser.js    ← qui est connecté
 │   │   │   ├── deleteAccount.js     ← supprimer son compte (mot de passe retapé)
 │   │   │   ├── library.js           ← la bibliothèque du lecteur connecté : lire, fusionner, écrire, retirer
-│   │   │   └── sharing.js           ← partager où j'en suis : pseudo, ouvrir / fermer le lien, progression
+│   │   │   └── sharing.js           ← partager où j'en suis : ouvrir / fermer le lien, progression
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── transaction.js       ← inTransaction : tout ou rien (API et scripts)
@@ -208,7 +208,7 @@ histoire-du-Salut/
 │   │       ├── privateApi.js        ← adresses propres au lecteur : jamais en cache, corps JSON limité (posé une fois)
 │   │       ├── accountRoutes.js     ← /api/account (créer, supprimer), /api/session (se connecter, se déconnecter, qui)
 │   │       ├── libraryRoutes.js     ← /api/me/library, /api/me/notes/:verset, /api/me/highlights/:verset, /api/me/bookmarks/:lecture
-│   │       ├── sharingRoutes.js     ← /api/me/profile, /api/me/sharing (lecteur connecté), /api/progress/:jeton (public)
+│   │       ├── sharingRoutes.js     ← /api/me/sharing (lecteur connecté), /api/progress/:jeton (public)
 │   │       ├── sessionCookie.js     ← le cookie de session (httpOnly, Secure en ligne, SameSite=Lax)
 │   │       ├── attemptLimiter.js    ← 10 essais de mot de passe ratés en 15 min pour un e-mail : on attend
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 401 / 404 / 409
@@ -225,7 +225,7 @@ histoire-du-Salut/
 │       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
 │       │   ├── accounts.test.js     ← comptes : créer, cookie, se (dé)connecter, 401/409/429, supprimer
 │       │   ├── library.test.js      ← notes, surlignages, marque-pages du compte ; fusion ; chacun ne voit que les siens
-│       │   ├── sharing.test.js      ← pseudo, lien de partage (sans e-mail ni notes), arrêter de partager
+│       │   ├── sharing.test.js      ← lien de partage (prénom Google, sans e-mail ni notes), arrêter de partager
 │       │   ├── attemptLimiter.test.js ← limite d'essais (horloge remplacée)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
@@ -255,7 +255,7 @@ histoire-du-Salut/
 │       ├── characters.spec.js       ← les personnages d'un épisode
 │       ├── accounts.spec.js         ← créer un compte, rester connecté, se (dé)connecter, supprimer le compte
 │       ├── sharing.spec.js          ← partager où j'en suis ; le lien ouvert sans compte ; arrêter de partager
-│       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
+│       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement)
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, copier ; une note demande un compte (créé sur place), retrouvée
 │       ├── parallels.spec.js        ← les parallèles d'un verset (dans les deux lectures), « Voir plus », aller au verset ; écran large : fixé à droite
@@ -338,16 +338,12 @@ histoire-du-Salut/
     │   ├── parallels/               ← les parallèles d'un verset (panneau à droite, OpenBible.info)
     │   │   ├── useParallels.js      ← chargés 10 par 10, les plus votés d'abord (« Voir plus »)
     │   │   └── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
-    │   ├── backup/                  ← sauvegarde des notes et surlignages (dans le panneau Paramètres)
-    │   │   ├── backup.js            ← règles : créer, relire, fusionner une sauvegarde (fichier JSON)
-    │   │   ├── downloadJson.js      ← faire télécharger un fichier JSON
-    │   │   └── BackupSection.jsx    ← « Télécharger une sauvegarde » / « Importer une sauvegarde »
     │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
     │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
     │   │   ├── SignInForm.jsx / .css ← formulaire « Se connecter » / « Créer un compte » (Paramètres, menu d'un verset)
     │   │   ├── AccountSection.jsx / .css ← la section : formulaire, ou e-mail + Se déconnecter + Supprimer
-    │   │   ├── useSharing.js        ← le pseudo et le lien de partage du lecteur connecté
-    │   │   └── SharingSection.jsx   ← « Partager où j'en suis » : pseudo, partager, arrêter de partager
+    │   │   ├── useSharing.js        ← le lien de partage du lecteur connecté
+    │   │   └── SharingSection.jsx   ← « Partager où j'en suis » : partager, arrêter de partager
     │   ├── settings/                ← les Paramètres (bouton de la barre du haut, panneau à droite)
     │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
@@ -383,7 +379,6 @@ histoire-du-Salut/
         ├── library/                 ← useLibrary (sans compte, fusion à la connexion, écriture annulée si échec)
         ├── settings/                ← règles des réglages, panneau
         ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source)
-        ├── backup/                  ← règles de la sauvegarde, section du panneau
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
         └── storage/versionedStorage.test.js ← mécanisme commun de sauvegarde

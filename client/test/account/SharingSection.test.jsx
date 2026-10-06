@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// Tests de « Partager où j'en suis » : choisir un pseudo, partager le lien (copié s'il n'y a pas de feuille
-// de partage), arrêter de partager. Faux fetch ; presse-papiers remplacé.
+// Tests de « Partager où j'en suis » : partager le lien (copié s'il n'y a pas de feuille de partage), arrêter
+// de partager. Faux fetch ; presse-papiers remplacé.
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
@@ -13,8 +13,6 @@ const json = (body, status = 200) => new Response(body === null ? null : JSON.st
 function fakeServer(sharing) {
   const fetchMock = vi.fn(async (url, options) => {
     if (options?.method === 'POST') return json({ token: 'jeton-123' });
-    // Le serveur renvoie le pseudo tel qu'il l'a rangé
-    if (options?.method === 'PUT') return json({ displayName: JSON.parse(options.body).displayName.trim() });
     if (options?.method) return json(null, 204);
     return json(sharing);
   });
@@ -35,20 +33,8 @@ describe('SharingSection', () => {
     vi.unstubAllGlobals();
   });
 
-  test('sans pseudo : il faut en choisir un avant de partager', async () => {
-    const fetchMock = fakeServer({ displayName: null, token: null });
-    render(<SharingSection />);
-
-    await userEvent.type(await screen.findByLabelText(/Ton pseudo/), ' Marin ');
-    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer le pseudo' }));
-
-    expect(fetchMock).toHaveBeenCalledWith('/api/me/profile', expect.objectContaining({ body: '{"displayName":" Marin "}' }));
-    expect(await screen.findByText('Marin')).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Partager où j\'en suis' })).toBeDefined();
-  });
-
   test('partager : le lien de progression est créé puis copié', async () => {
-    fakeServer({ displayName: 'Marin', token: null });
+    fakeServer({ token: null });
     render(<SharingSection />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Partager où j\'en suis' }));
@@ -59,7 +45,7 @@ describe('SharingSection', () => {
   });
 
   test('arrêter de partager', async () => {
-    const fetchMock = fakeServer({ displayName: 'Marin', token: 'jeton-123' });
+    const fetchMock = fakeServer({ token: 'jeton-123' });
     render(<SharingSection />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Arrêter de partager' }));
@@ -71,7 +57,7 @@ describe('SharingSection', () => {
   test('« Arrêter de partager » qui échoue : le message d\'erreur est affiché', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url, options) => (options?.method === 'DELETE'
       ? json({ error: 'Base indisponible.' }, 503)
-      : json({ displayName: 'Marin', token: 'jeton-123' }))));
+      : json({ token: 'jeton-123' }))));
     render(<SharingSection />);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Arrêter de partager' }));

@@ -10,10 +10,8 @@ import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
 import ParallelsPanel from './parallels/ParallelsPanel.jsx';
-import BackupSection from './backup/BackupSection.jsx';
 import AccountSection from './account/AccountSection.jsx';
 import { useAccount } from './account/useAccount.js';
-import { downloadJson } from './backup/downloadJson.js';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
 import ProgressPage from './pages/ProgressPage.jsx';
@@ -105,8 +103,6 @@ function App() {
         <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
           <AccountSection account={account} waitingNotes={library.waitingNotes.size}
             libraryStatus={library.status} onRetryLibrary={library.retry} />
-          <BackupSection highlights={highlights} notes={library.status === 'ready' ? notes : library.waitingNotes}
-            onDownload={downloadJson} onImport={library.importBackup} />
         </SettingsPanel>
       )}
     </>

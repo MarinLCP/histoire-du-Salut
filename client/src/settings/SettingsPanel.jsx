@@ -1,5 +1,5 @@
 // Le panneau Paramètres : ouvert par le bouton de la barre du haut, il glisse depuis la droite (SidePanel).
-// On y règle la taille du texte et le thème (et, plus bas, la sauvegarde des notes et surlignages).
+// On y règle la taille du texte et le thème (et, plus bas, « Mon compte »).
 
 import SidePanel from '../components/SidePanel.jsx';
 import './SettingsPanel.css';
