@@ -1,4 +1,4 @@
-// Le panneau des parallèles d'un verset (Bible entière seulement), ouvert depuis le menu du verset :
+// Le panneau des parallèles d'un verset (à droite), ouvert depuis le menu du verset, dans les deux lectures :
 // les 10 passages les plus votés par les lecteurs d'OpenBible.info, puis « Voir plus ».
 // Un clic sur un parallèle ouvre la Bible entière à ce verset (et referme le panneau).
 

@@ -1,5 +1,5 @@
 // Assemble l'app : la barre de navigation, les deux lectures (une adresse chacune), le menu d'un verset
-// (surligner, noter, copier), partagé par les deux, le panneau des parallèles (Bible entière seulement)
+// (surligner, noter, copier, parallèles), partagé par les deux, le panneau des parallèles (à droite)
 // et le panneau Paramètres (dont « Mon compte »). Le compte et la bibliothèque du lecteur (notes,
 // surlignages, marque-pages : useLibrary) sont gérés ici, une fois pour toutes les pages.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
@@ -32,8 +32,7 @@ function App() {
   const account = useAccount();
   const library = useLibrary(account.user);
   const { highlights, notes } = library;
-  // Verset dont le menu est ouvert, { key: "Gn 1,3", text, reference, canShowParallels }, ou null si aucun
-  // (canShowParallels : ajouté par la page Bible entière, la seule qui propose les parallèles)
+  // Verset dont le menu est ouvert, { key: "Gn 1,3", text, reference }, ou null si aucun
   const [menuVerse, setMenuVerse] = useState(null);
   // Verset dont les parallèles sont affichés (le même objet que menuVerse), ou null
   const [parallelsVerse, setParallelsVerse] = useState(null);
@@ -82,7 +81,7 @@ function App() {
           onHoldNote={library.holdNote}
           onReleaseNote={library.releaseNote}
           onCopy={copyText}
-          onShowParallels={menuVerse.canShowParallels ? () => showParallels(menuVerse) : undefined}
+          onShowParallels={() => showParallels(menuVerse)}
           onClose={() => { library.releaseNote(); setMenuVerse(null); }}
         />
       )}

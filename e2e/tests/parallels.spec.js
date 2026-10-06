@@ -1,4 +1,4 @@
-// Parcours : les parallèles d'un verset (Bible entière seulement), depuis le menu du verset.
+// Parcours : les parallèles d'un verset (dans les deux lectures), depuis le menu du verset ; panneau à droite.
 
 import { test, expect } from '@playwright/test';
 import { firstVerse, longPress } from './helpers.js';
@@ -24,10 +24,12 @@ test('dans la Bible entière : voir les parallèles de Gn 1,1, en voir plus, pui
   await expect(page.getByRole('button', { name: /AU COMMENCEMENT était le Verbe/ })).toBeInViewport();
 });
 
-test('dans l\'histoire du salut, le menu d\'un verset ne propose pas les parallèles', async ({ page }) => {
+test('dans l\'histoire du salut aussi : « Voir les parallèles » (à la place de « Fermer ») ouvre le panneau', async ({ page }) => {
   await page.goto('/');
   await longPress(page, firstVerse(page));
 
-  await expect(page.getByRole('button', { name: 'Surligner' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Voir les parallèles' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Fermer' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Voir les parallèles' }).click();
+
+  await expect(page.getByRole('dialog', { name: 'Parallèles de Gn 1,1' }).getByRole('listitem').first()).toContainText('Jn 1,1-3');
 });

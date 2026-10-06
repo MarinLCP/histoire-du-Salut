@@ -1,5 +1,5 @@
-// Menu d'un verset, ouvert par un appui long : surligner, écrire une note, copier, et (dans la Bible
-// entière seulement) voir ses parallèles. Les notes sont gardées dans le compte : sans compte,
+// Menu d'un verset, ouvert par un appui long : surligner, écrire une note, copier, voir ses parallèles
+// (panneau à droite). Pas de bouton « Fermer » : un toucher à côté du menu, ou Échap, le referme. Les notes sont gardées dans le compte : sans compte,
 // « Enregistrer » propose d'en créer un (ou de se connecter), puis enregistre la note.
 // Utilise la balise <dialog> du navigateur : fond grisé, touche Échap et focus sont gérés pour nous.
 // Affiché comme un panneau qui monte du bas de l'écran (bottom sheet), pratique au pouce sur mobile.
@@ -12,7 +12,7 @@ import { useModalDialog } from '../hooks/useModalDialog.js';
 import './VerseMenu.css';
 
 // onCopy(text) : copie le texte et renvoie une promesse (injectée par App, remplacée par un faux dans les tests)
-// onShowParallels : ouvre le panneau des parallèles ; absent = pas de bouton (histoire du salut)
+// onShowParallels : ouvre le panneau des parallèles
 // noteStatus : où vont les notes (useLibrary().status) ; account : useAccount(), pour en créer un ici ;
 // onHoldNote(key, text) / onReleaseNote() : mettre de côté (ou oublier) la note tapée sans compte
 function VerseMenu({
@@ -49,7 +49,6 @@ function VerseMenu({
             onEditNote={() => setIsEditingNote(true)}
             onCopy={onCopy}
             onShowParallels={onShowParallels}
-            onClose={onClose}
           />
         )}
       </div>
@@ -57,15 +56,14 @@ function VerseMenu({
   );
 }
 
-function VerseActions({ isHighlighted, note, copiedText, onToggleHighlight, onEditNote, onCopy, onShowParallels, onClose }) {
+function VerseActions({ isHighlighted, note, copiedText, onToggleHighlight, onEditNote, onCopy, onShowParallels }) {
   return (
     <div className="verse-menu-buttons">
       <button onClick={onToggleHighlight}>{isHighlighted ? 'Retirer le surlignage' : 'Surligner'}</button>
       <button onClick={onEditNote}>{note ? 'Modifier la note' : 'Ajouter une note'}</button>
       {/* Le menu reste ouvert pour que l'utilisateur voie "Verset copié ✓" */}
       <StatusButton labels={COPY_LABELS} action={() => onCopy(copiedText).then(() => 'done')} />
-      {onShowParallels && <button onClick={onShowParallels}>Voir les parallèles</button>}
-      <button onClick={onClose}>Fermer</button>
+      <button onClick={onShowParallels}>Voir les parallèles</button>
     </div>
   );
 }

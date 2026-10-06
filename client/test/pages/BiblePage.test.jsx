@@ -83,13 +83,13 @@ describe('BiblePage', () => {
     expect(screen.getAllByRole('heading', { name: /^Chapitre/ })).toHaveLength(3);
   });
 
-  test('un verset de la Bible a le même menu que dans l\'histoire du salut (même référence), avec les parallèles', async () => {
+  test('un verset de la Bible a le même menu que dans l\'histoire du salut (même référence)', async () => {
     const { openMenu } = renderPage();
 
     fireEvent.contextMenu(await screen.findByRole('button', { name: /AU COMMENCEMENT/ }));
 
     expect(openMenu).toHaveBeenCalledWith({
-      key: 'Gn 1,1', text: 'AU COMMENCEMENT', reference: { book: 'Gn', chapter: '1', verse: '1' }, canShowParallels: true,
+      key: 'Gn 1,1', text: 'AU COMMENCEMENT', reference: { book: 'Gn', chapter: '1', verse: '1' },
     });
   });
 

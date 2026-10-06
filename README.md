@@ -258,7 +258,7 @@ histoire-du-Salut/
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, copier ; une note demande un compte (créé sur place), retrouvée
-│       ├── parallels.spec.js        ← les parallèles d'un verset (Bible entière seulement), « Voir plus », aller au verset
+│       ├── parallels.spec.js        ← les parallèles d'un verset (dans les deux lectures), « Voir plus », aller au verset
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
 └── client/                          ← site web (React + Vite)
@@ -334,7 +334,7 @@ histoire-du-Salut/
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
-    │   ├── parallels/               ← les parallèles d'un verset (Bible entière seulement, OpenBible.info)
+    │   ├── parallels/               ← les parallèles d'un verset (panneau à droite, OpenBible.info)
     │   │   ├── useParallels.js      ← chargés 10 par 10, les plus votés d'abord (« Voir plus »)
     │   │   └── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
     │   ├── backup/                  ← sauvegarde des notes et surlignages (dans le panneau Paramètres)

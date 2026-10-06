@@ -23,6 +23,7 @@ function renderMenu(props = {}) {
     onHoldNote: vi.fn(),
     onReleaseNote: vi.fn(),
     onClose: vi.fn(),
+    onShowParallels: vi.fn(),
     // Faux presse-papiers : la copie réussit (le vrai n'existe pas dans jsdom)
     onCopy: vi.fn().mockResolvedValue(undefined),
   };
@@ -134,16 +135,14 @@ describe('VerseMenu', () => {
     });
   });
 
-  test('« Voir les parallèles » : seulement si la page le propose (Bible entière)', async () => {
-    renderMenu();
-    expect(screen.queryByRole('button', { name: 'Voir les parallèles' })).toBeNull();
-    cleanup();
-
+  test('« Voir les parallèles » à la place de « Fermer » (un toucher à côté du menu le referme)', async () => {
     const onShowParallels = vi.fn();
     renderMenu({ onShowParallels });
+
     await userEvent.click(screen.getByRole('button', { name: 'Voir les parallèles' }));
 
     expect(onShowParallels).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Fermer' })).toBeNull();
   });
 
   test('sans compte, « Enregistrer » met la note de côté et propose un compte ; une fois le compte chargé, le menu se ferme', async () => {
