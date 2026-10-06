@@ -1,5 +1,5 @@
 // Hook React : une Map chargée depuis le navigateur au démarrage, et sauvegardée à chaque changement.
-// Utilisé par useHighlights et useNotes.
+// Utilisé par la bibliothèque du lecteur (library/useLibrary.js) : notes et surlignages du navigateur.
 
 import { useEffect, useState } from 'react';
 

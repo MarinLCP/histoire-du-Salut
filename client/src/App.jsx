@@ -1,6 +1,7 @@
 // Assemble l'app : la barre de navigation, les deux lectures (une adresse chacune), le menu d'un verset
 // (surligner, noter, copier), partagé par les deux, le panneau des parallèles (Bible entière seulement)
-// et le panneau Paramètres.
+// et le panneau Paramètres (dont « Mon compte »). Le compte et la bibliothèque du lecteur (notes,
+// surlignages, marque-pages : useLibrary) sont gérés ici, une fois pour toutes les pages.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useMemo, useState } from 'react';
@@ -15,8 +16,8 @@ import { useAccount } from './account/useAccount.js';
 import { downloadJson } from './backup/downloadJson.js';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
-import { useHighlights } from './highlights/useHighlights.js';
-import { useNotes } from './notes/useNotes.js';
+import { useLibrary } from './library/useLibrary.js';
+import { BookmarksContext } from './library/BookmarksContext.js';
 import { copyText } from './copy/clipboard.js';
 import { useSettings } from './settings/useSettings.js';
 
@@ -27,15 +28,15 @@ const PAGES = [
 ];
 
 function App() {
-  const { highlights, toggle: toggleHighlight, merge: mergeHighlights } = useHighlights();
-  const { notes, save: saveNote, merge: mergeNotes } = useNotes();
+  const account = useAccount();
+  const library = useLibrary(account.user);
+  const { highlights, notes } = library;
   // Verset dont le menu est ouvert, { key: "Gn 1,3", text, reference, canShowParallels }, ou null si aucun
   // (canShowParallels : ajouté par la page Bible entière, la seule qui propose les parallèles)
   const [menuVerse, setMenuVerse] = useState(null);
   // Verset dont les parallèles sont affichés (le même objet que menuVerse), ou null
   const [parallelsVerse, setParallelsVerse] = useState(null);
   const { settings, change: changeSettings } = useSettings();
-  const account = useAccount();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
@@ -52,12 +53,15 @@ function App() {
     <>
       <NavBar pages={PAGES} onOpenSettings={() => setIsSettingsOpen(true)} />
       <main>
-        <Routes>
-          <Route path="/" element={<HistoryPage annotations={annotations} />} />
-          <Route path="/bible" element={<BiblePage annotations={annotations} />} />
-          {/* Adresse inconnue : retour à l'histoire du salut */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        {/* Le marque-page de chaque lecture, pour la frise (compte ou navigateur) */}
+        <BookmarksContext.Provider value={library.bookmarks}>
+          <Routes>
+            <Route path="/" element={<HistoryPage annotations={annotations} />} />
+            <Route path="/bible" element={<BiblePage annotations={annotations} />} />
+            {/* Adresse inconnue : retour à l'histoire du salut */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BookmarksContext.Provider>
       </main>
 
       {/* key : un nouveau menu (état remis à zéro) pour chaque verset */}
@@ -68,8 +72,10 @@ function App() {
           verseText={menuVerse.text}
           isHighlighted={highlights.has(menuVerse.key)}
           note={notes.get(menuVerse.key)}
-          onToggleHighlight={toggleHighlight}
-          onSaveNote={saveNote}
+          onToggleHighlight={library.toggleHighlight}
+          onSaveNote={library.saveNote}
+          canSaveNotes={library.canSaveNotes}
+          account={account}
           onCopy={copyText}
           onShowParallels={menuVerse.canShowParallels ? () => showParallels(menuVerse) : undefined}
           onClose={() => setMenuVerse(null)}
@@ -82,9 +88,9 @@ function App() {
 
       {isSettingsOpen && (
         <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
-          <AccountSection account={account} />
-          <BackupSection highlights={highlights} notes={notes} onDownload={downloadJson}
-            onImport={(backup) => { mergeHighlights(backup.highlights); mergeNotes(backup.notes); }} />
+          <AccountSection account={account} waitingNotes={library.waitingNotes.size} />
+          <BackupSection highlights={highlights} notes={library.canSaveNotes ? notes : library.waitingNotes}
+            onDownload={downloadJson} onImport={library.importBackup} />
         </SettingsPanel>
       )}
     </>

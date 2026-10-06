@@ -1,15 +1,22 @@
 // La section « Mon compte » du panneau Paramètres : se connecter ou créer un compte ; une fois connecté,
 // l'e-mail du compte, « Se déconnecter » et « Supprimer mon compte » (mot de passe retapé pour confirmer).
-// account : useAccount() (branché dans App)
+// account : useAccount() (branché dans App) ; waitingNotes : le nombre de notes écrites dans ce navigateur,
+// qui rejoindront le compte à la connexion
 
 import { useState } from 'react';
 import SignInForm from './SignInForm.jsx';
 import './AccountSection.css';
 
-function AccountSection({ account }) {
+function AccountSection({ account, waitingNotes = 0 }) {
   return (
     <section className="account-section" aria-labelledby="account-title">
       <h3 id="account-title">Mon compte</h3>
+      {account.user === null && waitingNotes > 0 && (
+        <p className="account-waiting">
+          {waitingNotes > 1 ? `${waitingNotes} notes écrites` : '1 note écrite'} sur cet appareil t'attendent :
+          connecte-toi ou crée un compte pour les retrouver.
+        </p>
+      )}
       <AccountContent account={account} />
     </section>
   );

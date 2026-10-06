@@ -23,4 +23,13 @@ describe('VerseReference', () => {
   test.each([['', '1', '1'], ['Gn', '', '1'], ['Gn', '1', '']])('une partie vide (%j, %j, %j) : ValidationError', (book, chapter, verse) => {
     expect(() => new VerseReference(book, chapter, verse)).toThrow('Référence de verset incomplète.');
   });
+
+  test('parse : relit une référence écrite ("Ps 9A,1a"), l\'inverse de toString', () => {
+    expect(VerseReference.parse('Ps 9A,1a')).toEqual({ book: 'Ps', chapter: '9A', verse: '1a' });
+    expect(String(VerseReference.parse('1S 17,4'))).toBe('1S 17,4');
+  });
+
+  test.each(['Gn 1', 'Gn1,3', 'Gn 1,', '', 42, `Gn 1,${'1'.repeat(40)}`])('parse : %j illisible, ValidationError', (text) => {
+    expect(() => VerseReference.parse(text)).toThrow('illisible');
+  });
 });

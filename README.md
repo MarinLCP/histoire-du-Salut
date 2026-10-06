@@ -118,7 +118,8 @@ histoire-du-Salut/
 │   │   │   ├── 007_characters.sql   ← les personnages et leurs apparitions dans les épisodes
 │   │   │   ├── 008_parallels.sql    ← les parallèles : verset → verset ou plage, votes
 │   │   │   ├── 009_drop_parallels_index.sql ← retire un index en double (la clé primaire suffit)
-│   │   │   └── 010_accounts.sql     ← comptes (e-mail, mot de passe haché) et sessions (empreinte du jeton)
+│   │   │   ├── 010_accounts.sql     ← comptes (e-mail, mot de passe haché) et sessions (empreinte du jeton)
+│   │   │   └── 011_library.sql      ← notes privées, surlignages, marque-pages d'un compte (par référence "Gn 1,3")
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -165,6 +166,8 @@ histoire-du-Salut/
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
 │   │   │   ├── ParallelRepository.js ← port : contrat de lecture des parallèles d'un verset
 │   │   │   ├── AccountRepository.js ← ports des comptes : UserRepository, SessionRepository, PasswordHasher
+│   │   │   ├── library.js           ← règles de la bibliothèque d'un lecteur (note, lecture, position, envoi groupé)
+│   │   │   ├── LibraryRepository.js ← port : notes, surlignages, marque-pages d'un compte
 │   │   │   └── errors.js            ← ValidationError, UnauthorizedError, NotFoundError, ConflictError
 │   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
 │   │   │   ├── getPassage.js
@@ -179,7 +182,8 @@ histoire-du-Salut/
 │   │   │   ├── logIn.js             ← se connecter (même message si e-mail inconnu ou mot de passe faux)
 │   │   │   ├── logOut.js            ← se déconnecter (la session est fermée)
 │   │   │   ├── getCurrentUser.js    ← qui est connecté
-│   │   │   └── deleteAccount.js     ← supprimer son compte (mot de passe retapé)
+│   │   │   ├── deleteAccount.js     ← supprimer son compte (mot de passe retapé)
+│   │   │   └── library.js           ← la bibliothèque du lecteur connecté : lire, fusionner, écrire, retirer
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
@@ -187,6 +191,7 @@ histoire-du-Salut/
 │   │   │   ├── postgresParallelRepository.js ← le SQL des parallèles (rang par votes, aperçu de 5 versets)
 │   │   │   ├── postgresAccountRepository.js  ← le SQL des comptes et des sessions (jeton aléatoire, empreinte SHA-256)
 │   │   │   ├── scryptPasswordHasher.js ← hachage des mots de passe (scrypt, inclus dans Node, sel aléatoire)
+│   │   │   ├── postgresLibraryRepository.js ← le SQL de la bibliothèque (fusion : la note la plus récente gagne)
 │   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories
 │   │   │   └── rowsByOwner.js       ← range des lignes SQL par passage ou chapitre (une requête pour plusieurs)
 │   │   └── http/                    ← le seul endroit qui connaît Express
@@ -195,6 +200,7 @@ histoire-du-Salut/
 │   │       │                          /api/books/:code/chapters/:chapter/verses/:verse/parallels
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       ├── accountRoutes.js     ← /api/account (créer, supprimer), /api/session (se connecter, se déconnecter, qui)
+│   │       ├── libraryRoutes.js     ← /api/me/library, /api/me/notes/:verset, /api/me/highlights/:verset, /api/me/bookmarks/:lecture
 │   │       ├── sessionCookie.js     ← le cookie de session (httpOnly, Secure en ligne, SameSite=Lax)
 │   │       ├── attemptLimiter.js    ← 10 essais de mot de passe ratés en 15 min pour un e-mail : on attend
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 401 / 404 / 409
@@ -210,6 +216,7 @@ histoire-du-Salut/
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
 │       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
 │       │   ├── accounts.test.js     ← comptes : créer, cookie, se (dé)connecter, 401/409/429, supprimer
+│       │   ├── library.test.js      ← notes, surlignages, marque-pages du compte ; fusion ; chacun ne voit que les siens
 │       │   ├── attemptLimiter.test.js ← limite d'essais (horloge remplacée)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
@@ -240,7 +247,7 @@ histoire-du-Salut/
 │       ├── accounts.spec.js         ← créer un compte, rester connecté, se (dé)connecter, supprimer le compte
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
-│       ├── verse-menu.spec.js       ← surligner, noter, copier (et retrouver après rechargement)
+│       ├── verse-menu.spec.js       ← surligner, copier ; une note demande un compte (créé sur place), retrouvée
 │       ├── parallels.spec.js        ← les parallèles d'un verset (Bible entière seulement), « Voir plus », aller au verset
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
@@ -259,6 +266,7 @@ histoire-du-Salut/
     │   ├── api/
     │   │   ├── http.js              ← getJson / sendJson : lecture d'une réponse, messages d'erreur clairs
     │   │   ├── account.api.js       ← appels à l'API des comptes (le cookie de session voyage tout seul)
+    │   │   ├── library.api.js       ← appels à l'API de la bibliothèque du lecteur connecté
     │   │   ├── passages.api.js      ← appels à l'API (timeline, passage par slug)
     │   │   ├── bible.api.js         ← appels à l'API (Bible entière en continu, position d'un chapitre, parallèles)
     │   │   └── overview.api.js      ← vue d'ensemble de la frise (un arbre par mode, gardé en mémoire)
@@ -276,15 +284,17 @@ histoire-du-Salut/
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
-    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier, voir les parallèles)
+    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier, voir les parallèles) ;
+    │   │                              sans compte, « Enregistrer » propose d'en créer un
+    │   ├── library/                 ← la bibliothèque du lecteur : compte si connecté, sinon navigateur
+    │   │   ├── useLibrary.js        ← notes (compte obligatoire), surlignages, marque-pages ; fusion à la connexion
+    │   │   └── BookmarksContext.js  ← le marque-page de chaque lecture, partagé avec la frise
     │   ├── highlights/              ← surlignages
     │   │   ├── highlights.js        ← logique pure (surligner / retirer)
-    │   │   ├── highlights.storage.js← sauvegarde dans le navigateur
-    │   │   └── useHighlights.js     ← branchement React
+    │   │   └── highlights.storage.js← sauvegarde dans le navigateur
     │   ├── notes/                   ← notes personnelles (même découpage)
     │   │   ├── notes.js
-    │   │   ├── notes.storage.js
-    │   │   └── useNotes.js
+    │   │   └── notes.storage.js
     │   ├── copy/                    ← copier un verset
     │   │   ├── copyVerse.js         ← texte copié : « verset » (Gn 1,3)
     │   │   └── clipboard.js         ← presse-papiers (+ secours hors HTTPS)
@@ -321,7 +331,7 @@ histoire-du-Salut/
     │   │   └── BackupSection.jsx    ← « Télécharger une sauvegarde » / « Importer une sauvegarde »
     │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
     │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
-    │   │   ├── SignInForm.jsx       ← formulaire « Se connecter » / « Créer un compte »
+    │   │   ├── SignInForm.jsx / .css ← formulaire « Se connecter » / « Créer un compte » (Paramètres, menu d'un verset)
     │   │   └── AccountSection.jsx / .css ← la section : formulaire, ou e-mail + Se déconnecter + Supprimer
     │   ├── settings/                ← les Paramètres (bouton de la barre du haut, panneau à droite)
     │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
@@ -337,7 +347,7 @@ histoire-du-Salut/
     │   │   ├── useLoaded.js         ← une valeur chargée pour une clé (départ, chargée, ou secours)
     │   │   ├── useModalDialog.js    ← une fenêtre <dialog> modale (menu d'un verset, Paramètres)
     │   │   └── useMediaQuery.js     ← une règle de taille d'écran est-elle vraie (ex. écran étroit)
-    │   └── storage/                 ← outils partagés par surlignages et notes
+    │   └── storage/                 ← outils partagés par surlignages et notes (dans le navigateur)
     │       ├── versionedStorage.js  ← localStorage au format versionné
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
@@ -354,6 +364,7 @@ histoire-du-Salut/
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
         ├── account/                 ← section « Mon compte », useAccount
+        ├── library/                 ← useLibrary (sans compte, fusion à la connexion, écriture annulée si échec)
         ├── settings/                ← règles des réglages, panneau
         ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source)
         ├── backup/                  ← règles de la sauvegarde, section du panneau

@@ -59,3 +59,13 @@
   border-radius: 0.5rem;
   resize: vertical;
 }
+
+/* Sans compte : la proposition d'en créer un, pour garder la note */
+.verse-menu-account {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.verse-menu-account p {
+  margin: 0;
+}

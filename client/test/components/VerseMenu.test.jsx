@@ -30,6 +30,7 @@ function renderMenu(props = {}) {
       verseText="Et la lumière fut."
       isHighlighted={false}
       note={undefined}
+      canSaveNotes
       {...handlers}
       {...props}
     />,
@@ -141,5 +142,43 @@ describe('VerseMenu', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Voir les parallèles' }));
 
     expect(onShowParallels).toHaveBeenCalled();
+  });
+
+  test('sans compte, « Enregistrer » propose d\'en créer un ; une fois le compte chargé, la note attendue est enregistrée', async () => {
+    const account = { user: null, createAccount: vi.fn().mockResolvedValue(undefined), logIn: vi.fn() };
+    const onSaveNote = vi.fn();
+    const menu = (canSaveNotes) => (
+      <VerseMenu verseKey="Gn 1,3" verseText="Et la lumière fut." isHighlighted={false} note={undefined}
+        canSaveNotes={canSaveNotes} account={account} onSaveNote={onSaveNote} onToggleHighlight={vi.fn()}
+        onCopy={vi.fn()} onClose={vi.fn()} />
+    );
+    const { rerender } = render(menu(false));
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter une note' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Ma note' }), 'Une lumière');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(screen.getByText(/Crée un compte pour garder tes notes/)).toBeDefined();
+    await userEvent.type(screen.getByLabelText('E-mail'), 'marin@exemple.fr');
+    await userEvent.type(screen.getByLabelText(/^Mot de passe/), 'un mot de passe long');
+    await userEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }));
+    expect(account.createAccount).toHaveBeenCalled();
+    expect(onSaveNote).not.toHaveBeenCalled();
+
+    // Le compte est créé et chargé : App passe canSaveNotes à vrai
+    rerender(menu(true));
+
+    expect(onSaveNote).toHaveBeenCalledWith('Gn 1,3', 'Une lumière');
+  });
+
+  test('sans compte, « Revenir à ma note » retrouve le texte tapé', async () => {
+    renderMenu({ canSaveNotes: false, account: { user: null } });
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter une note' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Ma note' }), 'Une lumière');
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Revenir à ma note' }));
+
+    expect(screen.getByRole('textbox', { name: 'Ma note' }).value).toBe('Une lumière');
   });
 });

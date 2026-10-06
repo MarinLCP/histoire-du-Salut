@@ -3,6 +3,7 @@
 // account : useAccount() ; startWith : 'login' ou 'create' (l'onglet ouvert au départ)
 
 import { useState } from 'react';
+import './SignInForm.css';
 
 const MODES = {
   login: { action: 'logIn', submit: 'Se connecter', switchTo: 'create', switchLabel: 'Pas encore de compte ? Créer un compte', autoComplete: 'current-password' },
