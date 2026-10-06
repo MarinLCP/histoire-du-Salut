@@ -38,4 +38,16 @@ describe('createAttemptLimiter', () => {
 
     expect(limiter.isBlocked('a')).toBe(false);
   });
+
+  test('au-delà de 10 000 adresses, le ménage des échecs anciens ne casse pas la limite', () => {
+    const { now, advance } = clock();
+    const limiter = createAttemptLimiter({ maxFailures: 1, windowMs: 1000, now });
+    for (let index = 0; index < 10000; index++) limiter.recordFailure(`ancien-${index}`);
+
+    advance(1000);
+    limiter.recordFailure('nouveau');
+
+    expect(limiter.isBlocked('ancien-0')).toBe(false);
+    expect(limiter.isBlocked('nouveau')).toBe(true);
+  });
 });
