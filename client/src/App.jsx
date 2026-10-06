@@ -4,7 +4,7 @@
 // surlignages, marque-pages : useLibrary) sont gérés ici, une fois pour toutes les pages.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
@@ -21,6 +21,10 @@ import { useLibrary } from './library/useLibrary.js';
 import { BookmarksContext } from './library/BookmarksContext.js';
 import { copyText } from './copy/clipboard.js';
 import { useSettings } from './settings/useSettings.js';
+import { useMediaQuery } from './hooks/useMediaQuery.js';
+
+// Assez large pour la frise, la lecture ET le panneau des parallèles fixé à droite
+const WIDE_SCREEN = '(min-width: 1300px)';
 
 // Les pages du site
 const PAGES = [
@@ -36,12 +40,17 @@ function App() {
   const [menuVerse, setMenuVerse] = useState(null);
   // Verset dont les parallèles sont affichés (le même objet que menuVerse), ou null
   const [parallelsVerse, setParallelsVerse] = useState(null);
+  const isWide = useMediaQuery(WIDE_SCREEN);
+  const isParallelsDocked = isWide && parallelsVerse !== null;
   const { settings, change: changeSettings } = useSettings();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
   const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
+
+  // useCallback : la même fonction d'un affichage à l'autre (le panneau fixé écoute Échap avec elle)
+  const closeParallels = useCallback(() => setParallelsVerse(null), []);
 
   // Le menu laisse la place au panneau des parallèles
   function showParallels(verse) {
@@ -52,7 +61,8 @@ function App() {
   return (
     <>
       <NavBar pages={PAGES} onOpenSettings={() => setIsSettingsOpen(true)} />
-      <main>
+      {/* Le panneau des parallèles fixé à droite : la lecture lui laisse la place */}
+      <main className={isParallelsDocked ? 'with-docked-panel' : undefined}>
         {/* Le marque-page de chaque lecture, pour la frise (compte ou navigateur) */}
         <BookmarksContext.Provider value={library.bookmarks}>
           <Routes>
@@ -87,7 +97,8 @@ function App() {
       )}
 
       {parallelsVerse && (
-        <ParallelsPanel key={parallelsVerse.key} verse={parallelsVerse} onClose={() => setParallelsVerse(null)} />
+        <ParallelsPanel key={parallelsVerse.key} verse={parallelsVerse} isDocked={isWide}
+          onClose={closeParallels} />
       )}
 
       {isSettingsOpen && (

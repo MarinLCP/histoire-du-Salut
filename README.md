@@ -258,7 +258,7 @@ histoire-du-Salut/
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus) ; sauvegarde téléchargée puis réimportée
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, copier ; une note demande un compte (créé sur place), retrouvée
-│       ├── parallels.spec.js        ← les parallèles d'un verset (dans les deux lectures), « Voir plus », aller au verset
+│       ├── parallels.spec.js        ← les parallèles d'un verset (dans les deux lectures), « Voir plus », aller au verset ; écran large : fixé à droite
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
 └── client/                          ← site web (React + Vite)
@@ -296,6 +296,7 @@ histoire-du-Salut/
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
+    │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier, voir les parallèles) ;
     │   │                              sans compte, « Enregistrer » propose d'en créer un
     │   ├── library/                 ← la bibliothèque du lecteur : compte si connecté, sinon navigateur

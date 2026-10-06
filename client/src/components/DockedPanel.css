@@ -1,0 +1,24 @@
+/* Le panneau fixé à droite de la lecture (écran large). Ses titres et son bouton : SidePanel.css */
+
+.docked-panel {
+  position: fixed;
+  top: var(--nav-height);
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  width: var(--docked-panel-width);
+  box-sizing: border-box;
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+  padding: 1.25rem 1.25rem 2rem;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  background: var(--background);
+  font: .9rem/1.4 var(--ui-font);
+}
+
+/* La lecture laisse la place du panneau à droite : il ne cache jamais le texte */
+.with-docked-panel {
+  padding-right: var(--docked-panel-width);
+}

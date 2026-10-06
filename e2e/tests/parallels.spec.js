@@ -33,3 +33,24 @@ test('dans l\'histoire du salut aussi : « Voir les parallèles » (à la place 
 
   await expect(page.getByRole('dialog', { name: 'Parallèles de Gn 1,1' }).getByRole('listitem').first()).toContainText('Jn 1,1-3');
 });
+
+test('écran large : le panneau se fixe à droite, la lecture continue à côté, « Fermer » le referme', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Sur téléphone, le panneau passe par-dessus la lecture');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/bible');
+  await longPress(page, firstVerse(page));
+  await page.getByRole('button', { name: 'Voir les parallèles' }).click();
+
+  const panel = page.getByRole('complementary', { name: 'Parallèles de Gn 1,1' });
+  await expect(panel.getByRole('listitem').first()).toContainText('Jn 1,1-3');
+  // Pas de fenêtre par-dessus : le texte reste lisible et cliquable à côté
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(firstVerse(page)).toBeInViewport();
+
+  await panel.getByRole('listitem').first().getByRole('link').click();
+  await expect(page).toHaveURL(/verset=1$/);
+  await expect(panel).toBeVisible();
+
+  await panel.getByRole('button', { name: 'Fermer' }).click();
+  await expect(panel).toHaveCount(0);
+});

@@ -1,9 +1,12 @@
 // Le panneau des parallèles d'un verset (à droite), ouvert depuis le menu du verset, dans les deux lectures :
 // les 10 passages les plus votés par les lecteurs d'OpenBible.info, puis « Voir plus ».
-// Un clic sur un parallèle ouvre la Bible entière à ce verset (et referme le panneau).
+// Un clic sur un parallèle ouvre la Bible entière à ce verset.
+// - écran large (isDocked) : fixé à droite de la lecture, il reste ouvert (on lit à côté) ;
+// - sinon : par-dessus la lecture (SidePanel), refermé par le clic.
 
 import { Link } from 'react-router';
 import SidePanel from '../components/SidePanel.jsx';
+import DockedPanel from '../components/DockedPanel.jsx';
 import ListStatus from '../components/ListStatus.jsx';
 import { useParallels } from './useParallels.js';
 import { rangeReference } from '../bible/reference.js';
@@ -13,14 +16,15 @@ import './ParallelsPanel.css';
 const SOURCE_URL = 'https://www.openbible.info/labs/cross-references/';
 
 // verse : { key: "Mt 11,14", reference: { book, chapter, verse } } (le verset du menu)
-function ParallelsPanel({ verse, onClose }) {
+function ParallelsPanel({ verse, isDocked = false, onClose }) {
   const { parallels, isLoading, error, canLoadMore, loadMore } = useParallels(verse.reference);
+  const Panel = isDocked ? DockedPanel : SidePanel;
 
   return (
-    <SidePanel title={`Parallèles de ${verse.key}`} onClose={onClose}>
+    <Panel title={`Parallèles de ${verse.key}`} onClose={onClose}>
       <ol className="parallels-list">
         {parallels.map((parallel) => (
-          <ParallelItem key={parallel.position} parallel={parallel} onOpen={onClose} />
+          <ParallelItem key={parallel.position} parallel={parallel} onOpen={isDocked ? undefined : onClose} />
         ))}
       </ol>
       <ListStatus isLoading={isLoading} error={error} onRetry={loadMore}
@@ -29,7 +33,7 @@ function ParallelsPanel({ verse, onClose }) {
       <p className="parallels-note">
         Parallèles : <a href={SOURCE_URL} target="_blank" rel="noreferrer">OpenBible.info</a> (CC-BY)
       </p>
-    </SidePanel>
+    </Panel>
   );
 }
 

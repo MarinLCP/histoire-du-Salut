@@ -8,6 +8,8 @@
   --highlight: #fbeaa0;
   /* Largeur de la colonne de lecture (passages, chapitres, menus) */
   --reading-width: 38rem;
+  /* Largeur du panneau fixé à droite de la lecture (parallèles, écran large) */
+  --docked-panel-width: 22rem;
   /* Hauteur de la barre de navigation (toujours visible) : la frise se place dessous, sur le reste de l'écran */
   --nav-height: 3rem;
   /* Police des boutons et de la frise (le texte biblique, lui, est en serif) */

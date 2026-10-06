@@ -33,11 +33,11 @@ const pages = {
 const MT_11_14 = { key: 'Mt 11,14', reference: { book: 'Mt', chapter: '11', verse: '14' } };
 const GN_1_1 = { key: 'Gn 1,1', reference: { book: 'Gn', chapter: '1', verse: '1' } };
 
-function renderPanel(verse = MT_11_14) {
+function renderPanel(verse = MT_11_14, { isDocked = false } = {}) {
   const onClose = vi.fn();
   render(
     <MemoryRouter>
-      <ParallelsPanel verse={verse} onClose={onClose} />
+      <ParallelsPanel verse={verse} isDocked={isDocked} onClose={onClose} />
     </MemoryRouter>,
   );
   return { onClose };
@@ -109,5 +109,31 @@ describe('ParallelsPanel', () => {
 
     expect(screen.getByRole('link', { name: 'OpenBible.info' }).getAttribute('href')).toContain('openbible.info');
     expect(screen.getByText(/CC-BY/)).toBeDefined();
+  });
+
+  describe('fixé à droite (écran large)', () => {
+    test('un panneau à côté de la lecture, pas une fenêtre par-dessus', async () => {
+      renderPanel(MT_11_14, { isDocked: true });
+
+      expect(screen.getByRole('complementary', { name: 'Parallèles de Mt 11,14' })).toBeDefined();
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    test('un clic sur un parallèle le laisse ouvert (on lit à côté)', async () => {
+      const { onClose } = renderPanel(MT_11_14, { isDocked: true });
+
+      fireEvent.click((await screen.findAllByRole('link', { name: /Élie/ }))[0]);
+
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    test('« Fermer » ou Échap le referment', () => {
+      const { onClose } = renderPanel(MT_11_14, { isDocked: true });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(2);
+    });
   });
 });
