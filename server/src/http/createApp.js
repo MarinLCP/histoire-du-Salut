@@ -14,11 +14,12 @@ import { errorHandler } from './errorHandler.js';
  * @param {(bookCode: string, label: string) => Promise<object>} dependencies.findChapter
  * @param {() => Promise<object[]>} dependencies.getHistoryOverview
  * @param {() => Promise<object[]>} dependencies.getBibleOverview
+ * @param {(origin: object, query: object) => Promise<object>} dependencies.getParallels
  * @param {() => Promise<void>} dependencies.pingDatabase
  * @param {string} dependencies.clientBuildDirectory - le site React construit (client/dist)
  */
 export function createApp({
-  getPassage, getTimeline, readBible, findChapter, getHistoryOverview, getBibleOverview,
+  getPassage, getTimeline, readBible, findChapter, getHistoryOverview, getBibleOverview, getParallels,
   pingDatabase, clientBuildDirectory,
 }) {
   const app = express();
@@ -42,6 +43,12 @@ export function createApp({
   // La position d'un chapitre, pour ouvrir la Bible à cet endroit (ex. /api/books/Gn/chapters/3)
   app.get('/api/books/:code/chapters/:chapter', async (req, res) => {
     res.json(await findChapter(req.params.code, req.params.chapter));
+  });
+
+  // Les parallèles d'un verset, les plus votés d'abord (ex. /api/books/Mt/chapters/11/verses/14/parallels?after=10)
+  app.get('/api/books/:code/chapters/:chapter/verses/:verse/parallels', async (req, res) => {
+    const { code, chapter, verse } = req.params;
+    res.json(await getParallels({ book: code, chapter, verse }, req.query));
   });
 
   // La vue d'ensemble de la frise, sans texte : un arbre par mode

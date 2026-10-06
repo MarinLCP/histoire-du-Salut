@@ -158,6 +158,7 @@ histoire-du-Salut/
 │   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres → sous-chapitres
 │   │   │   ├── PassageRepository.js ← port : contrat de lecture des passages (JSDoc)
 │   │   │   ├── BibleRepository.js   ← port : contrat de lecture de la Bible entière (livres, chapitres)
+│   │   │   ├── ParallelRepository.js ← port : contrat de lecture des parallèles d'un verset
 │   │   │   └── errors.js            ← ValidationError, NotFoundError
 │   │   ├── application/             ← use cases : orchestrent le domaine (repository injecté)
 │   │   │   ├── getPassage.js
@@ -165,27 +166,31 @@ histoire-du-Salut/
 │   │   │   ├── readBible.js         ← la Bible en continu, chapitre après chapitre
 │   │   │   ├── findChapter.js       ← position d'un chapitre (ouvrir la Bible au bon endroit)
 │   │   │   ├── getHistoryOverview.js ← vue d'ensemble de la frise, mode Histoire du salut
-│   │   │   └── getBibleOverview.js  ← vue d'ensemble de la frise, mode Bible entière
+│   │   │   ├── getBibleOverview.js  ← vue d'ensemble de la frise, mode Bible entière
+│   │   │   └── getParallels.js      ← les parallèles d'un verset, les plus votés d'abord (10, puis la suite)
 │   │   ├── infrastructure/          ← le seul endroit qui connaît PostgreSQL
 │   │   │   ├── db.js                ← connexion (pool) + pingDatabase
 │   │   │   ├── postgresPassageRepository.js ← tout le SQL des passages
 │   │   │   ├── postgresBibleRepository.js   ← tout le SQL de la Bible entière
-│   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les deux repositories
+│   │   │   ├── postgresParallelRepository.js ← le SQL des parallèles (rang par votes, aperçu de 5 versets)
+│   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories
 │   │   │   └── rowsByOwner.js       ← range des lignes SQL par passage ou chapitre (une requête pour plusieurs)
 │   │   └── http/                    ← le seul endroit qui connaît Express
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/bible,
-│   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible
+│   │       │                          /api/books/:code/chapters/:chapter, /api/overview/history, /api/overview/bible,
+│   │       │                          /api/books/:code/chapters/:chapter/verses/:verse/parallels
 │   │       │                          + site React construit (prod) + SPA fallback (/bible → index.html)
 │   │       └── errorHandler.js      ← erreurs métier → 400 / 404
 │   └── test/                        ← en miroir de src/ et scripts/
 │       ├── domain/                  ← identifier, PassageSlug, PageRequest, arbres de la frise (unitaires, sans base)
-│       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble (faux repository)
+│       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles (faux repository)
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
 │       │   ├── spaFallback.test.js  ← les adresses du site renvoient index.html, pas l'API
 │       │   ├── bible.test.js        ← GET /api/bible (74 livres, sans trou ni doublon), position d'un chapitre
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
+│       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
 │       ├── db/
 │       │   └── seededData.test.js   ← ce que le seed a écrit (époques, versets, grands ensembles, parallèles...)

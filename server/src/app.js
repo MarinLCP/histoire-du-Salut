@@ -3,24 +3,28 @@
 // puis les use cases dans l'app Express. Les tests unitaires, eux, injectent de faux repositories.
 //
 //   http/ (Express)  ──>  application/ (use cases)  ──>  domain/ (règles métier)
-//   infrastructure/ (PostgreSQL)  ──implémente──>  domain/PassageRepository.js, domain/BibleRepository.js
+//   infrastructure/ (PostgreSQL)  ──implémente──>  domain/PassageRepository.js, domain/BibleRepository.js,
+//                                                  domain/ParallelRepository.js
 //
 // Les flèches pointent toujours vers le domaine : il ne dépend de rien (règle de dépendance).
 
 import { pool, pingDatabase } from './infrastructure/db.js';
 import { createPostgresPassageRepository } from './infrastructure/postgresPassageRepository.js';
 import { createPostgresBibleRepository } from './infrastructure/postgresBibleRepository.js';
+import { createPostgresParallelRepository } from './infrastructure/postgresParallelRepository.js';
 import { makeGetPassage } from './application/getPassage.js';
 import { makeGetTimeline } from './application/getTimeline.js';
 import { makeReadBible } from './application/readBible.js';
 import { makeFindChapter } from './application/findChapter.js';
 import { makeGetHistoryOverview } from './application/getHistoryOverview.js';
 import { makeGetBibleOverview } from './application/getBibleOverview.js';
+import { makeGetParallels } from './application/getParallels.js';
 import { createApp } from './http/createApp.js';
 import { fileURLToPath } from 'node:url';
 
 const passageRepository = createPostgresPassageRepository(pool);
 const bibleRepository = createPostgresBibleRepository(pool);
+const parallelRepository = createPostgresParallelRepository(pool);
 
 const app = createApp({
   getPassage: makeGetPassage(passageRepository),
@@ -29,6 +33,7 @@ const app = createApp({
   findChapter: makeFindChapter(bibleRepository),
   getHistoryOverview: makeGetHistoryOverview(passageRepository),
   getBibleOverview: makeGetBibleOverview(bibleRepository),
+  getParallels: makeGetParallels(parallelRepository),
   pingDatabase,
   // Le site React une fois construit (cd client && npm run build)
   clientBuildDirectory: fileURLToPath(new URL('../../client/dist', import.meta.url)),
