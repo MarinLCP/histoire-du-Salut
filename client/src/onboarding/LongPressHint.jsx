@@ -2,12 +2,11 @@
 // d'accueil. Une petite bulle qui flotte sous la navigation, sans bloquer la lecture ; « Compris » la retire
 // (ouvrir le menu d'un verset aussi : voir App.jsx).
 
-import { useMediaQuery } from '../hooks/useMediaQuery.js';
+import { TOUCH_SCREEN, useMediaQuery } from '../hooks/useMediaQuery.js';
 import './LongPressHint.css';
 
 function LongPressHint({ onDismiss }) {
-  // Écran tactile : « appui long » ; souris : « clic droit »
-  const isTouch = useMediaQuery('(hover: none)');
+  const isTouch = useMediaQuery(TOUCH_SCREEN);
 
   return (
     <aside className="long-press-hint" aria-label="Astuce">

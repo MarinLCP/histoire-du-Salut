@@ -136,18 +136,10 @@
   color: var(--text);
 }
 
-.welcome-verse .welcome-bookmark {
-  display: flex;
-  align-items: center;
-  gap: .35rem;
+/* Le marque-page (BookmarkTag) : juste sous le verset de l'exemple, dans son or (le texte des cartes est gris) */
+.welcome-verse .verse-bookmark {
   margin-top: .3rem;
   color: var(--bookmark);
-  font: 600 .7rem/1 var(--ui-font);
-}
-
-.welcome-bookmark svg {
-  width: .5rem;
-  fill: currentColor;
 }
 
 .welcome-verse .welcome-note {

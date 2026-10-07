@@ -1,6 +1,6 @@
 // Un panneau qui glisse depuis le bord droit, par-dessus la lecture (fond grisé derrière) : un titre,
 // un bouton « Fermer », puis son contenu. Une fenêtre <dialog> modale (useModalDialog) : Échap ou un
-// toucher sur le fond le referment. Utilisé par le panneau Paramètres et par celui des parallèles.
+// toucher sur le fond le referment. Utilisé par le panneau « Compte et réglages » et par celui des parallèles.
 
 import { useId } from 'react';
 import { useModalDialog } from '../hooks/useModalDialog.js';

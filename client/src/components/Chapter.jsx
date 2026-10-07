@@ -9,7 +9,7 @@ import './Chapter.css';
 function Chapter({ chapter, showBookTitle, annotations }) {
   return (
     // data-reading-position : la frise repère ainsi le chapitre en cours de lecture (frise/useReadingPosition.js) ;
-    // data-reading-title : le titre qui reste collé en haut pendant qu'on le lit (ReadingTitle.jsx)
+    // data-reading-title : le titre montré en bas pendant qu'on le lit (ReadingTitle.jsx)
     <article className="chapter" data-reading-position={chapter.position}
       data-reading-title={`${chapter.book.title} · Chapitre ${chapter.chapter}`}>
       {showBookTitle && <h2 className="chapter-book">{chapter.book.title}</h2>}

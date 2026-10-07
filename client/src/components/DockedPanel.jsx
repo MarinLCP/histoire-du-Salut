@@ -2,7 +2,10 @@
 // Un titre, un bouton « Fermer » (ou Échap), puis son contenu. Sur un écran plus étroit, la même chose
 // s'affiche en SidePanel (par-dessus la lecture). Utilisé par le panneau des parallèles.
 
-import { useEffect, useId } from 'react';
+import { useId } from 'react';
+import { useCloseOnEscape } from '../hooks/useCloseOnEscape.js';
+// Le titre et le bouton « Fermer » ont le style de SidePanel (side-panel-header, side-panel-close)
+import './SidePanel.css';
 import './DockedPanel.css';
 
 function DockedPanel({ title, onClose, children }) {
@@ -18,19 +21,6 @@ function DockedPanel({ title, onClose, children }) {
       {children}
     </aside>
   );
-}
-
-// Échap referme le panneau. Sauf si une fenêtre est ouverte par-dessus (ex. le menu d'un verset) :
-// Échap ne referme alors qu'elle (le navigateur s'en charge)
-function useCloseOnEscape(onClose) {
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key !== 'Escape' || document.querySelector('dialog[open]')) return;
-      onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
 }
 
 export default DockedPanel;

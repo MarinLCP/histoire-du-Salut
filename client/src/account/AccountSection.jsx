@@ -1,4 +1,4 @@
-// La section « Mon compte » du panneau Paramètres : se connecter ou créer un compte ; une fois connecté,
+// La section « Mon compte » du panneau « Compte et réglages » : se connecter ou créer un compte ; une fois connecté,
 // l'e-mail du compte, « Se déconnecter », « Supprimer mon compte » (mot de passe retapé pour confirmer)
 // et « Partager où j'en suis » (SharingSection).
 // account : useAccount() (branché dans App) ; waitingNotes : le nombre de notes écrites dans ce navigateur,

@@ -98,8 +98,7 @@
   font: 600 .8rem/1.2 var(--ui-font);
   transition: left var(--morph), top var(--morph), width var(--morph), height var(--morph),
     border-radius var(--morph), filter .2s ease;
-  /* Un liseré clair en haut : le bord de la marche, d'où l'eau tombe (plus de rayures verticales, retirées à la
-     demande de Marin) */
+  /* Un liseré clair en haut : le bord de la marche, d'où l'eau tombe */
   box-shadow: inset 0 2px 0 #ffffff59, inset 0 -1px 0 #0d16301f, 0 -2px 0 #0d163024;
 }
 

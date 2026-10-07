@@ -22,7 +22,7 @@ function Passage({ passage, annotations, onShare }) {
   const share = () => onShare(passage).then((result) => (result === 'copied' ? 'done' : 'idle'));
 
   // data-reading-position : la frise repère ainsi le passage en cours de lecture (frise/useReadingPosition.js) ;
-  // data-reading-title : le titre qui reste collé en haut pendant qu'on le lit (ReadingTitle.jsx)
+  // data-reading-title : le titre montré en bas pendant qu'on le lit (ReadingTitle.jsx)
   return (
     <article className="passage" data-reading-position={passage.position}
       data-reading-title={`${passage.title} · ${passageReference(passage)}`}>

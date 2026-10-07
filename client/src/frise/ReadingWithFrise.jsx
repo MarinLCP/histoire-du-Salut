@@ -5,12 +5,14 @@
 //   et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (le tiers visible) ou Échap le referme.
 // En bas de la lecture flottent le titre de ce qu'on lit et, après un clic sur un parallèle, « Revenir à … ».
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Frise from './Frise.jsx';
 import ReadingTitle from './ReadingTitle.jsx';
 import ReturnButton from '../components/ReturnButton.jsx';
 import { ReadingModeContext } from './ReadingModeContext.js';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
+import { useCloseOnEscape } from '../hooks/useCloseOnEscape.js';
+import { useReadingPosition } from './useReadingPosition.js';
 import './ReadingWithFrise.css';
 
 // La même limite que dans ReadingWithFrise.css
@@ -20,15 +22,17 @@ const NARROW_SCREEN = '(max-width: 1099px)';
 function ReadingWithFrise({ mode, tabNames, onJump, children }) {
   const isNarrow = useMediaQuery(NARROW_SCREEN);
   const [isOpen, setIsOpen] = useState(false);
-  const close = () => setIsOpen(false);
+  const close = useCallback(() => setIsOpen(false), []);
+  // Où en est la lecture : mesuré UNE fois ici, pour la frise et pour le titre du bas
+  const readingAt = useReadingPosition();
 
-  useCloseOnEscape(isOpen, setIsOpen);
+  useCloseOnEscape(close, isOpen);
 
   return (
     <div className="with-frise">
       {/* inert : panneau fermé sur écran étroit = ni clavier ni lecteur d'écran n'y entrent */}
       <div id="frise-drawer" className={`frise-drawer${isOpen ? ' open' : ''}`} inert={isNarrow && !isOpen}>
-        <Frise mode={mode} tabNames={tabNames} onJump={onJump} />
+        <Frise mode={mode} tabNames={tabNames} onJump={onJump} readingAt={readingAt} />
       </div>
       <button type="button" className="frise-drawer-tab" aria-controls="frise-drawer" aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}>
@@ -44,23 +48,11 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
         </ReadingModeContext.Provider>
         <div className="reading-bottom">
           <ReturnButton />
-          <ReadingTitle />
+          <ReadingTitle readingAt={readingAt} />
         </div>
       </div>
     </div>
   );
-}
-
-// Échap referme le panneau (seulement quand il est ouvert). setIsOpen : le setter de React, toujours le même
-function useCloseOnEscape(isOpen, setIsOpen) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') setIsOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, setIsOpen]);
 }
 
 export default ReadingWithFrise;

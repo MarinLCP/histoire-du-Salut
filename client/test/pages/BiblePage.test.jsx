@@ -3,7 +3,7 @@
 // L'API est remplacée par un faux fetch ; l'IntersectionObserver par un faux qui « voit » tout de suite le bas de page.
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, within, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import BiblePage from '../../src/pages/BiblePage.jsx';
 import { stubResizeObserver } from '../helpers/stubResizeObserver.js';
@@ -121,7 +121,8 @@ describe('BiblePage', () => {
 
     const verse = await screen.findByRole('button', { name: /Voici les noms/ });
 
-    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    // Le défilement se fait dans un effet, juste après l'affichage du verset : on l'attend
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
     expect(scrollIntoView.mock.contexts[0]).toBe(verse);
     expect(verse.classList.contains('verse-arrival')).toBe(true);
     delete Element.prototype.scrollIntoView;

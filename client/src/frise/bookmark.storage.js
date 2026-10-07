@@ -15,6 +15,9 @@ export function loadBookmarks() {
   return new Map([...versionOne.load()].map(([mode, position]) => [mode, { position, verse: null }]));
 }
 
+// Un marque-page posé à la main (sur un verset) : il ne suit plus la lecture
+export const isPlaced = (bookmark) => bookmark?.verse != null;
+
 // mode : 'history' ou 'bible' ; bookmark : { position, verse }
 export function saveBookmark(mode, bookmark) {
   const bookmarks = loadBookmarks();

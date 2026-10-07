@@ -24,7 +24,7 @@
 
 .parallel-link:focus-visible,
 .parallels-more:focus-visible {
-  outline: 2px solid var(--level-2);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

@@ -1,4 +1,4 @@
-/* Le panneau Paramètres (le panneau lui-même : components/SidePanel.css) */
+/* Le panneau « Compte et réglages » (le panneau lui-même : components/SidePanel.css) */
 
 .settings-choice {
   margin: 0;
@@ -46,7 +46,7 @@
 }
 
 .settings-options input:focus-visible + span {
-  outline: 2px solid var(--level-2);
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
@@ -67,7 +67,7 @@
   color: var(--text);
 }
 
-/* Une section du panneau (« Mon compte », « Mes notes et surlignages »...) : titre, texte, boutons */
+/* Une section du panneau (« Mon compte ») : titre, texte, boutons */
 .settings-section {
   display: grid;
   gap: .6rem;
@@ -104,6 +104,6 @@
 }
 
 .settings-actions button:focus-visible {
-  outline: 2px solid var(--level-2);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

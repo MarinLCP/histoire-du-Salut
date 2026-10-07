@@ -1,0 +1,16 @@
+/* « Marque-page » sous le verset où le lecteur l'a posé : le ruban de la frise, en petit */
+
+.verse-bookmark {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin: -0.4rem 0 .9rem;
+  font: 600 .75rem/1 var(--ui-font);
+  color: var(--bookmark);
+}
+
+.verse-bookmark svg {
+  width: .6rem;
+  height: 1rem;
+  fill: currentColor;
+}

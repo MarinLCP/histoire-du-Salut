@@ -1,7 +1,6 @@
 // Les parallèles d'un verset dans la marge (comme une page de la Bible de Jérusalem) : ses références les plus
 // votées, chacune un lien vers le verset. Sur grand écran, à droite du texte ; plus étroit, sous le verset.
 
-import { memo } from 'react';
 import { Link } from 'react-router';
 import { rangeReference } from '../bible/reference.js';
 import { verseLink } from '../bible/bibleLink.js';
@@ -23,4 +22,4 @@ function MarginParallels({ parallels, returnTo }) {
   );
 }
 
-export default memo(MarginParallels);
+export default MarginParallels;

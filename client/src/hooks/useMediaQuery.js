@@ -4,6 +4,9 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 
+// Un écran tactile (pas de souris qui survole) : on y parle d'« appui long » plutôt que de « clic droit »
+export const TOUCH_SCREEN = '(hover: none)';
+
 export function useMediaQuery(query) {
   const subscribe = useCallback((onChange) => {
     const list = window.matchMedia?.(query);

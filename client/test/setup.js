@@ -7,11 +7,12 @@
 
 import { afterEach, beforeEach } from 'vitest';
 import { forgetOverviews } from '../src/api/overview.api.js';
-
-const ONBOARDING_SEEN = JSON.stringify({ version: 1, onboarding: { welcome: true, longPressHint: true } });
+import { markSeen } from '../src/onboarding/onboarding.storage.js';
 
 beforeEach(() => {
-  globalThis.localStorage?.setItem('onboarding', ONBOARDING_SEEN);
+  if (!globalThis.localStorage) return;
+  markSeen('welcome');
+  markSeen('longPressHint');
 });
 
 afterEach(() => {

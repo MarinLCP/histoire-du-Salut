@@ -321,6 +321,7 @@ histoire-du-Salut/
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres, marge), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un parallèle (en bas de la lecture)
+    │   │   ├── BookmarkTag.jsx / .css ← « Marque-page » sous le verset où il est posé (aussi sur une carte d'accueil)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
     │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, marque-page, copier, parallèles) ;
@@ -354,6 +355,7 @@ histoire-du-Salut/
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
+    │   │   ├── RibbonIcon.jsx       ← le dessin du ruban, partagé (frise, verset, carte d'accueil)
     │   │   ├── useBookmark.js       ← le marque-page : retenu pendant la lecture, montré à la visite suivante ;
     │   │   │                          posé à la main (menu d'un verset), il ne bouge plus
     │   │   ├── bookmark.storage.js  ← sauvegarde du marque-page dans le navigateur ({ position, verse } par lecture)
@@ -386,7 +388,8 @@ histoire-du-Salut/
     │   │   ├── LongPressHint.jsx / .css ← l'astuce de l'appui long, une seule fois
     │   │   ├── useOnboarding.js     ← quand les montrer (première visite, « Revoir la présentation »)
     │   │   └── onboarding.storage.js ← déjà vu ou pas, dans le navigateur
-    │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
+    │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran,
+    │   │                              Échap qui referme un panneau (useCloseOnEscape)
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
     │   │   ├── useCursorPages.js    ← liste chargée page par page (réponses en double ou périmées ignorées)

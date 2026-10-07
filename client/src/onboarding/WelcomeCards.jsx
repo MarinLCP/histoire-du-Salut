@@ -6,7 +6,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useModalDialog } from '../hooks/useModalDialog.js';
-import { useMediaQuery } from '../hooks/useMediaQuery.js';
+import { TOUCH_SCREEN, useMediaQuery } from '../hooks/useMediaQuery.js';
+import { RibbonIcon } from '../frise/RibbonIcon.jsx';
+import BookmarkTag from '../components/BookmarkTag.jsx';
 import './WelcomeCards.css';
 
 // Un glissement de doigt plus long que ça (en px) change de carte
@@ -16,9 +18,10 @@ function WelcomeCards({ onClose }) {
   const { dialogRef, backdropProps } = useModalDialog(onClose);
   const nextRef = useRef(null);
   const [index, setIndex] = useState(0);
-  const [swipeStart, setSwipeStart] = useState(null);
+  // Où le doigt s'est posé (pour un glissement) : pas un état, rien à redessiner
+  const swipeStart = useRef(null);
   // Écran tactile : « appui long » ; souris : « clic droit » (les deux marchent partout)
-  const isTouch = useMediaQuery('(hover: none)');
+  const isTouch = useMediaQuery(TOUCH_SCREEN);
   const cards = welcomeCards(isTouch);
   const card = cards[index];
   const isLast = index === cards.length - 1;
@@ -36,9 +39,9 @@ function WelcomeCards({ onClose }) {
   }
 
   function onPointerUp(event) {
-    if (swipeStart === null) return;
-    const distance = event.clientX - swipeStart;
-    setSwipeStart(null);
+    if (swipeStart.current === null) return;
+    const distance = event.clientX - swipeStart.current;
+    swipeStart.current = null;
     if (Math.abs(distance) < SWIPE_DISTANCE) return;
     goTo(distance < 0 ? index + 1 : index - 1);
   }
@@ -46,7 +49,7 @@ function WelcomeCards({ onClose }) {
   return (
     <dialog ref={dialogRef} className="welcome" aria-labelledby="welcome-title" onClose={onClose} onKeyDown={onKeyDown}
       {...backdropProps}>
-      <div className="welcome-card" onPointerDown={(event) => setSwipeStart(event.clientX)} onPointerUp={onPointerUp}>
+      <div className="welcome-card" onPointerDown={(event) => { swipeStart.current = event.clientX; }} onPointerUp={onPointerUp}>
         <div className="welcome-illustration" aria-hidden="true">{card.illustration}</div>
         <h2 id="welcome-title">{card.title}</h2>
         {card.text}
@@ -121,7 +124,7 @@ function FriseIllustration() {
     <div className="welcome-frise">
       {[0, 1, 2, 3].map((step) => <span key={step} style={{ '--step': step }} />)}
       <svg className="welcome-boat" viewBox="0 0 24 20"><path d="M3 12h18l-3 6H6zM11 3v8M11 3l6 6h-6z" /></svg>
-      <svg className="welcome-ribbon" viewBox="0 0 16 26"><path d="M1 0h14v24l-7-6-7 6z" /></svg>
+      <RibbonIcon className="welcome-ribbon" />
     </div>
   );
 }
@@ -131,10 +134,7 @@ function VerseIllustration() {
   return (
     <div className="welcome-verse">
       <p><sup>3</sup><mark>Dieu dit : « Que la lumière soit. »</mark></p>
-      <p className="welcome-bookmark">
-        <svg viewBox="0 0 16 26"><path d="M1 0h14v24l-7-6-7 6z" /></svg>
-        Marque-page
-      </p>
+      <BookmarkTag />
       <p className="welcome-note">Le premier jour : tout commence par une parole.</p>
     </div>
   );

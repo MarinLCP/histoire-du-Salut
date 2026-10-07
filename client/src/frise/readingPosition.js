@@ -59,7 +59,7 @@ export function jumpToReadingPosition(position) {
   return true;
 }
 
-// Le titre de ce qu'on lit (data-reading-title), pour le garder collé en haut ; null tant que le haut de cet
+// Le titre de ce qu'on lit (data-reading-title), pour la pastille du bas (ReadingTitle) ; null tant que le haut de cet
 // élément est encore à l'écran (son vrai titre se voit déjà), ou s'il n'y a rien à lire.
 export function readingTitleAt(position) {
   if (position === null) return null;

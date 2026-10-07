@@ -18,16 +18,15 @@ import { startsWith } from './nodePath.js';
 import { INITIAL_VIEW, viewAt, viewAfterReading } from './cascadeView.js';
 import { useElementSize } from './useElementSize.js';
 import { useOverview } from './useOverview.js';
-import { useReadingPosition } from './useReadingPosition.js';
 import { useBookmark } from './useBookmark.js';
 import './Frise.css';
 
 // mode : 'history' (histoire du salut) ou 'bible' (Bible entière)
 // tabNames : les noms des trois onglets (ex. « Vue d'ensemble », « Épisodes », « Chapitres »)
 // onJump(position) : faire sauter la lecture à cette position (passage ou chapitre)
-function Frise({ mode, tabNames, onJump }) {
+// readingAt : où en est la lecture (useReadingPosition, mesuré par ReadingWithFrise), ou null
+function Frise({ mode, tabNames, onJump, readingAt = null }) {
   const tree = useOverview(mode);
-  const readingAt = useReadingPosition();
   const [stageRef, size] = useElementSize();
   const [view, setView] = useState(INITIAL_VIEW);
   // Le marque-page de la visite précédente (un ruban sur le bloc où on s'était arrêté)

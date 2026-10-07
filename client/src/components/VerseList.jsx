@@ -12,6 +12,7 @@ import { Fragment, memo, useContext } from 'react';
 import { verseKey } from '../bible/reference.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import MarginParallels from '../parallels/MarginParallels.jsx';
+import BookmarkTag from './BookmarkTag.jsx';
 import { returnPoint } from '../bible/returnPoint.js';
 import { ReadingModeContext } from '../frise/ReadingModeContext.js';
 import './VerseList.css';
@@ -87,16 +88,6 @@ const NumberedVerse = memo(function NumberedVerse({
     </div>
   );
 });
-
-// Le marque-page posé sur ce verset : le même ruban que dans la frise
-function BookmarkTag() {
-  return (
-    <p className="verse-bookmark">
-      <svg viewBox="0 0 16 26" aria-hidden="true"><path d="M1 0h14v24l-7-6-7 6z" /></svg>
-      Marque-page
-    </p>
-  );
-}
 
 // Au clavier, un élément role="button" doit réagir à Entrée et à Espace, comme un vrai bouton
 function openOnEnterOrSpace(event, openMenu) {

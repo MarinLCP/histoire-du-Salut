@@ -7,7 +7,7 @@
 //   main : il ne bouge plus tout seul.
 
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { loadBookmarks } from './bookmark.storage.js';
+import { isPlaced as isPlacedBookmark, loadBookmarks } from './bookmark.storage.js';
 import { BookmarksContext } from '../library/BookmarksContext.js';
 
 // On retient la position une fois la lecture posée (pas à chaque image du défilement)
@@ -15,12 +15,12 @@ const SAVE_DELAY = 1500;
 
 export function useBookmark(mode, readingAt) {
   const { saved, save } = useContext(BookmarksContext);
-  // Sans App (tests de la frise) : ceux du navigateur, lus une fois
-  const [localSaved] = useState(loadBookmarks);
+  // Sans App (tests de la frise) : ceux du navigateur, lus une fois (avec App : jamais, saved les donne)
+  const [localSaved] = useState(() => (saved ? null : loadBookmarks()));
   const [isForgotten, setIsForgotten] = useState(false);
   const firstPosition = useRef(null);
   const entry = (saved ?? localSaved).get(mode) ?? null;
-  const isPlaced = entry?.verse != null;
+  const isPlaced = isPlacedBookmark(entry);
   const bookmark = entry && (isPlaced || !isForgotten) ? entry.position : null;
 
   useEffect(() => {

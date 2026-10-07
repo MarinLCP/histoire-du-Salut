@@ -19,9 +19,10 @@ const overview = [
 ];
 const TAB_NAMES = ["Vue d'ensemble", 'Épisodes', 'Chapitres'];
 
-function renderFrise(onJump = vi.fn()) {
+// readingAt : où en est la lecture (mesuré par ReadingWithFrise dans l'app)
+function renderFrise(onJump = vi.fn(), readingAt = null) {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(overview))));
-  return render(<Frise mode="history" tabNames={TAB_NAMES} onJump={onJump} />);
+  return render(<Frise mode="history" tabNames={TAB_NAMES} onJump={onJump} readingAt={readingAt} />);
 }
 
 const pressedTab = () => screen.getAllByRole('button', { pressed: true }).map((button) => button.textContent);
@@ -108,11 +109,8 @@ describe('Frise', () => {
   });
 
   test('le bloc de ce qu\'on lit est marqué (surligné) dans la frise', async () => {
-    // Un passage n° 1 dans la page : c'est lui qu'on lit
-    const article = document.createElement('article');
-    article.dataset.readingPosition = '1';
-    document.body.append(article);
-    renderFrise();
+    // On lit le passage n° 1
+    renderFrise(vi.fn(), 1.2);
 
     expect(await screen.findByRole('button', { name: 'Les origines', current: 'location' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Les patriarches' }).getAttribute('aria-current')).toBeNull();

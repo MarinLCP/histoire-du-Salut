@@ -1,6 +1,6 @@
 // Assemble l'app : la barre de navigation, les deux lectures (une adresse chacune), le menu d'un verset
 // (surligner, noter, poser le marque-page, copier, parallèles), partagé par les deux, le panneau des parallèles (à droite)
-// et le panneau Paramètres (dont « Mon compte »). Le compte et la bibliothèque du lecteur (notes,
+// et le panneau « Compte et réglages » (dont « Mon compte »). Le compte et la bibliothèque du lecteur (notes,
 // surlignages, marque-pages : useLibrary) sont gérés ici, une fois pour toutes les pages.
 // Sur les deux lectures, la présentation du site aux nouveaux venus (useOnboarding) : les cartes d'accueil,
 // puis l'astuce de l'appui long.
@@ -53,15 +53,14 @@ function App() {
   const googleFailed = new URLSearchParams(location.search).get('connexion') === 'echec';
   // La présentation du site ne s'affiche que sur les deux lectures (pas sur un lien de partage ni sur la page
   // Confidentialité)
-  const isReadingPage = location.pathname === '/' || location.pathname === '/bible';
+  const isReadingPage = PAGES.some((page) => page.to === location.pathname);
   const onboarding = useOnboarding();
   const { dismissHint } = onboarding;
   const [isSettingsOpen, setIsSettingsOpen] = useState(googleFailed);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
-  const savedBookmarks = library.bookmarks.saved;
-  const placedBookmarks = useMemo(() => placedVerses(savedBookmarks), [savedBookmarks]);
+  const placedBookmarks = library.bookmarks.placed;
   // Ouvrir le menu d'un verset : l'astuce de l'appui long a servi, elle ne revient plus
   const openMenu = useCallback((verse) => {
     setMenuVerse(verse);
@@ -75,10 +74,12 @@ function App() {
   // useCallback : la même fonction d'un affichage à l'autre (le panneau fixé écoute Échap avec elle)
   const closeParallels = useCallback(() => setParallelsVerse(null), []);
 
-  // Le marque-page de la lecture du verset : posé sur lui (il ne bouge plus avec la lecture), ou retiré s'il y était
+  // Le marque-page de la lecture du verset ouvert : posé sur lui (il ne bouge plus avec la lecture), ou retiré
+  // s'il y était
+  const isMenuVerseBookmarked = menuVerse !== null && placedBookmarks[menuVerse.readingMode] === menuVerse.key;
   function toggleBookmark() {
     const { key, readingMode } = menuVerse;
-    if (placedBookmarks[readingMode] === key) return library.bookmarks.remove(readingMode);
+    if (isMenuVerseBookmarked) return library.bookmarks.remove(readingMode);
     const position = verseReadingPosition(key);
     if (position !== null) library.bookmarks.place(readingMode, key, position);
   }
@@ -125,7 +126,7 @@ function App() {
           onReleaseNote={library.releaseNote}
           onCopy={copyText}
           onShowParallels={() => showParallels(menuVerse)}
-          isBookmarked={placedBookmarks[menuVerse.readingMode] === menuVerse.key}
+          isBookmarked={isMenuVerseBookmarked}
           onToggleBookmark={menuVerse.readingMode ? toggleBookmark : undefined}
           onClose={() => { library.releaseNote(); setMenuVerse(null); }}
         />
@@ -141,18 +142,13 @@ function App() {
 
       {isSettingsOpen && (
         <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}
-          onShowWelcome={() => { setIsSettingsOpen(false); onboarding.openWelcome(); }}>
+          onShowWelcome={isReadingPage ? () => { setIsSettingsOpen(false); onboarding.openWelcome(); } : undefined}>
           <AccountSection account={account} waitingNotes={library.waitingNotes.size}
             libraryStatus={library.status} onRetryLibrary={library.retry} googleFailed={googleFailed} />
         </SettingsPanel>
       )}
     </>
   );
-}
-
-// Le verset de chaque marque-page posé à la main : { history: "Gn 1,3" } (ceux qui suivent la lecture : aucun)
-function placedVerses(bookmarks) {
-  return Object.fromEntries([...bookmarks].filter(([, bookmark]) => bookmark.verse).map(([mode, bookmark]) => [mode, bookmark.verse]));
 }
 
 export default App;

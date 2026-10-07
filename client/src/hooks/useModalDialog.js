@@ -2,7 +2,7 @@
 // la touche Échap et le focus), et refermée quand on touche le fond grisé autour du panneau.
 // L'appui doit COMMENCER sur le fond : sinon, le doigt qui se lève à la fin d'un appui long
 // (la fenêtre vient de s'ouvrir sous lui) la refermerait aussitôt.
-// Utilisé par le menu d'un verset et par le panneau Paramètres.
+// Utilisé par le menu d'un verset, les panneaux qui glissent (SidePanel) et les cartes d'accueil.
 // Renvoie { dialogRef, backdropProps } : la référence à poser sur <dialog>, et ses gestionnaires d'appui.
 
 import { useEffect, useRef } from 'react';
