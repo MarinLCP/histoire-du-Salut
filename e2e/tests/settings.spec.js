@@ -1,7 +1,8 @@
-// Parcours : le panneau Paramètres (taille du texte, thème, retenus après rechargement).
+// Parcours : le panneau « Compte et réglages » (taille du texte, thème, retenus après rechargement ; lien vers la
+// page Confidentialité).
 
 import { test, expect } from '@playwright/test';
-import { firstVerse, longPress } from './helpers.js';
+import { firstVerse, openAccount } from './helpers.js';
 
 const fontSizeOf = (locator) => locator.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
 const backgroundOf = (page) => page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
@@ -12,7 +13,7 @@ test('choisir un texte plus grand et le thème sombre ; les réglages restent ap
   await expect(verse).toBeVisible();
   const normalSize = await fontSizeOf(verse);
 
-  await page.getByRole('button', { name: 'Mon compte' }).click();
+  await openAccount(page);
   await page.getByText('Grande', { exact: true }).click();
   await page.getByText('Sombre', { exact: true }).click();
   await page.getByRole('button', { name: 'Fermer' }).click();
@@ -28,7 +29,7 @@ test('choisir un texte plus grand et le thème sombre ; les réglages restent ap
 
 test('« Confidentialité et mentions légales » : le lien en bas du panneau ouvre la page', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Mon compte' }).click();
+  await openAccount(page);
   await page.getByRole('link', { name: 'Confidentialité et mentions légales' }).click();
 
   await expect(page).toHaveURL(/\/confidentialite$/);

@@ -3,14 +3,9 @@
 // se déconnecter, se reconnecter, puis supprimer le compte (le test ne laisse rien derrière lui).
 
 import { test, expect } from '@playwright/test';
-import { emailCode, uniqueEmail } from './helpers.js';
+import { enterEmailCode, openAccount, uniqueEmail } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
-
-async function openAccount(page) {
-  await page.getByRole('button', { name: 'Mon compte' }).click();
-  return page.getByRole('region', { name: 'Mon compte' });
-}
 
 async function signIn(section, email, buttonName) {
   await section.getByLabel('E-mail').fill(email);
@@ -25,8 +20,7 @@ test('créer un compte, rester connecté, se déconnecter, se reconnecter, suppr
 
   await section.getByRole('button', { name: /Créer un compte/ }).click();
   await signIn(section, email, 'Créer mon compte');
-  await section.getByLabel('Code reçu par e-mail').fill(await emailCode(page, email));
-  await section.getByRole('button', { name: 'Valider' }).click();
+  await enterEmailCode(page, section, email);
   // « Se déconnecter » et pas seulement l'adresse : elle s'affiche aussi dans « code envoyé à … »
   await expect(section.getByRole('button', { name: 'Se déconnecter' })).toBeVisible();
 

@@ -3,7 +3,7 @@
 // « Arrêter de partager » rend le lien inutilisable. Le test supprime son compte à la fin.
 
 import { test, expect } from '@playwright/test';
-import { createAccountByApi, uniqueEmail } from './helpers.js';
+import { createAccountByApi, openAccount, uniqueEmail } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
@@ -18,8 +18,7 @@ test('partager où j\'en suis, l\'ouvrir sans compte, puis arrêter de partager'
   await page.request.put('/api/me/bookmarks/history', { data: { position: 2.4 } });
   await page.reload();
 
-  await page.getByRole('button', { name: 'Mon compte' }).click();
-  const account = page.getByRole('region', { name: 'Mon compte' });
+  const account = await openAccount(page);
   await account.getByRole('button', { name: 'Partager où j\'en suis' }).click();
   await expect(account.getByRole('button', { name: 'Arrêter de partager' })).toBeVisible();
   const { token } = await (await page.request.get('/api/me/sharing')).json();

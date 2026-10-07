@@ -2,14 +2,9 @@
 // compte), copier.
 
 import { test, expect } from '@playwright/test';
-import { allowClipboard, emailCode, firstVerse, longPress, readClipboard, uniqueEmail } from './helpers.js';
+import { allowClipboard, enterEmailCode, firstVerse, longPress, openAccount, readClipboard, uniqueEmail } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
-
-async function openAccount(page) {
-  await page.getByRole('button', { name: 'Mon compte' }).click();
-  return page.getByRole('region', { name: 'Mon compte' });
-}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -67,8 +62,7 @@ test('une note demande un compte : on le crée sur place, la note est gardée, p
   await menu.getByLabel('E-mail').fill(email);
   await menu.getByLabel(/^Mot de passe/).fill(PASSWORD);
   await menu.getByRole('button', { name: 'Créer mon compte' }).click();
-  await menu.getByLabel('Code reçu par e-mail').fill(await emailCode(page, email));
-  await menu.getByRole('button', { name: 'Valider' }).click();
+  await enterEmailCode(page, menu, email);
 
   // Le compte créé, la note qui attendait est enregistrée
   await expect(page.getByText(note)).toBeVisible();

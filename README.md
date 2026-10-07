@@ -266,7 +266,7 @@ histoire-du-Salut/
 │   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
 │   ├── onboarding-seen.json         ← les parcours démarrent avec la présentation du site déjà vue
 │   └── tests/
-│       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
+│       ├── helpers.js               ← gestes communs : appui long, scroll, ouvrir « Mon compte », taper le code reçu
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
 │       ├── bible.spec.js            ← lire la Bible en continu ; surlignage partagé ; « Lire tout le chapitre »
 │       ├── frise.spec.js            ← la frise : zoom, lecture, saut, sous-chapitres, marque-page, mode Bible ; téléphone

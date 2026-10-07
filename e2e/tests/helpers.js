@@ -48,6 +48,19 @@ export function readClipboard(page) {
   return page.evaluate(() => navigator.clipboard.readText());
 }
 
+// Ouvre le panneau « Compte et réglages » (bouton « personne ») ; renvoie sa section « Mon compte »
+export async function openAccount(page) {
+  await page.getByRole('button', { name: 'Mon compte' }).click();
+  return page.getByRole('region', { name: 'Mon compte' });
+}
+
+// Tape le code reçu par e-mail à cette adresse dans `scope` (la section « Mon compte » ou le menu d'un verset),
+// puis le valide
+export async function enterEmailCode(page, scope, email) {
+  await scope.getByLabel('Code reçu par e-mail').fill(await emailCode(page, email));
+  await scope.getByRole('button', { name: 'Valider' }).click();
+}
+
 // Une adresse que personne d'autre n'utilise, même si plusieurs tests démarrent à la même milliseconde
 // (Date.now() ne suffisait pas : deux tests sur la même adresse s'écrasaient leur code de validation)
 export function uniqueEmail(prefix) {
