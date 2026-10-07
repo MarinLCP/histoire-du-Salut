@@ -19,3 +19,15 @@
   font-size: 1.15rem;
   color: var(--text-muted);
 }
+
+/* Grand écran : la lecture fait de la place à droite pour la marge des parallèles (MarginParallels.css) ;
+   sauf si le panneau des parallèles est fixé à droite (il prend cette place) */
+@media (min-width: 1300px) {
+  .chapter {
+    max-width: calc(var(--reading-width) + var(--margin-notes));
+  }
+
+  .with-docked-panel .chapter {
+    max-width: var(--reading-width);
+  }
+}

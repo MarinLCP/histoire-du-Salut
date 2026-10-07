@@ -3,11 +3,15 @@
 // La référence d'un verset ("Gn 1,3") est la même partout : un verset surligné dans la Bible entière
 // l'est aussi dans l'histoire du salut.
 // Un verset où commence un sous-chapitre est précédé de son intertitre (verse.sectionTitle).
+// À côté de chaque verset (ou dessous, sur un écran étroit) : ses parallèles les plus votés (MarginParallels),
+// arrivés avec lui (verse.parallels) : le texte s'affiche une seule fois, déjà complet.
 
 import { Fragment, memo } from 'react';
 import { verseKey } from '../bible/reference.js';
 import { useLongPress } from '../hooks/useLongPress.js';
+import MarginParallels from '../parallels/MarginParallels.jsx';
 import './VerseList.css';
+
 
 // annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets.
 // openMenu({ key, text, reference }) reçoit la référence du verset ("Gn 1,3", et en morceaux :
@@ -49,7 +53,7 @@ const NumberedVerse = memo(function NumberedVerse({ verse, bookCode, verseKey, i
   const longPressHandlers = useLongPress(openMenu);
 
   return (
-    <>
+    <div className="verse-row">
       {/* data-verse : un lien vers ce verset le retrouve ainsi (bible/useScrollToVerse.js) */}
       <p
         className={isHighlighted ? 'verse verse-highlighted' : 'verse'}
@@ -63,8 +67,9 @@ const NumberedVerse = memo(function NumberedVerse({ verse, bookCode, verseKey, i
         <sup className="verse-number">{verse.verse}</sup>
         {verse.text}
       </p>
+      {verse.parallels?.length > 0 && <MarginParallels parallels={verse.parallels} fromKey={verseKey} />}
       {note && <p className="verse-note">{note.text}</p>}
-    </>
+    </div>
   );
 });
 

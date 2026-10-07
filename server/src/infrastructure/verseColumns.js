@@ -4,3 +4,30 @@
 export const VERSE_COLUMNS = 'v.chapter, v.verse, v.kind, v.text, sec.title AS "sectionTitle"';
 // L'intertitre éventuel d'un verset (le sous-chapitre qui commence à ce verset) : à placer après « verses v »
 export const VERSE_SECTION = 'LEFT JOIN sections sec ON sec.start_verse_id = v.id';
+
+// La marge de la lecture : les parallèles les plus votés de chaque verset, rangés AVEC lui (en JSON), pour que
+// le texte s'affiche une seule fois, déjà complet (pas de saut quand la marge arrive). À placer après
+// VERSE_SECTION, avec la colonne VERSE_MARGIN_COLUMN. Une sous-requête par verset (LATERAL), servie par la
+// clé primaire de parallels (from_verse_id en tête).
+const MARGIN_PARALLELS = 3;
+
+export const VERSE_MARGIN = `
+  LEFT JOIN LATERAL (
+    SELECT json_agg(json_build_object(
+             'start', json_build_object('book', top.start_book, 'chapter', top.start_chapter, 'verse', top.start_verse),
+             'end', json_build_object('book', top.end_book, 'chapter', top.end_chapter, 'verse', top.end_verse)
+           ) ORDER BY top.rank) AS parallels
+    FROM (
+      SELECT psb.code AS start_book, ps.chapter AS start_chapter, ps.verse AS start_verse,
+             peb.code AS end_book, pe.chapter AS end_chapter, pe.verse AS end_verse,
+             row_number() OVER (ORDER BY par.votes DESC, ps.position, pe.position) AS rank
+      FROM parallels par
+      JOIN verses ps ON ps.id = par.to_start_verse_id JOIN books psb ON psb.id = ps.book_id
+      JOIN verses pe ON pe.id = par.to_end_verse_id JOIN books peb ON peb.id = pe.book_id
+      WHERE par.from_verse_id = v.id
+      ORDER BY rank
+      LIMIT ${MARGIN_PARALLELS}
+    ) top
+  ) margin ON true
+`;
+export const VERSE_MARGIN_COLUMN = `COALESCE(margin.parallels, '[]'::json) AS parallels`;

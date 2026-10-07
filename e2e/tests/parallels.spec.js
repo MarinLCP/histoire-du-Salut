@@ -54,3 +54,14 @@ test('écran large : le panneau se fixe à droite, la lecture continue à côté
   await panel.getByRole('button', { name: 'Fermer' }).click();
   await expect(panel).toHaveCount(0);
 });
+
+test('la marge : les parallèles les plus votés à côté du verset (dessous sur téléphone) ; un clic mène au verset', async ({ page }) => {
+  await page.goto('/bible');
+  const margin = page.getByRole('list', { name: 'Parallèles de Gn 1,1', exact: true });
+
+  await expect(margin.getByRole('link')).toHaveText(['Jn 1,1-3', 'He 11,3', 'Is 45,18']);
+  await margin.getByRole('link', { name: 'Jn 1,1-3' }).click();
+
+  await expect(page).toHaveURL(/\/bible\?livre=Jn&chapitre=1&verset=1$/);
+  await expect(page.getByRole('button', { name: /AU COMMENCEMENT était le Verbe/ })).toBeInViewport();
+});

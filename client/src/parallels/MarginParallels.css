@@ -1,0 +1,41 @@
+/* Les parallèles dans la marge : de petites références, discrètes (sous le verset sur un écran étroit) */
+
+.margin-parallels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15rem .6rem;
+  margin: -.55rem 0 .75rem;
+  padding: 0;
+  list-style: none;
+  font: italic .72rem/1.5 var(--ui-font);
+}
+
+.margin-parallels a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.margin-parallels a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.margin-parallels a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Grand écran : dans la colonne de droite de la ligne du verset (placée par .verse-row, VerseList.css), en face
+   de lui ; la ligne prend la hauteur du plus haut des deux : jamais de chevauchement avec le verset suivant */
+@media (min-width: 1300px) {
+  .margin-parallels {
+    margin: .3rem 0 0;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Le panneau des parallèles fixé à droite prend cette place : la marge s'efface */
+  .with-docked-panel .margin-parallels {
+    display: none;
+  }
+}

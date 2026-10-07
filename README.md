@@ -207,7 +207,8 @@ histoire-du-Salut/
 │   │   │   ├── googleIdentity.js    ← OpenID Connect avec Google (adresse de connexion, échange du code, vérifications)
 │   │   │   ├── postgresLibraryRepository.js ← le SQL de la bibliothèque (fusion : la note la plus récente gagne)
 │   │   │   ├── postgresSharingRepository.js ← le SQL du partage (marque-page → épisode et chapitre en cours)
-│   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories
+│   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories ;
+│   │   │   │                          VERSE_MARGIN : ses 3 parallèles les plus votés, rangés avec lui (la marge)
 │   │   │   └── rowsByOwner.js       ← range des lignes SQL par passage ou chapitre (une requête pour plusieurs)
 │   │   └── http/                    ← le seul endroit qui connaît Express
 │   │       ├── createApp.js         ← routes /api/health, /api/passages/:slug, /api/timeline, /api/bible,
@@ -232,7 +233,7 @@ histoire-du-Salut/
 │       │   ├── spaFallback.test.js  ← les adresses du site renvoient index.html, pas l'API
 │       │   ├── bible.test.js        ← GET /api/bible (74 livres, sans trou ni doublon), position d'un chapitre
 │       │   ├── overview.test.js     ← GET /api/overview/history et /bible (comparés aux fichiers de données)
-│       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (ordre des votes, « Voir plus », aperçu, 404)
+│       │   ├── parallels.test.js    ← GET .../verses/:verse/parallels (votes, « Voir plus », aperçu, 404) ; la marge avec les versets
 │       │   ├── helpers/accounts.js  ← une app avec boîte d'e-mails de test ; un lecteur inscrit et validé
 │       │   ├── accounts.test.js     ← comptes : créer, code par e-mail, cookie, se (dé)connecter, 401/409/429/503
 │       │   ├── google.test.js       ← Continuer avec Google (faux Google) : créer, relier, vol de compte évité, state
@@ -308,7 +309,7 @@ histoire-du-Salut/
     │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
     │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, personnages, « Lire tout le chapitre », Partager, versets
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
-    │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres), passages et chapitres
+    │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres, marge), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
     │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
@@ -355,7 +356,8 @@ histoire-du-Salut/
     │   │   └── iconDrawings.jsx     ← les dessins des pictogrammes, par nom
     │   ├── parallels/               ← les parallèles d'un verset (panneau à droite, OpenBible.info)
     │   │   ├── useParallels.js      ← chargés 10 par 10, les plus votés d'abord (« Voir plus »)
-    │   │   └── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
+    │   │   ├── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
+    │   │   └── MarginParallels.jsx / .css ← la marge : les parallèles à droite du verset (dessous sur téléphone)
     │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
     │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
     │   │   ├── SignInForm.jsx / .css ← « Continuer avec Google » ; « Se connecter » / « Créer un compte », puis le code
@@ -396,7 +398,7 @@ histoire-du-Salut/
         ├── account/                 ← section « Mon compte », useAccount, « Partager où j'en suis »
         ├── library/                 ← useLibrary (sans compte, fusion à la connexion, écriture annulée si échec)
         ├── settings/                ← règles des réglages, panneau
-        ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source)
+        ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source), marge
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
         └── storage/versionedStorage.test.js ← mécanisme commun de sauvegarde

@@ -1,5 +1,29 @@
 /* Les versets (passages et chapitres) : texte, numéro, surlignage, note */
 
+/* Un verset et ce qui l'accompagne (parallèles de la marge, note). Grand écran : deux colonnes, le texte et la
+   marge des parallèles (MarginParallels.css) ; sauf quand le panneau des parallèles est fixé à droite */
+@media (min-width: 1300px) {
+  .verse-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) calc(var(--margin-notes) - 1.5rem);
+    column-gap: 1.5rem;
+  }
+
+  .verse-row > * {
+    grid-column: 1;
+  }
+
+  /* La marge, dans la colonne de droite, en face du verset */
+  .verse-row > .margin-parallels {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .with-docked-panel .verse-row {
+    display: block;
+  }
+}
+
 .verse {
   margin: 0 0 0.75rem;
   /* La taille du texte choisie dans les Paramètres */
