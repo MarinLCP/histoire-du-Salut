@@ -10,6 +10,7 @@ import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
 import ParallelsPanel from './parallels/ParallelsPanel.jsx';
+import ReturnButton from './components/ReturnButton.jsx';
 import AccountSection from './account/AccountSection.jsx';
 import { useAccount } from './account/useAccount.js';
 import HistoryPage from './pages/HistoryPage.jsx';
@@ -95,6 +96,9 @@ function App() {
           onClose={() => { library.releaseNote(); setMenuVerse(null); }}
         />
       )}
+
+      {/* Après un clic sur un parallèle : « Revenir à … » */}
+      <ReturnButton />
 
       {parallelsVerse && (
         <ParallelsPanel key={parallelsVerse.key} verse={parallelsVerse} isDocked={isWide}

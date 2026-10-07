@@ -10,23 +10,25 @@ import { Fragment, memo } from 'react';
 import { verseKey } from '../bible/reference.js';
 import { useLongPress } from '../hooks/useLongPress.js';
 import MarginParallels from '../parallels/MarginParallels.jsx';
+import { returnPoint } from '../bible/returnPoint.js';
 import './VerseList.css';
 
 
 // annotations = { highlights, notes, openMenu } : ce que l'utilisateur a ajouté aux versets.
-// openMenu({ key, text, reference }) reçoit la référence du verset ("Gn 1,3", et en morceaux :
-// { book, chapter, verse }) et son texte (pour le copier).
-function VerseList({ verses, bookCode, annotations }) {
+// openMenu({ key, text, reference, returnTo }) reçoit la référence du verset ("Gn 1,3", et en morceaux :
+// { book, chapter, verse }), son texte (pour le copier) et où revenir après un parallèle (returnTo).
+// returnHref : l'adresse de cette lecture si ce n'est pas la Bible entière (l'épisode : "/?passage=chute")
+function VerseList({ verses, bookCode, annotations, returnHref }) {
   return verses.map((verse, index) => (
     <Fragment key={index}>
       {verse.sectionTitle && <h4 className="verse-section">{verse.sectionTitle}</h4>}
-      <Verse verse={verse} bookCode={bookCode} annotations={annotations} />
+      <Verse verse={verse} bookCode={bookCode} annotations={annotations} returnHref={returnHref} />
     </Fragment>
   ));
 }
 
 // Une ligne sans numéro (ex. "ELLE" dans le Cantique) n'est pas un verset : pas de menu
-function Verse({ verse, bookCode, annotations }) {
+function Verse({ verse, bookCode, annotations, returnHref }) {
   if (verse.kind === 'unnumbered') {
     return <p className="verse verse-unnumbered">{verse.text}</p>;
   }
@@ -37,6 +39,7 @@ function Verse({ verse, bookCode, annotations }) {
       verse={verse}
       bookCode={bookCode}
       verseKey={key}
+      returnHref={returnHref}
       isHighlighted={annotations.highlights.has(key)}
       note={annotations.notes.get(key)}
       onOpenMenu={annotations.openMenu}
@@ -47,9 +50,10 @@ function Verse({ verse, bookCode, annotations }) {
 // memo : un verset ne se redessine que si SES données changent (surligné, note...).
 // Sans ça, ouvrir le menu ou surligner un verset redessinerait les milliers de versets à l'écran.
 // Composant séparé aussi parce qu'un hook (useLongPress) ne peut pas suivre un return conditionnel.
-const NumberedVerse = memo(function NumberedVerse({ verse, bookCode, verseKey, isHighlighted, note, onOpenMenu }) {
+const NumberedVerse = memo(function NumberedVerse({ verse, bookCode, verseKey, returnHref, isHighlighted, note, onOpenMenu }) {
   const reference = { book: bookCode, chapter: verse.chapter, verse: verse.verse };
-  const openMenu = () => onOpenMenu({ key: verseKey, text: verse.text, reference });
+  const returnTo = returnPoint(verseKey, reference, returnHref);
+  const openMenu = () => onOpenMenu({ key: verseKey, text: verse.text, reference, returnTo });
   const longPressHandlers = useLongPress(openMenu);
 
   return (
@@ -67,7 +71,7 @@ const NumberedVerse = memo(function NumberedVerse({ verse, bookCode, verseKey, i
         <sup className="verse-number">{verse.verse}</sup>
         {verse.text}
       </p>
-      {verse.parallels?.length > 0 && <MarginParallels parallels={verse.parallels} fromKey={verseKey} />}
+      {verse.parallels?.length > 0 && <MarginParallels parallels={verse.parallels} returnTo={returnTo} />}
       {note && <p className="verse-note">{note.text}</p>}
     </div>
   );

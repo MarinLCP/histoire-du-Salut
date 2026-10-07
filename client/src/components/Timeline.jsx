@@ -7,16 +7,19 @@ import Passage from './Passage.jsx';
 import ListStatus from './ListStatus.jsx';
 import { fetchTimeline } from '../api/passages.api.js';
 import { useCursorPagination } from '../hooks/useCursorPagination.js';
+import { useScrollToVerse } from '../bible/useScrollToVerse.js';
 import './Timeline.css';
 
 // Fonction stable (hors du composant) : le hook ne se relance pas à chaque affichage
 const fetchPassages = (after) => fetchTimeline(after).then((page) => ({ items: page.passages, nextCursor: page.nextCursor }));
 
 // startAfter : la timeline commence après cette position (0 = au début, plus si on arrive par un lien partagé)
+// targetVerse : un verset où aller une fois affiché (retour d'un parallèle), ou null
 // annotations et onShare : transmis tels quels aux passages
-function Timeline({ startAfter, annotations, onShare }) {
+function Timeline({ startAfter, targetVerse = null, annotations, onShare }) {
   const { items: passages, sentinelRef, isLoading, error, isFinished, retry } =
     useCursorPagination(fetchPassages, startAfter);
+  useScrollToVerse(targetVerse, passages.length);
 
   return (
     <div className="timeline">

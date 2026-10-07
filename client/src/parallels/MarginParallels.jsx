@@ -7,15 +7,15 @@ import { rangeReference } from '../bible/reference.js';
 import { verseLink } from '../bible/bibleLink.js';
 import './MarginParallels.css';
 
-// parallels : [{ start, end }] ; fromKey : la référence du verset lu ("Ps 78,9"), pour pouvoir y revenir
-function MarginParallels({ parallels, fromKey }) {
+// parallels : [{ start, end }] ; returnTo : où revenir ensuite, { key: "Ps 78,9", href } (bouton « Revenir à … »)
+function MarginParallels({ parallels, returnTo }) {
   return (
-    <ul className="margin-parallels" aria-label={`Parallèles de ${fromKey}`}>
+    <ul className="margin-parallels" aria-label={`Parallèles de ${returnTo.key}`}>
       {parallels.map(({ start, end }) => {
         const reference = rangeReference(start, end);
         return (
           <li key={reference}>
-            <Link to={verseLink(start)} state={{ returnTo: fromKey }}>{reference}</Link>
+            <Link to={verseLink(start)} state={{ returnTo }}>{reference}</Link>
           </li>
         );
       })}

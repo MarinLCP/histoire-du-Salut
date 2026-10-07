@@ -22,9 +22,11 @@ const passage = {
   ],
 };
 
-// Ce que reçoit le menu quand on l'ouvre sur le premier verset : sa référence et son texte
+// Ce que reçoit le menu quand on l'ouvre sur le premier verset : sa référence, son texte, et où revenir après
+// un parallèle (cet épisode)
 const FIRST_VERSE = {
   key: 'Gn 1,1', text: 'Au commencement, Dieu créa le ciel et la terre.', reference: { book: 'Gn', chapter: '1', verse: '1' },
+  returnTo: { key: 'Gn 1,1', href: '/?passage=creation' },
 };
 
 function renderPassage({

@@ -90,6 +90,8 @@ describe('BiblePage', () => {
 
     expect(openMenu).toHaveBeenCalledWith({
       key: 'Gn 1,1', text: 'AU COMMENCEMENT', reference: { book: 'Gn', chapter: '1', verse: '1' },
+      // Après un parallèle, on revient à ce verset dans la Bible entière
+      returnTo: { key: 'Gn 1,1', href: '/bible?livre=Gn&chapitre=1&verset=1' },
     });
   });
 

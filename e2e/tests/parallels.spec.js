@@ -65,3 +65,26 @@ test('la marge : les parallèles les plus votés à côté du verset (dessous su
   await expect(page).toHaveURL(/\/bible\?livre=Jn&chapitre=1&verset=1$/);
   await expect(page.getByRole('button', { name: /AU COMMENCEMENT était le Verbe/ })).toBeInViewport();
 });
+
+test('« Revenir à … » : après un parallèle de la marge, retour au verset de départ (Bible entière)', async ({ page }) => {
+  await page.goto('/bible');
+  await page.getByRole('list', { name: 'Parallèles de Gn 1,1', exact: true }).getByRole('link', { name: 'Jn 1,1-3' }).click();
+  await expect(page).toHaveURL(/livre=Jn/);
+
+  await page.getByRole('button', { name: 'Revenir à Gn 1,1' }).click();
+
+  await expect(page).toHaveURL(/\/bible\?livre=Gn&chapitre=1&verset=1$/);
+  await expect(firstVerse(page)).toBeInViewport();
+  await expect(page.getByRole('button', { name: /Revenir à/ })).toHaveCount(0);
+});
+
+test('« Revenir à … » depuis un épisode : retour à l\'épisode, au verset de départ', async ({ page }) => {
+  await page.goto('/?passage=chute');
+  await page.getByRole('list', { name: 'Parallèles de Gn 3,15', exact: true }).getByRole('link').first().click();
+  await expect(page).toHaveURL(/\/bible\?/);
+
+  await page.getByRole('button', { name: 'Revenir à Gn 3,15' }).click();
+
+  await expect(page).toHaveURL(/\/\?passage=chute$/);
+  await expect(page.locator('[data-verse="Gn 3,15"]')).toBeInViewport();
+});

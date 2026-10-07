@@ -7,6 +7,7 @@ import { memo } from 'react';
 import { Link } from 'react-router';
 import StatusButton from './StatusButton.jsx';
 import VerseList from './VerseList.jsx';
+import { passageLink } from '../share/shareLink.js';
 import { passageReference } from '../bible/reference.js';
 import { chapterLink } from '../bible/bibleLink.js';
 import './Passage.css';
@@ -42,7 +43,8 @@ function Passage({ passage, annotations, onShare }) {
         <StatusButton className="share-button" labels={SHARE_LABELS} action={share} />
       </header>
 
-      <VerseList verses={passage.verses} bookCode={passage.book.code} annotations={annotations} />
+      <VerseList verses={passage.verses} bookCode={passage.book.code} annotations={annotations}
+        returnHref={passageLink('', passage.slug)} />
     </article>
   );
 }

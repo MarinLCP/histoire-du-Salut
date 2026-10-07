@@ -302,6 +302,7 @@ histoire-du-Salut/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "Mc 9,11-13" (plage),
     │   │   │                          "La Genèse 1, 1 – 2, 25" (passage)
     │   │   ├── bibleLink.js         ← lien vers un chapitre ou un verset : /bible?livre=Gn&chapitre=3&verset=15
+    │   │   ├── returnPoint.js       ← le verset où revenir après un parallèle (sa clé et l'adresse de sa page)
     │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── NavBar.jsx / .css    ← la navigation qui flotte : la marque, les deux lectures, le bouton « personne »
@@ -311,6 +312,7 @@ histoire-du-Salut/
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres, marge), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
+    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un clic sur un parallèle
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
     │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier, voir les parallèles) ;
@@ -387,7 +389,7 @@ histoire-du-Salut/
         ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink
-        ├── components/              ← Passage, StatusButton, VerseMenu (React Testing Library)
+        ├── components/              ← Passage, StatusButton, VerseMenu, ReturnButton (React Testing Library)
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, liens (chapitre, verset), frise
         ├── pages/ProgressPage.test.jsx ← où en est un lecteur ; pas commencé ; lien inconnu
         ├── pages/HistoryPage.test.jsx ← point de départ (lien partagé) et retour au début, sans rechargement

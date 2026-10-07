@@ -24,7 +24,8 @@ function ParallelsPanel({ verse, isDocked = false, onClose }) {
     <Panel title={`Parallèles de ${verse.key}`} onClose={onClose}>
       <ol className="parallels-list">
         {parallels.map((parallel) => (
-          <ParallelItem key={parallel.position} parallel={parallel} onOpen={isDocked ? undefined : onClose} />
+          <ParallelItem key={parallel.position} parallel={parallel} returnTo={verse.returnTo}
+            onOpen={isDocked ? undefined : onClose} />
         ))}
       </ol>
       <ListStatus isLoading={isLoading} error={error} onRetry={loadMore}
@@ -38,12 +39,13 @@ function ParallelsPanel({ verse, isDocked = false, onClose }) {
 }
 
 // Un parallèle : sa référence, puis le début de son texte (« … » si la plage est plus longue que l'aperçu)
-function ParallelItem({ parallel, onOpen }) {
+// returnTo : où revenir ensuite (le verset du menu), pour le bouton « Revenir à … »
+function ParallelItem({ parallel, returnTo, onOpen }) {
   const preview = parallel.verses.map((verse) => verse.text).join(' ');
 
   return (
     <li>
-      <Link className="parallel-link" to={verseLink(parallel.start)} onClick={onOpen}>
+      <Link className="parallel-link" to={verseLink(parallel.start)} state={{ returnTo }} onClick={onOpen}>
         <span className="parallel-reference">{rangeReference(parallel.start, parallel.end)}</span>
         <span className="parallel-text">{parallel.isTruncated ? `${preview} …` : preview}</span>
       </Link>
