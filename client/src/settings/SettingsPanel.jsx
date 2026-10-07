@@ -1,5 +1,5 @@
-// Le panneau Paramètres : ouvert par le bouton de la barre du haut, il glisse depuis la droite (SidePanel).
-// On y règle la taille du texte et le thème (et, plus bas, « Mon compte »).
+// Le panneau du compte et des réglages : ouvert par le bouton « personne » (en haut à droite), il glisse depuis
+// la droite (SidePanel). D'abord « Mon compte » (children), puis l'affichage : taille du texte et thème.
 
 import SidePanel from '../components/SidePanel.jsx';
 import './SettingsPanel.css';
@@ -10,12 +10,12 @@ const THEME_CHOICES = [['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'So
 // settings : les réglages actuels ; onChange(changes) : en changer un ; children : des sections en plus
 function SettingsPanel({ settings, onChange, onClose, children }) {
   return (
-    <SidePanel title="Paramètres" onClose={onClose}>
+    <SidePanel title="Compte et réglages" onClose={onClose}>
+      {children}
       <ChoiceGroup legend="Taille du texte" name="text-size" choices={TEXT_SIZE_CHOICES}
         value={settings.textSize} onPick={(textSize) => onChange({ textSize })} />
       <ChoiceGroup legend="Thème" name="theme" choices={THEME_CHOICES}
         value={settings.theme} onPick={(theme) => onChange({ theme })} />
-      {children}
     </SidePanel>
   );
 }

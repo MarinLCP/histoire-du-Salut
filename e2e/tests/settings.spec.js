@@ -12,7 +12,7 @@ test('choisir un texte plus grand et le thème sombre ; les réglages restent ap
   await expect(verse).toBeVisible();
   const normalSize = await fontSizeOf(verse);
 
-  await page.getByRole('button', { name: 'Paramètres' }).click();
+  await page.getByRole('button', { name: 'Mon compte' }).click();
   await page.getByText('Grande', { exact: true }).click();
   await page.getByText('Sombre', { exact: true }).click();
   await page.getByRole('button', { name: 'Fermer' }).click();
@@ -23,5 +23,5 @@ test('choisir un texte plus grand et le thème sombre ; les réglages restent ap
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await fontSizeOf(firstVerse(page))).toBeGreaterThan(normalSize);
-  expect(await backgroundOf(page)).toBe("rgb(27, 26, 24)");
+  expect(await backgroundOf(page)).toBe("rgb(25, 25, 25)");
 });

@@ -274,7 +274,9 @@ histoire-du-Salut/
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
 └── client/                          ← site web (React + Vite)
-    ├── index.html                   ← la seule page HTML (app "single page")
+    ├── index.html                   ← la seule page HTML (app "single page") ; icône de l'onglet, police Literata
+    ├── public/
+    │   └── favicon.svg              ← l'icône de l'onglet (cascade, vague, croix) et la marque du site
     ├── vite.config.js               ← proxy /api → localhost:3000 en dev ; préparation des tests (test/setup.js)
     ├── src/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
@@ -285,7 +287,7 @@ histoire-du-Salut/
     │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu
     │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre ; frise en mode Bible
     │   │                              /bible?livre=Gn&chapitre=3&verset=15 : puis défile jusqu'au verset
-    │   ├── index.css                ← couleurs, polices, hauteur de la barre (fixe en haut), « Revenir au début »
+    │   ├── index.css                ← couleurs (Notion, clair et sombre), polices, place de la navigation, « Revenir au début »
     │   ├── api/
     │   │   ├── http.js              ← getJson / sendJson : lecture d'une réponse, messages d'erreur clairs
     │   │   ├── account.api.js       ← appels à l'API des comptes (le cookie de session voyage tout seul)
@@ -300,7 +302,7 @@ histoire-du-Salut/
     │   │   ├── bibleLink.js         ← lien vers un chapitre ou un verset : /bible?livre=Gn&chapitre=3&verset=15
     │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
     │   ├── components/              ← ce qui s'affiche à l'écran
-    │   │   ├── NavBar.jsx / .css    ← la barre du haut : les deux lectures, et le bouton Paramètres
+    │   │   ├── NavBar.jsx / .css    ← la navigation qui flotte : la marque, les deux lectures, le bouton « personne »
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
     │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, personnages, « Lire tout le chapitre », Partager, versets
@@ -360,7 +362,7 @@ histoire-du-Salut/
     │   │   ├── settings.js          ← règles : taille du texte, thème (et leur application à la page)
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
     │   │   ├── useSettings.js       ← branchement React (appliqués et sauvegardés à chaque changement)
-    │   │   └── SettingsPanel.jsx / .css ← le panneau (dans un SidePanel)
+    │   │   └── SettingsPanel.jsx / .css ← le panneau « Compte et réglages » (dans un SidePanel)
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React

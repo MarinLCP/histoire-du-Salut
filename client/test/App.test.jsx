@@ -66,7 +66,7 @@ describe('routage', () => {
     HTMLDialogElement.prototype.close = function close() { this.open = false; };
     renderAt('/');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Paramètres' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Mon compte' }));
     fireEvent.click(screen.getByRole('radio', { name: 'Sombre' }));
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');

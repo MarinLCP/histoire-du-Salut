@@ -114,7 +114,7 @@ function NoteEditor({ note, status, account, onSave, onHold, onRelease, onDone, 
 
 const NOT_READY = {
   loading: 'Ton compte se charge…',
-  failed: 'Ton compte ne répond pas : réessaie depuis Paramètres, dans un instant.',
+  failed: 'Ton compte ne répond pas : réessaie depuis « Mon compte », dans un instant.',
 };
 
 // Sans compte : la note est mise de côté le temps de créer un compte ou de se connecter ; elle le rejoint

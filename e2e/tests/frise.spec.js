@@ -15,7 +15,7 @@ test('sur ordinateur, la frise montre les époques à gauche de l\'histoire', as
   expect(friseBox.x + friseBox.width).toBeLessThanOrEqual(titleBox.x);
 });
 
-test('en bas de la lecture : la barre du haut reste visible, la frise va jusqu\'en bas de l\'écran', async ({ page, isMobile }) => {
+test('en bas de la lecture : la navigation (qui flotte) reste visible, la frise va jusqu\'en bas de l\'écran', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
   await page.goto('/');
   await page.getByRole('heading', { name: 'La Création' }).waitFor();
@@ -24,7 +24,8 @@ test('en bas de la lecture : la barre du haut reste visible, la frise va jusqu\'
   await expect(page.getByRole('navigation', { name: 'Pages' })).toBeInViewport();
   const friseBox = await page.getByRole('navigation', { name: 'Frise' }).boundingBox();
   const navBox = await page.getByRole('navigation', { name: 'Pages' }).boundingBox();
-  expect(friseBox.y).toBeCloseTo(navBox.y + navBox.height, 0);
+  // La frise commence sous la navigation, sans la chevaucher
+  expect(friseBox.y).toBeGreaterThanOrEqual(navBox.y + navBox.height);
   expect(friseBox.y + friseBox.height).toBeCloseTo(page.viewportSize().height, 0);
 });
 

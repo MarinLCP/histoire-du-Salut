@@ -6,7 +6,7 @@ import { allowClipboard, emailCode, firstVerse, longPress, readClipboard } from 
 const PASSWORD = 'un mot de passe long';
 
 async function openAccount(page) {
-  await page.getByRole('button', { name: 'Paramètres' }).click();
+  await page.getByRole('button', { name: 'Mon compte' }).click();
   return page.getByRole('region', { name: 'Mon compte' });
 }
 

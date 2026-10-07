@@ -18,7 +18,7 @@ test('partager où j\'en suis, l\'ouvrir sans compte, puis arrêter de partager'
   await page.request.put('/api/me/bookmarks/history', { data: { position: 2.4 } });
   await page.reload();
 
-  await page.getByRole('button', { name: 'Paramètres' }).click();
+  await page.getByRole('button', { name: 'Mon compte' }).click();
   const account = page.getByRole('region', { name: 'Mon compte' });
   await account.getByRole('button', { name: 'Partager où j\'en suis' }).click();
   await expect(account.getByRole('button', { name: 'Arrêter de partager' })).toBeVisible();
