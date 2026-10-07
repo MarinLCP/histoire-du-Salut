@@ -1,0 +1,52 @@
+/* La page « Confidentialité et mentions légales » : un texte à lire, dans la colonne de lecture, en police
+   d'interface (ce n'est pas un texte biblique) */
+
+.privacy-page {
+  max-width: var(--reading-width);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  font: .85rem/1.6 var(--ui-font);
+}
+
+.privacy-page h1 {
+  margin: 0;
+  font: 600 1.5rem/1.2 var(--reading-font);
+}
+
+.privacy-updated {
+  margin: .3rem 0 0;
+  color: var(--text-muted);
+}
+
+.privacy-page h2 {
+  margin: 2rem 0 .5rem;
+  font: 600 1rem/1.3 var(--ui-font);
+}
+
+.privacy-page p,
+.privacy-page ul {
+  margin: 0 0 .6rem;
+}
+
+.privacy-page ul {
+  padding-left: 1.2rem;
+}
+
+.privacy-page li + li {
+  margin-top: .3rem;
+}
+
+/* Chaque donnée gardée : son nom en gras, puis pourquoi et combien de temps */
+.privacy-data dt {
+  margin-top: .8rem;
+  font-weight: 600;
+}
+
+.privacy-data dd {
+  margin: .1rem 0 0;
+  color: var(--text-muted);
+}
+
+.privacy-page a {
+  color: var(--accent);
+}

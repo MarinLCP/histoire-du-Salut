@@ -270,7 +270,7 @@ histoire-du-Salut/
 │       ├── characters.spec.js       ← les personnages d'un épisode
 │       ├── accounts.spec.js         ← créer un compte (code par e-mail), rester connecté, se (dé)connecter, supprimer
 │       ├── sharing.spec.js          ← partager où j'en suis ; le lien ouvert sans compte ; arrêter de partager
-│       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement)
+│       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement) ; lien Confidentialité
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, poser le marque-page, copier ; une note demande un compte (créé
 │       │                              sur place), retrouvée
@@ -289,6 +289,7 @@ histoire-du-Salut/
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
     │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche
     │   │   ├── ProgressPage.jsx / .css ← /progression/:jeton : où en est un lecteur (lien qu'il a partagé)
+    │   │   ├── PrivacyPage.jsx / .css ← /confidentialite : données gardées, durées, droits (RGPD), mentions légales
     │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu
     │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre ; frise en mode Bible
     │   │                              /bible?livre=Gn&chapitre=3&verset=15 : puis défile jusqu'au verset

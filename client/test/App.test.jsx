@@ -55,6 +55,13 @@ describe('routage', () => {
     expect(screen.getByRole('heading', { name: 'La Bible entière' })).toBeDefined();
   });
 
+  test('"/confidentialite" affiche la page Confidentialité et mentions légales, avec l\'adresse de contact', () => {
+    renderAt('/confidentialite');
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Confidentialité et mentions légales' })).toBeDefined();
+    expect(screen.getAllByRole('link', { name: 'contact@lerouleau.com' })[0].getAttribute('href')).toBe('mailto:contact@lerouleau.com');
+  });
+
   test('une adresse inconnue ramène à l\'histoire du salut', () => {
     renderAt('/page-qui-n-existe-pas');
 

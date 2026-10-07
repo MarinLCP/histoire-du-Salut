@@ -25,3 +25,13 @@ test('choisir un texte plus grand et le thème sombre ; les réglages restent ap
   expect(await fontSizeOf(firstVerse(page))).toBeGreaterThan(normalSize);
   expect(await backgroundOf(page)).toBe("rgb(25, 25, 25)");
 });
+
+test('« Confidentialité et mentions légales » : le lien en bas du panneau ouvre la page', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Mon compte' }).click();
+  await page.getByRole('link', { name: 'Confidentialité et mentions légales' }).click();
+
+  await expect(page).toHaveURL(/\/confidentialite$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Confidentialité et mentions légales' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
