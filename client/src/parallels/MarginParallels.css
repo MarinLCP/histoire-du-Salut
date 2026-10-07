@@ -34,9 +34,9 @@
     flex-direction: column;
     gap: 0;
   }
+}
 
-  /* Le panneau des parallèles fixé à droite prend cette place : la marge s'efface */
-  .with-docked-panel .margin-parallels {
-    display: none;
-  }
+/* Le panneau des parallèles fixé à droite les montre déjà : la marge s'efface, quelle que soit la largeur */
+.with-docked-panel .margin-parallels {
+  display: none;
 }

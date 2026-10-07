@@ -46,6 +46,8 @@ test('écran large : le panneau se fixe à droite, la lecture continue à côté
   // Pas de fenêtre par-dessus : le texte reste lisible et cliquable à côté
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(firstVerse(page)).toBeInViewport();
+  // Le panneau montre déjà les parallèles : la marge s'efface (même quand la lecture devient étroite)
+  await expect(page.getByRole('list', { name: 'Parallèles de Gn 1,1', exact: true })).toBeHidden();
 
   await panel.getByRole('listitem').first().getByRole('link').click();
   await expect(page).toHaveURL(/verset=1$/);
@@ -83,6 +85,11 @@ test('les épisodes n\'ont pas de marge : « Voir les parallèles » (menu du ve
   const verse = page.locator('[data-verse="Gn 3,15"]');
   await expect(verse).toBeVisible();
   await expect(page.getByRole('list', { name: /^Parallèles de/ })).toHaveCount(0);
+  // Sans marge, le texte prend toute la largeur de l'épisode (aucune colonne vide réservée à droite)
+  const widths = await page.locator('.passage').first().evaluate((passage) => ({
+    passage: passage.clientWidth, verse: passage.querySelector('.verse').clientWidth,
+  }));
+  expect(widths.verse).toBeGreaterThan(widths.passage * 0.9);
 
   await longPress(page, verse);
   await page.getByRole('button', { name: 'Voir les parallèles' }).click();

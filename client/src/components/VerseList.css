@@ -1,27 +1,28 @@
 /* Les versets (passages et chapitres) : texte, numéro, surlignage, note */
 
-/* Un verset et ce qui l'accompagne (parallèles de la marge, note). Dès que la lecture est assez large (35rem : le
-   texte garde au moins 24rem, une cinquantaine de lettres par ligne) : deux colonnes, le texte et la marge des
-   parallèles (MarginParallels.css) ; sauf quand le panneau des parallèles est fixé à droite. Mesuré sur la
+/* Un verset de la Bible entière et ce qui l'accompagne (parallèles de la marge, note). Dès que la lecture est
+   assez large (35rem : le texte garde au moins 24rem, une cinquantaine de lettres par ligne) : deux colonnes, le
+   texte et la marge des parallèles (MarginParallels.css) ; sauf quand le panneau des parallèles est fixé à droite.
+   Seulement dans un chapitre : les épisodes n'ont pas de marge, leur texte garde toute la largeur. Mesuré sur la
    lecture (conteneur « reading », ReadingWithFrise.css), pas sur l'écran */
 @container reading (min-width: 35rem) {
-  .verse-row {
+  .chapter .verse-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) calc(var(--margin-notes) - 1.5rem);
     column-gap: 1.5rem;
   }
 
-  .verse-row > * {
+  .chapter .verse-row > * {
     grid-column: 1;
   }
 
   /* La marge, dans la colonne de droite, en face du verset */
-  .verse-row > .margin-parallels {
+  .chapter .verse-row > .margin-parallels {
     grid-column: 2;
     grid-row: 1;
   }
 
-  .with-docked-panel .verse-row {
+  .with-docked-panel .chapter .verse-row {
     display: block;
   }
 }
