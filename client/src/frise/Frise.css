@@ -6,19 +6,22 @@
   /* Le glissement d'un niveau à l'autre (zoom) */
   --morph: .6s cubic-bezier(.5, 0, .2, 1);
 
-  /* Collée sous la barre de navigation, jusqu'en bas de l'écran, pendant toute la lecture */
+  /* Toute la hauteur de l'écran, du haut jusqu'en bas, pendant toute la lecture (collée en haut). Au-dessus du
+     fondu de la navigation (NavBar.css) : rien ne la voile ; la navigation, au centre, ne la touche pas */
   position: sticky;
-  top: var(--nav-height);
+  top: 0;
+  z-index: 31;
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - var(--nav-height));
+  height: 100dvh;
 }
 
 /* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin. Une pastille qui flotte, comme la navigation */
 .frise-tabs {
   display: flex;
   gap: 2px;
-  margin: .5rem .7rem .6rem;
+  /* En haut, à la hauteur de la navigation */
+  margin: .75rem .7rem .6rem;
   padding: 3px;
   border-radius: 99px;
   background: var(--float);

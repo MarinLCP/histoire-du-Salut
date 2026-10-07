@@ -7,11 +7,18 @@
   grid-template-columns: 22rem minmax(0, 1fr);
 }
 
-/* En bas de la lecture, ce qui flotte : « Revenir à … » au-dessus du titre de ce qu'on lit (ReadingTitle).
-   Placée après les versets et collée en bas de l'écran (sticky) : elle y reste pendant tout le défilement, au
-   centre de la lecture. Elle ne prend aucune place (hauteur 0) : les pastilles débordent vers le haut. */
+/* La colonne de la frise remonte tout en haut de l'écran (la lecture, elle, commence sous la navigation) */
+.frise-drawer {
+  margin-top: calc(-1 * var(--nav-height));
+}
+
+/* En bas de l'écran, ce qui flotte : « Revenir à … » au-dessus du titre de ce qu'on lit (ReadingTitle), centrés
+   sur l'écran comme la navigation en haut. L'ancre ne prend aucune place (hauteur 0) : les pastilles débordent
+   vers le haut, et elle laisse passer les clics. */
 .reading-bottom {
-  position: sticky;
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 1.25rem;
   z-index: 20;
   height: 0;
@@ -43,6 +50,7 @@
   .frise-drawer {
     position: fixed;
     inset: 0 auto 0 0;
+    margin-top: 0;
     z-index: 50;
     /* 2/3 de l'écran : le tiers de droite laisse voir le texte (un toucher dessus referme le panneau) */
     width: calc(100vw * 2 / 3);
@@ -68,7 +76,6 @@
 
   /* Le titre et « Revenir à … » : sur la même ligne que le bouton « Frise », centrés dans la place à sa droite */
   .reading-bottom {
-    position: fixed;
     left: calc(.9rem + var(--frise-tab-width) + .6rem);
     right: .9rem;
   }
