@@ -116,6 +116,8 @@ test('Bible entière : ensembles → livres → dizaines → chapitres, et la le
 test('marque-page : après avoir lu, un ruban montre où on s\'était arrêté ; un clic y ramène', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
   await page.goto('/');
+  // La police chargée, le texte ne bougera plus : la position lue est la bonne
+  await page.evaluate(() => document.fonts.ready);
   await page.getByRole('heading', { name: "L'appel d'Abraham" }).scrollIntoViewIfNeeded();
   await page.mouse.wheel(0, 200);
   // L'app retient la position une fois la lecture posée

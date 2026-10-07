@@ -274,9 +274,10 @@ histoire-du-Salut/
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
 └── client/                          ← site web (React + Vite)
-    ├── index.html                   ← la seule page HTML (app "single page") ; icône de l'onglet, police Literata
+    ├── index.html                   ← la seule page HTML (app "single page") ; icône de l'onglet, police préchargée
     ├── public/
-    │   └── favicon.svg              ← l'icône de l'onglet (cascade, vague, croix) et la marque du site
+    │   ├── favicon.svg              ← l'icône de l'onglet (cascade, vague, croix) et la marque du site
+    │   └── fonts/                   ← Literata (texte biblique), hébergée par le site (pas d'appel à Google), et sa licence OFL
     ├── vite.config.js               ← proxy /api → localhost:3000 en dev ; préparation des tests (test/setup.js)
     ├── src/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
