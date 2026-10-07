@@ -9,6 +9,16 @@
   font: 500 .85rem/1 var(--ui-font);
 }
 
+/* Un fondu en haut de l'écran (pas un bandeau) : le texte qui défile s'efface sous les boutons qui flottent */
+.nav-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3.75rem;
+  background: linear-gradient(var(--background) 45%, transparent);
+  pointer-events: none;
+}
+
 /* La marque, en haut à gauche (seulement sur un écran assez large pour ne pas gêner la navigation) */
 .nav-brand {
   position: absolute;

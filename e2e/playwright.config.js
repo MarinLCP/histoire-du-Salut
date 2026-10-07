@@ -15,7 +15,8 @@ export default defineConfig({
   forbidOnly: isCI,
   // En CI : un test qui échoue est relancé une fois ; s'il passe, il est marqué "flaky" (instable, à corriger)
   retries: isCI ? 1 : 0,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  // En CI, le reporter « github » écrit chaque échec en annotation, lisible sans se connecter à GitHub
+  reporter: isCI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
 
   use: {
     baseURL: 'http://localhost:5173',

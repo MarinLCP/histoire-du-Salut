@@ -1,0 +1,43 @@
+/* Le titre collé en haut de la lecture. L'ancre ne prend aucune place (hauteur 0) : rien ne bouge quand il
+   apparaît ; collée sous la navigation pendant tout le défilement (sticky). */
+
+.reading-title-anchor {
+  position: sticky;
+  top: var(--nav-height);
+  z-index: 20;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  /* Sans ça, la pastille prendrait la hauteur nulle de l'ancre */
+  align-items: flex-start;
+}
+
+.reading-title {
+  margin: 0;
+  max-width: calc(100% - 2rem);
+  padding: .4rem .9rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--float);
+  /* Son ombre, et un halo de la couleur de la page : le texte qui défile dessous s'efface autour d'elle */
+  box-shadow: var(--float-shadow), 0 0 .8rem .7rem var(--background);
+  color: var(--text);
+  font: 600 .8rem/1.2 var(--ui-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(-.25rem);
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
+}
+
+.reading-title.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-title {
+    transition: none;
+  }
+}

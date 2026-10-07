@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import Frise from './Frise.jsx';
+import ReadingTitle from './ReadingTitle.jsx';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import './ReadingWithFrise.css';
 
@@ -32,7 +33,10 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7v5h5v5h6v4H3z" /></svg>
         Frise
       </button>
-      <div className="with-frise-reading" onClick={isOpen ? close : undefined}>{children}</div>
+      <div className="with-frise-reading" onClick={isOpen ? close : undefined}>
+        <ReadingTitle />
+        {children}
+      </div>
     </div>
   );
 }

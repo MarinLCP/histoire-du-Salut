@@ -337,7 +337,9 @@ histoire-du-Salut/
     │   │   ├── nodePath.js          ← chemins dans l'arbre de la frise (clé, préfixe, nœud au bout)
     │   │   ├── cascadeView.js       ← état de la frise : niveau affiché, glissement, suivi de la lecture
     │   │   ├── readingSync.js       ← lecture ↔ frise : nœud lu, place du bateau, la frise suit la lecture
-    │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu)
+    │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu) ;
+    │   │   │                          le titre de ce qu'on lit (readingTitleAt)
+    │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) collé en haut pendant la lecture
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
