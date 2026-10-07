@@ -226,7 +226,7 @@ histoire-du-Salut/
 │   └── test/                        ← en miroir de src/ et scripts/
 │       ├── domain/                  ← identifier, PassageSlug, PageRequest, VerseReference, Email, Password, arbres de la frise
 │       ├── application/             ← getPassage, getTimeline, readBible, findChapter, vues d'ensemble, parallèles, comptes (faux repository)
-│       ├── infrastructure/          ← hachage scrypt, envoyeurs d'e-mails (et leur choix), identité Google
+│       ├── infrastructure/          ← hachage scrypt, envoyeurs d'e-mails (et leur choix), identité Google, connexions sans JIT
 │       ├── http/                    ← l'API de bout en bout (supertest + base de dev)
 │       │   ├── health.test.js       ← GET /api/health (base OK / base injoignable)
 │       │   ├── passages.test.js     ← GET /api/passages/:slug (indépendant du contenu)
