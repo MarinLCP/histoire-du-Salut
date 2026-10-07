@@ -67,9 +67,9 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
     <nav className="frise" aria-label="Frise">
       {/* Pas d'onglets tant que l'arbre n'est pas là (ou si son chargement a échoué) : rien à zoomer */}
       {tree.length > 0 && (
-        <div className="frise-tabs" role="group" aria-label="Niveau de la frise">
+        <div className="frise-tabs pill-tabs" role="group" aria-label="Niveau de la frise">
           {tabNames.map((name, tab) => (
-            <button key={name} type="button" aria-pressed={pressedTab(tree, view.path) === tab}
+            <button key={name} type="button" className="pill-tab" aria-pressed={pressedTab(tree, view.path) === tab}
               onClick={() => goTo(pathOfTab(tree, focusPath, tab))}>
               {name}
             </button>

@@ -10,50 +10,22 @@
      fondu de la navigation (NavBar.css) : rien ne la voile ; la navigation, au centre, ne la touche pas */
   position: sticky;
   top: 0;
-  z-index: 31;
+  z-index: var(--z-frise);
   display: flex;
   flex-direction: column;
   height: 100dvh;
 }
 
-/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin. Le même style que la navigation (NavBar.css,
-   « Histoire du salut / Bible entière ») : une pastille qui flotte, l'onglet choisi en bleu sur fond bleu pâle */
+/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin. La même pastille que la navigation (.pill-tabs,
+   index.css), en haut de la colonne, à la hauteur de la navigation */
 .frise-tabs {
-  display: flex;
-  gap: 2px;
-  /* En haut, à la hauteur de la navigation */
-  margin: .75rem .7rem .6rem;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--float);
-  box-shadow: var(--float-shadow);
+  margin: var(--nav-top) .7rem .6rem;
 }
 
 .frise-tabs button {
   flex: 1 1 auto;
-  padding: .6rem .7rem;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted);
-  font: 500 .85rem/1 var(--ui-font);
+  padding-inline: .7rem;
   white-space: nowrap;
-  cursor: pointer;
-}
-
-.frise-tabs button:hover {
-  color: var(--text);
-}
-
-.frise-tabs button[aria-pressed="true"] {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.frise-tabs button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* Le panneau de la frise sur téléphone (2/3 de l'écran) : les mêmes onglets, en plus petit ; un libellé trop

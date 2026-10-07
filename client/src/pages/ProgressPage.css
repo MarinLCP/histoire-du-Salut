@@ -4,7 +4,8 @@
   display: grid;
   gap: 1rem;
   max-width: var(--reading-width);
-  margin: 2rem auto;
+  /* sous la navigation qui flotte */
+  margin: calc(var(--nav-height) + 2rem) auto 2rem;
   padding: 0 1rem;
   font-family: var(--ui-font);
 }

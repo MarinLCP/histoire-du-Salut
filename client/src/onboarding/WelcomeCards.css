@@ -55,27 +55,10 @@
   overflow: hidden;
 }
 
-/* Carte 1 : les deux lectures, comme dans la navigation */
-.welcome-readings {
-  display: flex;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--float);
-  box-shadow: var(--float-shadow);
-  font-weight: 500;
-}
-
-.welcome-readings span {
-  padding: .5rem .8rem;
-  border-radius: 999px;
-  color: var(--text-muted);
-}
-
-.welcome-readings .current {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 600;
+/* Carte 1 : les deux lectures, la pastille de la navigation (.pill-tabs, index.css) ; une image, pas des boutons */
+.welcome-illustration .pill-tab {
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Carte 2 : un escalier de quatre blocs bleus, le bateau en haut, le ruban sur le troisième */
@@ -175,7 +158,7 @@
   align-items: center;
 }
 
-.welcome-buttons button {
+.welcome-skip {
   /* 44px : taille minimale recommandée pour une cible au doigt */
   min-height: 44px;
   padding: 0 1rem;
@@ -183,17 +166,11 @@
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font: 600 .82rem/1 var(--ui-font);
+  font: 600 .8rem/1 var(--ui-font);
   cursor: pointer;
 }
 
-.welcome-buttons .welcome-next {
-  padding: 0 1.3rem;
-  background: var(--accent);
-  color: #fff;
-}
-
-.welcome-buttons button:focus-visible {
+.welcome-skip:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

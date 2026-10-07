@@ -40,8 +40,17 @@
   --margin-notes: 10rem;
   /* Largeur du panneau fixé à droite de la lecture (parallèles, écran large) */
   --docked-panel-width: 22rem;
-  /* La place gardée en haut pour la navigation qui flotte : la lecture et la frise commencent dessous */
+  /* La navigation qui flotte : à quelle distance du haut elle se pose, et la place gardée pour elle (le contenu
+     des pages commence dessous ; la frise, elle, monte jusqu'en haut) */
+  --nav-top: .75rem;
   --nav-height: 4.25rem;
+  /* Les couches de ce qui flotte au-dessus de la lecture (z-index), de bas en haut */
+  --z-reading-bottom: 20; /* le titre de la lecture et « Revenir à … » */
+  --z-nav: 30; /* la navigation, le panneau des parallèles fixé à droite */
+  --z-frise: 31; /* la frise, au-dessus du fondu de la navigation */
+  --z-hint: 35; /* l'astuce de l'appui long */
+  --z-frise-button: 40; /* le bouton « Frise » (téléphone) */
+  --z-drawer: 50; /* le panneau de la frise (téléphone) */
   /* Police des boutons et de la frise (le texte biblique, lui, est en serif) */
   --ui-font: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
   /* Police du texte biblique : Literata (ci-dessus), sinon Georgia */
@@ -103,9 +112,57 @@ body {
   margin: 0;
 }
 
-/* La navigation flotte au-dessus de la page (pas de bandeau) : la lecture commence dessous */
-main {
-  padding-top: var(--nav-height);
+/* Des onglets en pastille qui flotte : la navigation (« Histoire du salut / Bible entière »), les onglets de la
+   frise, l'illustration de la carte d'accueil. L'onglet choisi : en bleu sur fond bleu pâle */
+.pill-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--float);
+  box-shadow: var(--float-shadow);
+}
+
+.pill-tab {
+  padding: .6rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 .85rem/1 var(--ui-font);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pill-tab:hover {
+  color: var(--text);
+}
+
+.pill-tab[aria-current="page"],
+.pill-tab[aria-pressed="true"],
+.pill-tab.current {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Le bouton principal d'une petite fenêtre (« Suivant », « Compris ») : une pastille bleue */
+.button-primary {
+  /* 44px : taille minimale recommandée pour une cible au doigt */
+  min-height: 44px;
+  padding: 0 1.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 600 .8rem/1 var(--ui-font);
+  cursor: pointer;
+}
+
+.pill-tab:focus-visible,
+.button-primary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Un saut de lecture (clic dans la frise) arrête le titre sous la barre de navigation, pas derrière */

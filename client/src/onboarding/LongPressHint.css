@@ -5,7 +5,7 @@
   position: fixed;
   top: calc(var(--nav-height) + .5rem);
   left: 50%;
-  z-index: 35;
+  z-index: var(--z-hint);
   display: flex;
   align-items: center;
   gap: .75rem;
@@ -25,20 +25,7 @@
   margin: 0;
 }
 
+/* « Compris » : le bouton principal (.button-primary, index.css), qui ne rétrécit pas */
 .long-press-hint button {
   flex-shrink: 0;
-  /* 44px : taille minimale recommandée pour une cible au doigt */
-  min-height: 44px;
-  padding: 0 1rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font: 600 .78rem/1 var(--ui-font);
-  cursor: pointer;
-}
-
-.long-press-hint button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }

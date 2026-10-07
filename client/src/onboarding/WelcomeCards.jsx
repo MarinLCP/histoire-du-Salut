@@ -57,8 +57,8 @@ function WelcomeCards({ onClose }) {
           {cards.map((each, rank) => <span key={each.title} className={rank === index ? 'current' : undefined} />)}
         </div>
         <div className="welcome-buttons">
-          {isLast ? <span /> : <button type="button" onClick={onClose}>Passer</button>}
-          <button type="button" className="welcome-next" onClick={next} ref={nextRef}>
+          {isLast ? <span /> : <button type="button" className="welcome-skip" onClick={onClose}>Passer</button>}
+          <button type="button" className="button-primary" onClick={next} ref={nextRef}>
             {isLast ? 'Commencer' : 'Suivant'}
           </button>
         </div>
@@ -111,9 +111,9 @@ function welcomeCards(isTouch) {
 // Les deux lectures, comme les pastilles de la navigation
 function ReadingsIllustration() {
   return (
-    <div className="welcome-readings">
-      <span className="current">Histoire du salut</span>
-      <span>Bible entière</span>
+    <div className="pill-tabs">
+      <span className="pill-tab current">Histoire du salut</span>
+      <span className="pill-tab">Bible entière</span>
     </div>
   );
 }

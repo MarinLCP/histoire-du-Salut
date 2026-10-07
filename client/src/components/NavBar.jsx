@@ -10,11 +10,11 @@ import './NavBar.css';
 function NavBar({ pages, onOpenSettings }) {
   return (
     <header className="nav-bar">
-      <nav className="nav-pages" aria-label="Pages">
+      <nav className="nav-pages pill-tabs" aria-label="Pages">
         {pages.map((page) => (
           // end : "/" n'est la page en cours que pour l'adresse "/" exactement (pas pour "/bible")
           // aria-label : le nom complet, quel que soit le libellé affiché
-          <NavLink key={page.to} to={page.to} end className="nav-link" aria-label={page.label}>
+          <NavLink key={page.to} to={page.to} end className="nav-link pill-tab" aria-label={page.label}>
             <span className="nav-label" aria-hidden="true">{page.label}</span>
             <span className="nav-label-short" aria-hidden="true">{page.shortLabel}</span>
           </NavLink>

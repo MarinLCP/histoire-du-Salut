@@ -18,9 +18,9 @@
   container: reading / inline-size;
 }
 
-/* La colonne de la frise remonte tout en haut de l'écran (la lecture, elle, commence sous la navigation) */
-.frise-drawer {
-  margin-top: calc(-1 * var(--nav-height));
+/* La lecture commence sous la navigation qui flotte ; la colonne de la frise, elle, monte jusqu'en haut */
+.with-frise-reading {
+  padding-top: var(--nav-height);
 }
 
 /* En bas de l'écran, ce qui flotte : « Revenir à … » au-dessus du titre de ce qu'on lit (ReadingTitle) sur un
@@ -31,7 +31,7 @@
   left: 0;
   right: 0;
   bottom: 1.25rem;
-  z-index: 20;
+  z-index: var(--z-reading-bottom);
   height: 0;
   display: flex;
   flex-direction: column;
@@ -88,8 +88,7 @@
   .frise-drawer {
     position: fixed;
     inset: 0 auto 0 0;
-    margin-top: 0;
-    z-index: 50;
+    z-index: var(--z-drawer);
     /* 2/3 de l'écran : le tiers de droite laisse voir le texte (un toucher dessus referme le panneau) */
     width: calc(100vw * 2 / 3);
     background: var(--background);
@@ -123,7 +122,7 @@
     position: fixed;
     left: .9rem;
     bottom: 1.25rem;
-    z-index: 40;
+    z-index: var(--z-frise-button);
     display: flex;
     align-items: center;
     gap: .45rem;

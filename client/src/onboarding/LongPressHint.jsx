@@ -14,7 +14,7 @@ function LongPressHint({ onDismiss }) {
         <strong>Astuce :</strong> {isTouch ? 'appui long' : 'clic droit'} sur un verset pour le surligner, écrire une
         note ou poser le marque-page.
       </p>
-      <button type="button" onClick={onDismiss}>Compris</button>
+      <button type="button" className="button-primary" onClick={onDismiss}>Compris</button>
     </aside>
   );
 }
