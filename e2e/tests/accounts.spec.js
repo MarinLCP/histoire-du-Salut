@@ -3,7 +3,7 @@
 // se déconnecter, se reconnecter, puis supprimer le compte (le test ne laisse rien derrière lui).
 
 import { test, expect } from '@playwright/test';
-import { emailCode } from './helpers.js';
+import { emailCode, uniqueEmail } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
@@ -18,9 +18,8 @@ async function signIn(section, email, buttonName) {
   await section.getByRole('button', { name: buttonName }).click();
 }
 
-test('créer un compte, rester connecté, se déconnecter, se reconnecter, supprimer le compte', async ({ page }, testInfo) => {
-  // Une adresse par appareil testé (les deux tournent en même temps)
-  const email = `e2e-${testInfo.project.name.replace(/\W+/g, '-')}-${Date.now()}@exemple.test`.toLowerCase();
+test('créer un compte, rester connecté, se déconnecter, se reconnecter, supprimer le compte', async ({ page }) => {
+  const email = uniqueEmail('e2e');
   await page.goto('/');
   let section = await openAccount(page);
 
@@ -28,7 +27,8 @@ test('créer un compte, rester connecté, se déconnecter, se reconnecter, suppr
   await signIn(section, email, 'Créer mon compte');
   await section.getByLabel('Code reçu par e-mail').fill(await emailCode(page, email));
   await section.getByRole('button', { name: 'Valider' }).click();
-  await expect(section.getByText(email)).toBeVisible();
+  // « Se déconnecter » et pas seulement l'adresse : elle s'affiche aussi dans « code envoyé à … »
+  await expect(section.getByRole('button', { name: 'Se déconnecter' })).toBeVisible();
 
   // La session tient après un rechargement (cookie)
   await page.reload();

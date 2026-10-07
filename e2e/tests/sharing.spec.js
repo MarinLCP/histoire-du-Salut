@@ -3,14 +3,14 @@
 // « Arrêter de partager » rend le lien inutilisable. Le test supprime son compte à la fin.
 
 import { test, expect } from '@playwright/test';
-import { createAccountByApi } from './helpers.js';
+import { createAccountByApi, uniqueEmail } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
-test('partager où j\'en suis, l\'ouvrir sans compte, puis arrêter de partager', async ({ page, browser }, testInfo) => {
+test('partager où j\'en suis, l\'ouvrir sans compte, puis arrêter de partager', async ({ page, browser }) => {
   // Pas de feuille de partage (le test ne peut pas la fermer) : le lien est copié
   await page.addInitScript(() => Object.defineProperty(Navigator.prototype, 'share', { value: undefined }));
-  const email = `partage-${testInfo.project.name.replace(/\W+/g, '-')}-${Date.now()}@exemple.test`.toLowerCase();
+  const email = uniqueEmail('partage');
   await page.goto('/');
 
   // Un compte, et un marque-page dans l'épisode n° 2 (posé directement : pas besoin de lire pour de vrai)

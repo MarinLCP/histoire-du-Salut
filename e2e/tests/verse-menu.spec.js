@@ -1,7 +1,7 @@
 // Parcours : le menu d'un verset (appui long) pour surligner, écrire une note (il faut un compte), copier.
 
 import { test, expect } from '@playwright/test';
-import { allowClipboard, emailCode, firstVerse, longPress, readClipboard } from './helpers.js';
+import { allowClipboard, emailCode, firstVerse, longPress, readClipboard, uniqueEmail } from './helpers.js';
 
 const PASSWORD = 'un mot de passe long';
 
@@ -32,9 +32,9 @@ test('surligner un verset, et le retrouver surligné après avoir rechargé la p
   await expect(page.getByRole('button', { name: 'Retirer le surlignage' })).toBeVisible();
 });
 
-test('une note demande un compte : on le crée sur place, la note est gardée, privée, et retrouvée', async ({ page }, testInfo) => {
+test('une note demande un compte : on le crée sur place, la note est gardée, privée, et retrouvée', async ({ page }) => {
   const note = 'Tout commence par une parole';
-  const email = `note-${testInfo.project.name.replace(/\W+/g, '-')}-${Date.now()}@exemple.test`.toLowerCase();
+  const email = uniqueEmail('note');
   const menu = page.getByRole('dialog');
 
   // Sans compte : « Enregistrer » propose d'en créer un

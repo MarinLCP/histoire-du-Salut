@@ -1,5 +1,6 @@
 // Gestes et repères communs aux parcours.
 
+import { randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import { LONG_PRESS_DELAY } from '../../client/src/hooks/longPress.js';
 
@@ -45,6 +46,12 @@ export async function allowClipboard(context, browserName) {
 
 export function readClipboard(page) {
   return page.evaluate(() => navigator.clipboard.readText());
+}
+
+// Une adresse que personne d'autre n'utilise, même si plusieurs tests démarrent à la même milliseconde
+// (Date.now() ne suffisait pas : deux tests sur la même adresse s'écrasaient leur code de validation)
+export function uniqueEmail(prefix) {
+  return `${prefix}-${randomUUID()}@exemple.test`;
 }
 
 // Le code de validation envoyé à cette adresse (boîte de test du serveur, EMAIL_OUTBOX=1). On attend que
