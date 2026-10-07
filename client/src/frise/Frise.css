@@ -16,32 +16,67 @@
   height: 100dvh;
 }
 
-/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin. Une pastille qui flotte, comme la navigation */
+/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin. Le même style que la navigation (NavBar.css,
+   « Histoire du salut / Bible entière ») : une pastille qui flotte, l'onglet choisi en bleu sur fond bleu pâle */
 .frise-tabs {
   display: flex;
   gap: 2px;
   /* En haut, à la hauteur de la navigation */
   margin: .75rem .7rem .6rem;
-  padding: 3px;
-  border-radius: 99px;
+  padding: 4px;
+  border-radius: 999px;
   background: var(--float);
   box-shadow: var(--float-shadow);
 }
 
 .frise-tabs button {
-  flex: 1;
-  padding: .5rem .2rem;
+  flex: 1 1 auto;
+  padding: .6rem .7rem;
   border: 0;
-  border-radius: 99px;
+  border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font: 600 .74rem/1 var(--ui-font);
+  font: 500 .85rem/1 var(--ui-font);
+  white-space: nowrap;
   cursor: pointer;
 }
 
+.frise-tabs button:hover {
+  color: var(--text);
+}
+
 .frise-tabs button[aria-pressed="true"] {
-  background: var(--level-2);
-  color: var(--ink-on-dark);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.frise-tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Le panneau de la frise sur téléphone (2/3 de l'écran) : les mêmes onglets, en plus petit ; un libellé trop
+   long passe sur deux lignes plutôt que de déborder du panneau */
+@media (max-width: 1099px) {
+  .frise-tabs {
+    margin-inline: .5rem;
+  }
+
+  .frise-tabs button {
+    padding: .5rem .3rem;
+    font-size: .74rem;
+    line-height: 1.15;
+    white-space: normal;
+  }
+}
+
+/* Très petit écran (ex. 320 px) : un cran plus petit */
+@media (max-width: 359px) {
+  .frise-tabs button {
+    padding-inline: .2rem;
+    font-size: .66rem;
+  }
 }
 
 .frise-stage {
