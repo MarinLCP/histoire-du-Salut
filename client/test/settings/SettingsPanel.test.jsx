@@ -45,4 +45,10 @@ describe('SettingsPanel', () => {
 
     expect(onClose).toHaveBeenCalled();
   });
+
+  test('mène à la page Confidentialité', () => {
+    renderPanel();
+
+    expect(screen.getByRole('link', { name: 'Confidentialité' }).getAttribute('href')).toBe('/confidentialite');
+  });
 });

@@ -289,6 +289,7 @@ histoire-du-Salut/
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
     │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche
     │   │   ├── ProgressPage.jsx / .css ← /progression/:jeton : où en est un lecteur (lien qu'il a partagé)
+    │   │   ├── PrivacyPage.jsx / .css ← /confidentialite : les données gardées, combien de temps, tout supprimer
     │   │   └── BiblePage.jsx / .css ← /bible  : la Bible entière, lue en continu
     │   │                              /bible?livre=Gn&chapitre=3 : commence à ce chapitre ; frise en mode Bible
     │   │                              /bible?livre=Gn&chapitre=3&verset=15 : puis défile jusqu'au verset
@@ -397,6 +398,7 @@ histoire-du-Salut/
         ├── components/              ← Passage, StatusButton, VerseMenu, ReturnButton (React Testing Library)
         ├── pages/BiblePage.test.jsx ← la Bible en continu, titres de livres, menu d'un verset, liens (chapitre, verset), frise
         ├── pages/ProgressPage.test.jsx ← où en est un lecteur ; pas commencé ; lien inconnu
+        ├── pages/PrivacyPage.test.jsx ← la page Confidentialité
         ├── pages/HistoryPage.test.jsx ← point de départ (lien partagé) et retour au début, sans rechargement
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
         ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant

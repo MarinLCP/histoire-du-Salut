@@ -90,3 +90,10 @@
   outline: 2px solid var(--level-2);
   outline-offset: 2px;
 }
+
+/* Le lien vers la page « Confidentialité », discret, en bas du panneau */
+.settings-privacy {
+  justify-self: start;
+  color: var(--text-muted);
+  font-size: .9rem;
+}
