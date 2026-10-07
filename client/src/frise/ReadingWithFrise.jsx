@@ -3,10 +3,12 @@
 // - Écran étroit (moins de 1100 px) : pas la place ; la frise est rangée dans un panneau glissant
 //   (2/3 de l'écran), ouvert par le bouton « Frise » (en bas à gauche). Il reste ouvert pendant qu'on zoome
 //   et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (le tiers visible) ou Échap le referme.
+// En bas de la lecture flottent le titre de ce qu'on lit et, après un clic sur un parallèle, « Revenir à … ».
 
 import { useEffect, useState } from 'react';
 import Frise from './Frise.jsx';
 import ReadingTitle from './ReadingTitle.jsx';
+import ReturnButton from '../components/ReturnButton.jsx';
 import { ReadingModeContext } from './ReadingModeContext.js';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import './ReadingWithFrise.css';
@@ -35,9 +37,12 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
         Frise
       </button>
       <div className="with-frise-reading" onClick={isOpen ? close : undefined}>
-        <ReadingTitle />
         {/* Les versets savent à quelle lecture ils appartiennent (leur marque-page) */}
         <ReadingModeContext.Provider value={mode}>{children}</ReadingModeContext.Provider>
+        <div className="reading-bottom">
+          <ReturnButton />
+          <ReadingTitle />
+        </div>
       </div>
     </div>
   );

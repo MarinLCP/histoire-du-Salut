@@ -10,7 +10,6 @@ import NavBar from './components/NavBar.jsx';
 import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
 import ParallelsPanel from './parallels/ParallelsPanel.jsx';
-import ReturnButton from './components/ReturnButton.jsx';
 import AccountSection from './account/AccountSection.jsx';
 import { useAccount } from './account/useAccount.js';
 import HistoryPage from './pages/HistoryPage.jsx';
@@ -28,8 +27,8 @@ const WIDE_SCREEN = '(min-width: 1300px)';
 
 // Les pages du site
 const PAGES = [
-  { to: '/', label: 'Histoire du salut' },
-  { to: '/bible', label: 'Bible entière' },
+  { to: '/', label: 'Histoire du salut', shortLabel: 'Histoire' },
+  { to: '/bible', label: 'Bible entière', shortLabel: 'Bible' },
 ];
 
 function App() {
@@ -112,9 +111,6 @@ function App() {
           onClose={() => { library.releaseNote(); setMenuVerse(null); }}
         />
       )}
-
-      {/* Après un clic sur un parallèle : « Revenir à … » */}
-      <ReturnButton />
 
       {parallelsVerse && (
         <ParallelsPanel key={parallelsVerse.key} verse={parallelsVerse} isDocked={isWide}

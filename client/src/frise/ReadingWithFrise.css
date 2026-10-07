@@ -1,8 +1,31 @@
 /* La frise à gauche, la lecture à droite (écran large : pages Histoire du salut et Bible entière). */
 
 .with-frise {
+  /* La largeur du bouton « Frise » (écran étroit) : le titre de la lecture s'aligne à côté de lui */
+  --frise-tab-width: 5.5rem;
   display: grid;
   grid-template-columns: 22rem minmax(0, 1fr);
+}
+
+/* En bas de la lecture, ce qui flotte : « Revenir à … » au-dessus du titre de ce qu'on lit (ReadingTitle).
+   Placée après les versets et collée en bas de l'écran (sticky) : elle y reste pendant tout le défilement, au
+   centre de la lecture. Elle ne prend aucune place (hauteur 0) : les pastilles débordent vers le haut. */
+.reading-bottom {
+  position: sticky;
+  bottom: 1.25rem;
+  z-index: 20;
+  height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .6rem;
+  pointer-events: none;
+}
+
+/* Sans ça, les pastilles rétréciraient pour tenir dans la hauteur nulle */
+.reading-bottom > * {
+  flex-shrink: 0;
 }
 
 /* Le bouton « Frise » n'existe que sur écran étroit */
@@ -43,6 +66,13 @@
     height: 100dvh;
   }
 
+  /* Le titre et « Revenir à … » : sur la même ligne que le bouton « Frise », centrés dans la place à sa droite */
+  .reading-bottom {
+    position: fixed;
+    left: calc(.9rem + var(--frise-tab-width) + .6rem);
+    right: .9rem;
+  }
+
   /* Le bouton « Frise » : une petite pastille qui flotte en bas à gauche, comme les autres boutons */
   .frise-drawer-tab {
     position: fixed;
@@ -52,8 +82,10 @@
     display: flex;
     align-items: center;
     gap: .45rem;
+    justify-content: center;
+    width: var(--frise-tab-width);
     height: 2.75rem;
-    padding: 0 1rem 0 .8rem;
+    padding: 0;
     border: 0;
     border-radius: 999px;
     background: var(--float);

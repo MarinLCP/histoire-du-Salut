@@ -1,14 +1,11 @@
-/* « Revenir à … » : une pastille sombre qui flotte en bas de l'écran (en bas à droite sur un écran étroit, pour
-   laisser la place au bouton « Frise ») */
+/* « Revenir à … » : une pastille sombre, en bas de la lecture, juste au-dessus du titre de ce qu'on lit
+   (placée par ReadingWithFrise.css) */
 
 .return-button {
-  position: fixed;
-  bottom: 1.25rem;
-  left: 50%;
-  z-index: 40;
   display: flex;
   align-items: center;
   gap: .4rem;
+  max-width: 100%;
   height: 2.75rem;
   padding: 0 1.1rem 0 .8rem;
   border: 0;
@@ -17,11 +14,14 @@
   color: var(--background);
   box-shadow: var(--float-shadow);
   font: 600 .85rem/1 var(--ui-font);
-  transform: translateX(-50%);
+  white-space: nowrap;
   cursor: pointer;
+  /* Son conteneur laisse passer les clics (il ne prend aucune place) : pas le bouton */
+  pointer-events: auto;
 }
 
 .return-button svg {
+  flex-shrink: 0;
   width: 1.1rem;
   height: 1.1rem;
   fill: none;
@@ -34,12 +34,4 @@
 .return-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-@media (max-width: 1099px) {
-  .return-button {
-    left: auto;
-    right: .9rem;
-    transform: none;
-  }
 }

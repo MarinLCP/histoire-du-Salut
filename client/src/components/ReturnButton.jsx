@@ -1,4 +1,4 @@
-// « Revenir à Ps 78,9 » : après un clic sur un parallèle, un bouton qui flotte en bas de l'écran ramène au verset
+// « Revenir à Ps 78,9 » : après un clic sur un parallèle, un bouton qui flotte en bas de la lecture ramène au verset
 // de départ, dans sa lecture (la Bible entière ou l'épisode). Le parallèle a laissé l'endroit où revenir dans
 // l'état de la navigation (location.state.returnTo, voir bible/returnPoint.js) ; au retour, la lecture défile
 // jusqu'au verset (state.scrollToVerse).

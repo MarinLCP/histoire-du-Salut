@@ -4,6 +4,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import ReadingWithFrise from '../../src/frise/ReadingWithFrise.jsx';
 import { stubResizeObserver } from '../helpers/stubResizeObserver.js';
 
@@ -11,10 +12,13 @@ const overview = [{ title: 'Les origines', detail: null, icon: 'sun', position: 
 const TAB_NAMES = ["Vue d'ensemble", 'Épisodes', 'Chapitres'];
 
 function renderNarrow(onJump = vi.fn()) {
+  // MemoryRouter : « Revenir à … », en bas de la lecture, lit l'état de la navigation
   render(
-    <ReadingWithFrise mode="history" tabNames={TAB_NAMES} onJump={onJump}>
-      <p>Le texte à lire</p>
-    </ReadingWithFrise>,
+    <MemoryRouter>
+      <ReadingWithFrise mode="history" tabNames={TAB_NAMES} onJump={onJump}>
+        <p>Le texte à lire</p>
+      </ReadingWithFrise>
+    </MemoryRouter>,
   );
   return { drawerTab: screen.getByRole('button', { name: 'Frise' }) };
 }

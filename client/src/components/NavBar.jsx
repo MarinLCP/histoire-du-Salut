@@ -1,7 +1,8 @@
-// La navigation, qui flotte au-dessus de la page (pas de bandeau) : à gauche la marque du site, au centre
-// un lien par lecture (NavLink ajoute aria-current="page" sur celle affichée), à droite le bouton
+// La navigation, qui flotte au-dessus de la page (pas de bandeau ni de logo : l'icône est dans l'onglet) :
+// au centre un lien par lecture (NavLink ajoute aria-current="page" sur celle affichée), à droite le bouton
 // « personne » qui ouvre le panneau du compte et des réglages.
-// `pages` : [{ to, label }] (la liste est dans App.jsx) ; onOpenSettings : ouvrir ce panneau.
+// `pages` : [{ to, label, shortLabel }] (la liste est dans App.jsx ; shortLabel : sur un très petit écran) ;
+// onOpenSettings : ouvrir ce panneau.
 
 import { NavLink } from 'react-router';
 import './NavBar.css';
@@ -9,15 +10,13 @@ import './NavBar.css';
 function NavBar({ pages, onOpenSettings }) {
   return (
     <header className="nav-bar">
-      <a className="nav-brand" href="/" aria-label="L'histoire d'un Salut, accueil">
-        <img src="/favicon.svg" alt="" width="28" height="28" />
-        <span>L'histoire d'un Salut</span>
-      </a>
       <nav className="nav-pages" aria-label="Pages">
         {pages.map((page) => (
           // end : "/" n'est la page en cours que pour l'adresse "/" exactement (pas pour "/bible")
-          <NavLink key={page.to} to={page.to} end className="nav-link">
-            {page.label}
+          // aria-label : le nom complet, quel que soit le libellé affiché
+          <NavLink key={page.to} to={page.to} end className="nav-link" aria-label={page.label}>
+            <span className="nav-label" aria-hidden="true">{page.label}</span>
+            <span className="nav-label-short" aria-hidden="true">{page.shortLabel}</span>
           </NavLink>
         ))}
       </nav>

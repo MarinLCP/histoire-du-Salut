@@ -308,14 +308,14 @@ histoire-du-Salut/
     │   │   ├── returnPoint.js       ← le verset où revenir après un parallèle (sa clé et l'adresse de sa page)
     │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
     │   ├── components/              ← ce qui s'affiche à l'écran
-    │   │   ├── NavBar.jsx / .css    ← la navigation qui flotte : la marque, les deux lectures, le bouton « personne »
+    │   │   ├── NavBar.jsx / .css    ← la navigation qui flotte : les deux lectures, le bouton « personne »
     │   │   ├── Timeline.jsx / .css  ← la liste des passages + scroll infini
     │   │   ├── ListStatus.jsx / .css ← chargement / erreur / fin d'une liste (timeline, Bible)
     │   │   ├── Passage.jsx / .css   ← un passage : titre, référence, personnages, « Lire tout le chapitre », Partager, versets
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres, marge), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
-    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un clic sur un parallèle
+    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un parallèle (en bas de la lecture)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
     │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, marque-page, copier, parallèles) ;
@@ -345,7 +345,7 @@ histoire-du-Salut/
     │   │   ├── readingSync.js       ← lecture ↔ frise : nœud lu, place du bateau, la frise suit la lecture
     │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu) ;
     │   │   │                          le titre de ce qu'on lit (readingTitleAt) ; la position d'un verset
-    │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) collé en haut pendant la lecture
+    │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) en bas pendant la lecture
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
@@ -355,7 +355,7 @@ histoire-du-Salut/
     │   │   ├── ReadingModeContext.js ← la lecture en cours ('history' | 'bible'), pour les versets qu'elle contient
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
     │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (sans fond) ; < 1100 px : panneau (2/3 de l'écran),
-    │   │   │                          ouvert par le bouton flottant « Frise » (en bas à gauche)
+    │   │   │                          ouvert par le bouton flottant « Frise » (en bas à gauche) ; en bas : titre + « Revenir à … »
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)

@@ -19,23 +19,6 @@
   pointer-events: none;
 }
 
-/* La marque, en haut à gauche (seulement sur un écran assez large pour ne pas gêner la navigation) */
-.nav-brand {
-  position: absolute;
-  top: 1rem;
-  left: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  color: var(--text);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.nav-brand img {
-  border-radius: 7px;
-}
-
 /* Les deux lectures, au centre */
 .nav-pages {
   position: absolute;
@@ -56,6 +39,10 @@
   border-radius: 999px;
   color: var(--text-muted);
   text-decoration: none;
+}
+
+.nav-label-short {
+  display: none;
 }
 
 .nav-link:hover {
@@ -95,27 +82,37 @@
   stroke-linecap: round;
 }
 
-.nav-brand:focus-visible,
 .nav-link:focus-visible,
 .nav-account:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Écran étroit : la marque laisse la place ; la navigation se décale à gauche du bouton « personne » */
-@media (max-width: 899px) {
-  .nav-brand {
-    display: none;
-  }
-}
-
-@media (max-width: 479px) {
+/* Téléphone : la navigation se cale à gauche et s'arrête avant le bouton « personne » (jamais l'un sur l'autre) ;
+   sur un très petit écran, un libellé trop long finit par « … » plutôt que de déborder */
+@media (max-width: 599px) {
   .nav-pages {
     left: .75rem;
+    max-width: calc(100% - .75rem - 1rem - 2.75rem - .5rem);
     transform: none;
   }
 
   .nav-link {
-    padding: .6rem .75rem;
+    min-width: 0;
+    padding: .6rem .7rem;
+    overflow: hidden;
+    font-size: .8rem;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Très petit écran (ex. 320 px) : les libellés courts, « Histoire » et « Bible » */
+@media (max-width: 359px) {
+  .nav-label {
+    display: none;
+  }
+
+  .nav-label-short {
+    display: inline;
   }
 }
