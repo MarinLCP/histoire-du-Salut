@@ -2,6 +2,8 @@
 // (surligner, noter, poser le marque-page, copier, parallèles), partagé par les deux, le panneau des parallèles (à droite)
 // et le panneau Paramètres (dont « Mon compte »). Le compte et la bibliothèque du lecteur (notes,
 // surlignages, marque-pages : useLibrary) sont gérés ici, une fois pour toutes les pages.
+// Sur les deux lectures, la présentation du site aux nouveaux venus (useOnboarding) : les cartes d'accueil,
+// puis l'astuce de l'appui long.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
 
 import { useCallback, useMemo, useState } from 'react';
@@ -11,6 +13,9 @@ import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
 import ParallelsPanel from './parallels/ParallelsPanel.jsx';
 import AccountSection from './account/AccountSection.jsx';
+import WelcomeCards from './onboarding/WelcomeCards.jsx';
+import LongPressHint from './onboarding/LongPressHint.jsx';
+import { useOnboarding } from './onboarding/useOnboarding.js';
 import { useAccount } from './account/useAccount.js';
 import HistoryPage from './pages/HistoryPage.jsx';
 import BiblePage from './pages/BiblePage.jsx';
@@ -44,16 +49,27 @@ function App() {
   const isParallelsDocked = isWide && parallelsVerse !== null;
   const { settings, change: changeSettings } = useSettings();
   // Retour d'une connexion Google ratée (/?connexion=echec) : Paramètres s'ouvre et le dit
-  const googleFailed = new URLSearchParams(useLocation().search).get('connexion') === 'echec';
+  const location = useLocation();
+  const googleFailed = new URLSearchParams(location.search).get('connexion') === 'echec';
+  // La présentation du site ne s'affiche que sur les deux lectures (pas sur un lien de partage ni sur la page
+  // Confidentialité)
+  const isReadingPage = location.pathname === '/' || location.pathname === '/bible';
+  const onboarding = useOnboarding();
+  const { dismissHint } = onboarding;
   const [isSettingsOpen, setIsSettingsOpen] = useState(googleFailed);
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
   const savedBookmarks = library.bookmarks.saved;
   const placedBookmarks = useMemo(() => placedVerses(savedBookmarks), [savedBookmarks]);
+  // Ouvrir le menu d'un verset : l'astuce de l'appui long a servi, elle ne revient plus
+  const openMenu = useCallback((verse) => {
+    setMenuVerse(verse);
+    dismissHint();
+  }, [dismissHint]);
   const annotations = useMemo(
-    () => ({ highlights, notes, placedBookmarks, openMenu: setMenuVerse }),
-    [highlights, notes, placedBookmarks],
+    () => ({ highlights, notes, placedBookmarks, openMenu }),
+    [highlights, notes, placedBookmarks, openMenu],
   );
 
   // useCallback : la même fonction d'un affichage à l'autre (le panneau fixé écoute Échap avec elle)
@@ -120,8 +136,12 @@ function App() {
           onClose={closeParallels} />
       )}
 
+      {isReadingPage && onboarding.isWelcomeOpen && <WelcomeCards onClose={onboarding.closeWelcome} />}
+      {isReadingPage && onboarding.isHintVisible && <LongPressHint onDismiss={dismissHint} />}
+
       {isSettingsOpen && (
-        <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}>
+        <SettingsPanel settings={settings} onChange={changeSettings} onClose={() => setIsSettingsOpen(false)}
+          onShowWelcome={() => { setIsSettingsOpen(false); onboarding.openWelcome(); }}>
           <AccountSection account={account} waitingNotes={library.waitingNotes.size}
             libraryStatus={library.status} onRetryLibrary={library.retry} googleFailed={googleFailed} />
         </SettingsPanel>

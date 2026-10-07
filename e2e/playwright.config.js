@@ -3,6 +3,7 @@
 // Usage : npm test (la base de dev doit être remplie : cd ../server && npm run seed)
 // Tourne aussi dans la CI (job e2e de .github/workflows/ci.yml) : GitHub y fournit la variable CI.
 
+import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = Boolean(process.env.CI);
@@ -20,6 +21,9 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:5173',
+    // Chaque parcours démarre avec la présentation du site déjà vue (sinon les cartes d'accueil couvriraient la
+    // page) ; onboarding.spec.js repart d'un navigateur vierge pour la tester
+    storageState: join(import.meta.dirname, 'onboarding-seen.json'),
     // En cas d'échec, Playwright garde une trace (captures, réseau...) : npm run report pour la voir
     trace: 'retain-on-failure',
   },

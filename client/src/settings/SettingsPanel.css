@@ -50,15 +50,20 @@
   outline-offset: -2px;
 }
 
-/* Le lien vers la page « Confidentialité et mentions légales », discret, en bas du panneau */
-.settings-privacy {
+/* En bas du panneau, discrets : « Revoir la présentation » et le lien vers « Confidentialité et mentions
+   légales » (un bouton et un lien, avec la même allure) */
+.settings-link {
   justify-self: start;
   padding: .5rem 0;
+  border: 0;
+  background: none;
   color: var(--text-muted);
   font: .8rem/1.3 var(--ui-font);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
-.settings-privacy:hover {
+.settings-link:hover {
   color: var(--text);
 }
 

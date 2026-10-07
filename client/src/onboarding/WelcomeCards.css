@@ -1,0 +1,207 @@
+/* Les cartes d'accueil : une carte au centre de l'écran, sur un fond grisé, dans le style des boutons qui
+   flottent (fond --float, coins arrondis, ombre). Pas de marge interne sur <dialog> : un clic sur lui est
+   forcément sur le fond (useModalDialog) */
+
+.welcome {
+  width: min(24rem, calc(100vw - 2rem));
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: 1.25rem;
+  background: var(--float);
+  color: var(--text);
+  box-shadow: var(--float-shadow);
+}
+
+.welcome::backdrop {
+  background: rgb(0 0 0 / .45);
+}
+
+.welcome-card {
+  display: grid;
+  gap: .75rem;
+  padding: 1.25rem 1.25rem 1rem;
+  font: .82rem/1.55 var(--ui-font);
+  /* Glisser du doigt change de carte : le navigateur ne fait pas défiler la page en même temps */
+  touch-action: pan-y;
+}
+
+.welcome-card h2 {
+  margin: 0;
+  font: 600 1.25rem/1.2 var(--reading-font);
+}
+
+.welcome-card p,
+.welcome-card ul {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.welcome-card ul {
+  padding-left: 1.1rem;
+}
+
+.welcome-card strong {
+  color: var(--text);
+}
+
+/* La zone d'illustration : toujours la même hauteur, pour que les boutons ne sautent pas d'une carte à l'autre */
+.welcome-illustration {
+  display: grid;
+  place-items: center;
+  height: 8rem;
+  border-radius: .9rem;
+  background: var(--background);
+  overflow: hidden;
+}
+
+/* Carte 1 : les deux lectures, comme dans la navigation */
+.welcome-readings {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--float);
+  box-shadow: var(--float-shadow);
+  font-weight: 500;
+}
+
+.welcome-readings span {
+  padding: .5rem .8rem;
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+
+.welcome-readings .current {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Carte 2 : un escalier de quatre blocs bleus, le bateau en haut, le ruban sur le troisième */
+.welcome-frise {
+  position: relative;
+  width: 12rem;
+  height: 6.5rem;
+}
+
+.welcome-frise span {
+  position: absolute;
+  left: 0;
+  top: calc(var(--step) * 1.55rem + .4rem);
+  width: calc(5rem + var(--step) * 1.9rem);
+  height: 1.45rem;
+  border-radius: 0 .3rem .3rem 0;
+  background: var(--level-1);
+  box-shadow: inset -.9rem 0 0 var(--level-2);
+}
+
+.welcome-boat {
+  position: absolute;
+  left: 3.6rem;
+  top: -.35rem;
+  width: 1.4rem;
+  fill: #d9a441;
+  stroke: #8a5a14;
+  stroke-width: 1.2;
+}
+
+.welcome-ribbon {
+  position: absolute;
+  left: 8.2rem;
+  top: 2.6rem;
+  width: .8rem;
+  fill: var(--bookmark);
+}
+
+/* Carte 3 : un verset surligné, avec son marque-page et sa note (comme dans la lecture) */
+.welcome-verse {
+  width: 85%;
+  font: .9rem/1.5 var(--reading-font);
+}
+
+.welcome-verse p {
+  margin: 0;
+}
+
+.welcome-verse sup {
+  margin-right: .25rem;
+  color: var(--text-muted);
+  font-size: .65em;
+}
+
+.welcome-verse mark {
+  border-radius: .2rem;
+  background: var(--highlight);
+  color: var(--text);
+}
+
+.welcome-verse .welcome-bookmark {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  color: var(--bookmark);
+  font: 600 .7rem/1 var(--ui-font);
+}
+
+.welcome-bookmark svg {
+  width: .5rem;
+  fill: currentColor;
+}
+
+.welcome-verse .welcome-note {
+  margin-top: .4rem;
+  padding-left: .6rem;
+  border-left: 3px solid var(--highlight);
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-style: italic;
+}
+
+/* Les points : où on en est dans les cartes */
+.welcome-dots {
+  display: flex;
+  justify-content: center;
+  gap: .4rem;
+}
+
+.welcome-dots span {
+  width: .45rem;
+  height: .45rem;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.welcome-dots .current {
+  background: var(--accent);
+}
+
+.welcome-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-buttons button {
+  /* 44px : taille minimale recommandée pour une cible au doigt */
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: 600 .82rem/1 var(--ui-font);
+  cursor: pointer;
+}
+
+.welcome-buttons .welcome-next {
+  padding: 0 1.3rem;
+  background: var(--accent);
+  color: #fff;
+}
+
+.welcome-buttons button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

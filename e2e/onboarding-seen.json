@@ -1,0 +1,11 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        { "name": "onboarding", "value": "{\"version\":1,\"onboarding\":{\"welcome\":true,\"longPressHint\":true}}" }
+      ]
+    }
+  ]
+}

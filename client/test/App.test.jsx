@@ -62,6 +62,37 @@ describe('routage', () => {
     expect(screen.getAllByRole('link', { name: 'contact@lerouleau.com' })[0].getAttribute('href')).toBe('mailto:contact@lerouleau.com');
   });
 
+  test('première visite : les cartes d\'accueil, puis l\'astuce de l\'appui long, que « Compris » retire', () => {
+    HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };
+    localStorage.removeItem('onboarding');
+    renderAt('/');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Passer' }));
+
+    expect(screen.queryByRole('heading', { name: 'Bienvenue' })).toBeNull();
+    expect(screen.getByRole('complementary', { name: 'Astuce' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Compris' }));
+    expect(screen.queryByRole('complementary', { name: 'Astuce' })).toBeNull();
+  });
+
+  test('pas de cartes d\'accueil sur la page Confidentialité (ni sur un lien de partage)', () => {
+    localStorage.removeItem('onboarding');
+    renderAt('/confidentialite');
+
+    expect(screen.queryByRole('heading', { name: 'Bienvenue' })).toBeNull();
+  });
+
+  test('« Revoir la présentation » (panneau du compte) rouvre les cartes d\'accueil', () => {
+    HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };
+    HTMLDialogElement.prototype.close = function close() { this.open = false; };
+    renderAt('/');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mon compte' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Revoir la présentation' }));
+
+    expect(screen.getByRole('heading', { name: 'Bienvenue' })).toBeDefined();
+  });
+
   test('une adresse inconnue ramène à l\'histoire du salut', () => {
     renderAt('/page-qui-n-existe-pas');
 

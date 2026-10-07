@@ -262,6 +262,7 @@ histoire-du-Salut/
 │
 ├── e2e/                             ← tests de bout en bout (Playwright) : l'app complète en local
 │   ├── playwright.config.js         ← 2 appareils (Chrome, iPhone/Safari) + démarrage des serveurs
+│   ├── onboarding-seen.json         ← les parcours démarrent avec la présentation du site déjà vue
 │   └── tests/
 │       ├── helpers.js               ← gestes communs : appui long, scroll jusqu'en bas
 │       ├── navigation.spec.js       ← passer d'une page à l'autre, ouvrir /bible directement
@@ -271,6 +272,7 @@ histoire-du-Salut/
 │       ├── accounts.spec.js         ← créer un compte (code par e-mail), rester connecté, se (dé)connecter, supprimer
 │       ├── sharing.spec.js          ← partager où j'en suis ; le lien ouvert sans compte ; arrêter de partager
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement) ; lien Confidentialité
+│       ├── onboarding.spec.js       ← première visite : cartes d'accueil, astuce de l'appui long, puis plus rien
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, poser le marque-page, copier ; une note demande un compte (créé
 │       │                              sur place), retrouvée
@@ -377,6 +379,11 @@ histoire-du-Salut/
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
     │   │   ├── useSettings.js       ← branchement React (appliqués et sauvegardés à chaque changement)
     │   │   └── SettingsPanel.jsx / .css ← le panneau « Compte et réglages » (dans un SidePanel)
+    │   ├── onboarding/              ← la présentation du site aux nouveaux venus (V11.4)
+    │   │   ├── WelcomeCards.jsx / .css ← les 3 cartes d'accueil (les deux lectures, la frise, les notes)
+    │   │   ├── LongPressHint.jsx / .css ← l'astuce de l'appui long, une seule fois
+    │   │   ├── useOnboarding.js     ← quand les montrer (première visite, « Revoir la présentation »)
+    │   │   └── onboarding.storage.js ← déjà vu ou pas, dans le navigateur
     │   ├── hooks/                   ← appui long, chargement au fil du défilement, point de départ, taille d'écran
     │   │   ├── longPress.js         ← règles (durée, "le doigt a bougé")
     │   │   ├── useLongPress.js      ← branchement React
@@ -391,7 +398,8 @@ histoire-du-Salut/
     │       └── useStoredMap.js      ← hook : charger / sauvegarder
     └── test/                        ← en miroir de src/ (unitaires + composants avec jsdom)
         ├── App.test.jsx             ← routage, frise sur /, panneau Paramètres, panneau des parallèles
-        ├── setup.js                 ← préparation commune à tous les tests (vide le cache et le stockage)
+        ├── setup.js                 ← préparation commune à tous les tests (vide le cache et le stockage ;
+        │                              présentation du site marquée « déjà vue »)
         ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink
@@ -406,6 +414,7 @@ histoire-du-Salut/
         ├── account/                 ← section « Mon compte », useAccount, « Partager où j'en suis »
         ├── library/                 ← useLibrary (sans compte, fusion à la connexion, écriture annulée si échec)
         ├── settings/                ← règles des réglages, panneau
+        ├── onboarding/              ← cartes d'accueil, useOnboarding (une seule fois, revoir)
         ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source), marge
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink
