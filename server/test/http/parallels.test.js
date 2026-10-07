@@ -68,20 +68,19 @@ describe('GET .../verses/:verse/parallels', () => {
   });
 });
 
-describe('la marge de la lecture : les parallèles arrivent avec les versets', () => {
+describe('la marge de la Bible entière : les parallèles arrivent avec les versets', () => {
   test('chaque verset de /api/bible porte ses 3 parallèles les plus votés (Gn 1,1 : Jn 1,1-3 d\'abord)', async () => {
     const res = await request(app).get('/api/bible?after=0&limit=1');
     const [first] = res.body.chapters[0].verses;
 
     expect(first.parallels.map(({ start }) => `${start.book} ${start.chapter},${start.verse}`)).toEqual(['Jn 1,1', 'He 11,3', 'Is 45,18']);
     expect(first.parallels[0].end).toEqual({ book: 'Jn', chapter: '1', verse: '3' });
-    expect(res.body.chapters[0].verses.every((verse) => verse.parallels.length <= 3)).toBe(true);
+    expect(res.body.chapters[0].verses.every((verse) => Array.isArray(verse.parallels) && verse.parallels.length <= 3)).toBe(true);
   });
 
-  test('les versets d\'un épisode aussi ; un verset sans parallèle a une liste vide', async () => {
+  test('les épisodes n\'ont pas de marge : leurs versets arrivent sans parallèles', async () => {
     const res = await request(app).get('/api/passages/creation');
 
-    expect(res.body.verses[0].parallels.length).toBeGreaterThan(0);
-    expect(res.body.verses.every((verse) => Array.isArray(verse.parallels))).toBe(true);
+    expect(res.body.verses.some((verse) => 'parallels' in verse)).toBe(false);
   });
 });

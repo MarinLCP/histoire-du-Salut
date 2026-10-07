@@ -4,15 +4,15 @@
 .reading-title {
   box-sizing: border-box;
   max-width: 100%;
-  height: 2.75rem;
+  height: var(--bottom-pill-height);
   margin: 0;
-  padding: 0 1rem;
+  padding: 0 .85rem;
   overflow: hidden;
   border-radius: 999px;
   background: var(--float);
   box-shadow: var(--float-shadow);
   color: var(--text);
-  font: 600 .82rem/2.75rem var(--ui-font);
+  font: 600 .74rem/var(--bottom-pill-height) var(--ui-font);
   white-space: nowrap;
   text-overflow: ellipsis;
   opacity: 0;

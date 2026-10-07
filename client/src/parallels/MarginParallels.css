@@ -1,4 +1,5 @@
-/* Les parallèles dans la marge : de petites références, discrètes (sous le verset sur un écran étroit) */
+/* Les parallèles dans la marge (Bible entière) : de petites références, discrètes (sous le verset quand la
+   lecture est étroite) */
 
 .margin-parallels {
   display: flex;
@@ -25,9 +26,9 @@
   outline-offset: 1px;
 }
 
-/* Grand écran : dans la colonne de droite de la ligne du verset (placée par .verse-row, VerseList.css), en face
-   de lui ; la ligne prend la hauteur du plus haut des deux : jamais de chevauchement avec le verset suivant */
-@media (min-width: 1300px) {
+/* Lecture assez large (la même limite que VerseList.css) : dans la colonne de droite de la ligne du verset, en
+   face de lui ; la ligne prend la hauteur du plus haut des deux : jamais de chevauchement avec le verset suivant */
+@container reading (min-width: 35rem) {
   .margin-parallels {
     margin: .3rem 0 0;
     flex-direction: column;

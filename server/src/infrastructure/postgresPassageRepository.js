@@ -2,7 +2,7 @@
 // C'est le SEUL endroit qui contient le SQL des passages : si la source des données change
 // un jour, on écrit un autre repository qui respecte le même contrat, sans toucher au reste.
 
-import { VERSE_COLUMNS, VERSE_SECTION, VERSE_MARGIN, VERSE_MARGIN_COLUMN } from './verseColumns.js';
+import { VERSE_COLUMNS, VERSE_SECTION } from './verseColumns.js';
 import { rowsByOwner } from './rowsByOwner.js';
 
 // Les versets d'un passage (p) : s = son verset de début, e = son verset de fin, v = tous les versets entre
@@ -155,8 +155,8 @@ async function findCharactersByPassageIds(pool, ids) {
 async function findVersesByPassageIds(pool, ids) {
   // = ANY($1) : "l'id fait partie de ce tableau", comme un IN (...) avec un tableau JS
   const result = await pool.query(
-    `SELECT p.id AS passage_id, ${VERSE_COLUMNS}, ${VERSE_MARGIN_COLUMN}
-     FROM passages p ${PASSAGE_VERSES} ${VERSE_SECTION} ${VERSE_MARGIN}
+    `SELECT p.id AS passage_id, ${VERSE_COLUMNS}
+     FROM passages p ${PASSAGE_VERSES} ${VERSE_SECTION}
      WHERE p.id = ANY($1)
      ORDER BY p.position, v.position`,
     [ids],

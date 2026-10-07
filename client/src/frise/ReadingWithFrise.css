@@ -2,11 +2,20 @@
 
 .with-frise {
   /* La largeur du bouton « Frise » (écran étroit) : le titre de la lecture s'aligne à côté de lui */
-  --frise-tab-width: 5.5rem;
+  --frise-tab-width: 5rem;
+  /* La hauteur des pastilles du bas (bouton « Frise », titre, « Revenir à … ») : la même pour toutes, alignées ;
+     assez pour le pouce (environ 44 px), sans prendre trop de place */
+  --bottom-pill-height: 2.35rem;
   /* La largeur de la colonne de la frise (écran large) */
   --frise-width: 22rem;
   display: grid;
   grid-template-columns: var(--frise-width) minmax(0, 1fr);
+}
+
+/* La lecture est un « conteneur » : ce qu'elle contient s'adapte à SA largeur, pas à celle de l'écran (la frise
+   ou le panneau des parallèles en prennent une partie). Pas de bouton fixe dedans : un conteneur les y enfermerait */
+.with-frise-content {
+  container: reading / inline-size;
 }
 
 /* La colonne de la frise remonte tout en haut de l'écran (la lecture, elle, commence sous la navigation) */
@@ -120,20 +129,20 @@
     gap: .45rem;
     justify-content: center;
     width: var(--frise-tab-width);
-    height: 2.75rem;
+    height: var(--bottom-pill-height);
     padding: 0;
     border: 0;
     border-radius: 999px;
     background: var(--float);
     box-shadow: var(--float-shadow);
     color: var(--text);
-    font: 600 .82rem/1 var(--ui-font);
+    font: 600 .74rem/1 var(--ui-font);
     cursor: pointer;
   }
 
   .frise-drawer-tab svg {
-    width: 1.1rem;
-    height: 1.1rem;
+    width: 1rem;
+    height: 1rem;
     fill: none;
     stroke: var(--level-1);
     stroke-width: 2.2;

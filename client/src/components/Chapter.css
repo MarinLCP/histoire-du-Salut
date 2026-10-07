@@ -20,9 +20,9 @@
   color: var(--text-muted);
 }
 
-/* Grand écran : la lecture fait de la place à droite pour la marge des parallèles (MarginParallels.css) ;
-   sauf si le panneau des parallèles est fixé à droite (il prend cette place) */
-@media (min-width: 1300px) {
+/* Lecture assez large (la même limite que VerseList.css) : le chapitre fait de la place à droite pour la marge
+   des parallèles (MarginParallels.css) ; sauf si le panneau des parallèles est fixé à droite (il prend cette place) */
+@container reading (min-width: 35rem) {
   .chapter {
     max-width: calc(var(--reading-width) + var(--margin-notes));
   }

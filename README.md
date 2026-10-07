@@ -364,7 +364,7 @@ histoire-du-Salut/
     │   ├── parallels/               ← les parallèles d'un verset (panneau à droite, OpenBible.info)
     │   │   ├── useParallels.js      ← chargés 10 par 10, les plus votés d'abord (« Voir plus »)
     │   │   ├── ParallelsPanel.jsx / .css ← le panneau : référence et début du texte, clic = aller au verset
-    │   │   └── MarginParallels.jsx / .css ← la marge : les parallèles à droite du verset (dessous sur téléphone)
+    │   │   └── MarginParallels.jsx / .css ← la marge (Bible entière) : les parallèles à droite du verset, dessous si la lecture est étroite
     │   ├── account/                 ← le compte du lecteur (section « Mon compte » des Paramètres)
     │   │   ├── useAccount.js        ← qui est connecté ; créer, se connecter, se déconnecter, supprimer
     │   │   ├── SignInForm.jsx / .css ← « Continuer avec Google » ; « Se connecter » / « Créer un compte », puis le code

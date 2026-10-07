@@ -10,7 +10,8 @@
  * @property {'verse' | 'unnumbered'} kind
  * @property {string} text
  * @property {string | null} sectionTitle - l'intertitre du sous-chapitre qui commence à ce verset, ou null
- * @property {{ start: object, end: object }[]} parallels - ses parallèles les plus votés, pour la marge (3 au plus)
+ * @property {{ start: object, end: object }[]} [parallels] - ses parallèles les plus votés, pour la marge (3 au plus) :
+ *   dans la Bible entière seulement (les épisodes n'ont pas de marge)
  */
 
 /**

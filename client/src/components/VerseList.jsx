@@ -3,8 +3,9 @@
 // La référence d'un verset ("Gn 1,3") est la même partout : un verset surligné dans la Bible entière
 // l'est aussi dans l'histoire du salut.
 // Un verset où commence un sous-chapitre est précédé de son intertitre (verse.sectionTitle).
-// À côté de chaque verset (ou dessous, sur un écran étroit) : ses parallèles les plus votés (MarginParallels),
-// arrivés avec lui (verse.parallels) : le texte s'affiche une seule fois, déjà complet.
+// À côté de chaque verset (ou dessous, si la lecture est étroite) : ses parallèles les plus votés (MarginParallels),
+// arrivés avec lui (verse.parallels) : le texte s'affiche une seule fois, déjà complet. Dans la Bible entière
+// seulement : les épisodes n'en reçoivent pas (ils gardent « Voir les parallèles » dans le menu du verset).
 // Le verset où le lecteur a posé le marque-page de cette lecture le montre (« Marque-page »).
 
 import { Fragment, memo, useContext } from 'react';

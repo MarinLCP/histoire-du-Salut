@@ -78,9 +78,15 @@ test('« Revenir à … » : après un parallèle de la marge, retour au verset 
   await expect(page.getByRole('button', { name: /Revenir à/ })).toHaveCount(0);
 });
 
-test('« Revenir à … » depuis un épisode : retour à l\'épisode, au verset de départ', async ({ page }) => {
+test('les épisodes n\'ont pas de marge : « Voir les parallèles » (menu du verset), puis « Revenir à … » ramène à l\'épisode', async ({ page }) => {
   await page.goto('/?passage=chute');
-  await page.getByRole('list', { name: 'Parallèles de Gn 3,15', exact: true }).getByRole('link').first().click();
+  const verse = page.locator('[data-verse="Gn 3,15"]');
+  await expect(verse).toBeVisible();
+  await expect(page.getByRole('list', { name: /^Parallèles de/ })).toHaveCount(0);
+
+  await longPress(page, verse);
+  await page.getByRole('button', { name: 'Voir les parallèles' }).click();
+  await page.getByRole('dialog', { name: 'Parallèles de Gn 3,15' }).getByRole('listitem').first().getByRole('link').click();
   await expect(page).toHaveURL(/\/bible\?/);
 
   await page.getByRole('button', { name: 'Revenir à Gn 3,15' }).click();

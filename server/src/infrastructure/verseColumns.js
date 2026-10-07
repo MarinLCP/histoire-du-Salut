@@ -5,7 +5,7 @@ export const VERSE_COLUMNS = 'v.chapter, v.verse, v.kind, v.text, sec.title AS "
 // L'intertitre éventuel d'un verset (le sous-chapitre qui commence à ce verset) : à placer après « verses v »
 export const VERSE_SECTION = 'LEFT JOIN sections sec ON sec.start_verse_id = v.id';
 
-// La marge de la lecture : les parallèles les plus votés de chaque verset, rangés AVEC lui (en JSON), pour que
+// La marge de la Bible entière (pas des épisodes) : les parallèles les plus votés de chaque verset, rangés AVEC lui (en JSON), pour que
 // le texte s'affiche une seule fois, déjà complet (pas de saut quand la marge arrive). À placer après
 // VERSE_SECTION, avec la colonne VERSE_MARGIN_COLUMN. Une sous-requête par verset (LATERAL), servie par la
 // clé primaire de parallels (from_verse_id en tête).

@@ -38,7 +38,10 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
       </button>
       <div className="with-frise-reading" onClick={isOpen ? close : undefined}>
         {/* Les versets savent à quelle lecture ils appartiennent (leur marque-page) */}
-        <ReadingModeContext.Provider value={mode}>{children}</ReadingModeContext.Provider>
+        {/* with-frise-content : la largeur de la lecture, que mesurent les versets (marge des parallèles) */}
+        <ReadingModeContext.Provider value={mode}>
+          <div className="with-frise-content">{children}</div>
+        </ReadingModeContext.Provider>
         <div className="reading-bottom">
           <ReturnButton />
           <ReadingTitle />

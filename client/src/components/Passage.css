@@ -54,15 +54,3 @@
 .passage-reference:has(+ .passage-characters) {
   margin-bottom: 0.25rem;
 }
-
-/* Grand écran : la lecture fait de la place à droite pour la marge des parallèles (MarginParallels.css) ;
-   sauf si le panneau des parallèles est fixé à droite (il prend cette place) */
-@media (min-width: 1300px) {
-  .passage {
-    max-width: calc(var(--reading-width) + var(--margin-notes));
-  }
-
-  .with-docked-panel .passage {
-    max-width: var(--reading-width);
-  }
-}

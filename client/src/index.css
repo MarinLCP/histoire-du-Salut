@@ -36,8 +36,8 @@
   --bookmark: #9f6b00;
   /* Largeur de la colonne de lecture (passages, chapitres, menus) */
   --reading-width: 38rem;
-  /* Largeur de la marge des parallèles, à droite du texte (grand écran) */
-  --margin-notes: 12rem;
+  /* Largeur de la marge des parallèles (Bible entière), à droite du texte quand la lecture est assez large */
+  --margin-notes: 10rem;
   /* Largeur du panneau fixé à droite de la lecture (parallèles, écran large) */
   --docked-panel-width: 22rem;
   /* La place gardée en haut pour la navigation qui flotte : la lecture et la frise commencent dessous */
