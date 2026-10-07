@@ -1,5 +1,6 @@
 // Le panneau du compte et des réglages : ouvert par le bouton « personne » (en haut à droite), il glisse depuis
-// la droite (SidePanel). D'abord « Mon compte » (children), puis l'affichage : taille du texte et thème.
+// la droite (SidePanel). D'abord « Mon compte » (children), puis l'affichage : taille du texte et thème,
+// et en bas le lien vers la page « Confidentialité ».
 
 import SidePanel from '../components/SidePanel.jsx';
 import './SettingsPanel.css';
@@ -16,6 +17,8 @@ function SettingsPanel({ settings, onChange, onClose, children }) {
         value={settings.textSize} onPick={(textSize) => onChange({ textSize })} />
       <ChoiceGroup legend="Thème" name="theme" choices={THEME_CHOICES}
         value={settings.theme} onPick={(theme) => onChange({ theme })} />
+      {/* Un vrai lien (pas Link du routeur) : le panneau se ferme avec le changement de page */}
+      <a className="settings-privacy" href="/confidentialite">Confidentialité</a>
     </SidePanel>
   );
 }
