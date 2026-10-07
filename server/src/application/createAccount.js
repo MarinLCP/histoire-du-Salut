@@ -9,6 +9,8 @@ import { Password } from '../domain/Password.js';
 import { ConflictError } from '../domain/errors.js';
 import { sendVerificationCode, requireEmailSender, verificationNeeded } from './emailCodes.js';
 
+const ACCOUNT_EXISTS = 'Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.';
+
 /**
  * @param {{ userRepository, passwordHasher, emailCodeRepository, emailSender }} dependencies
  *   (ports : domain/AccountRepository.js ; emailSender null = pas d'envoi d'e-mails pour le moment)
@@ -22,22 +24,24 @@ export function makeCreateAccount(dependencies) {
     const password = new Password(form.password);
     requireEmailSender(emailSender);
 
+    // Chercher d'abord : pas de hachage (coûteux) pour une adresse qui a déjà un compte validé
+    const existing = await userRepository.findByEmail(email);
+    if (existing?.emailVerifiedAt) throw new ConflictError(ACCOUNT_EXISTS);
     const passwordHash = await passwordHasher.hash(password);
-    const user = await createOrTakeOver(userRepository, email, passwordHash);
+    const user = await createOrTakeOver(userRepository, email, passwordHash, existing);
     await sendVerificationCode(dependencies, user);
     return verificationNeeded(user.email);
   };
 }
 
-async function createOrTakeOver(userRepository, email, passwordHash) {
-  const existing = await userRepository.findByEmail(email);
-  if (existing?.emailVerifiedAt) throw new ConflictError('Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.');
+// existing : le compte jamais validé avec cette adresse, ou null
+async function createOrTakeOver(userRepository, email, passwordHash, existing) {
   if (existing) {
     await userRepository.setPasswordHash(existing.id, passwordHash);
     return existing;
   }
   // null : un autre compte vient d'être créé avec cet e-mail, au même instant
   const created = await userRepository.create(email, passwordHash);
-  if (!created) throw new ConflictError('Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.');
+  if (!created) throw new ConflictError(ACCOUNT_EXISTS);
   return created;
 }

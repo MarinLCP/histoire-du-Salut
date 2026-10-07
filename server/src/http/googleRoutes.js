@@ -9,7 +9,7 @@
 
 import express from 'express';
 import { createHash, randomBytes } from 'node:crypto';
-import { readCookie, setSessionCookie } from './sessionCookie.js';
+import { cookieOptions, readCookie, setSessionCookie } from './sessionCookie.js';
 
 const STATE_COOKIE = 'oauth_state';
 const COOKIE_PATH = '/api/auth/google';
@@ -25,27 +25,26 @@ const MAX_PENDING = 10000;
 export function googleRoutes({ googleIdentity, signInWithGoogle }, secureCookies, now = Date.now) {
   const router = express.Router();
   const pending = createPendingSignIns(now);
-  const cookieOptions = { httpOnly: true, secure: secureCookies, sameSite: 'lax', path: COOKIE_PATH };
+  const stateCookie = cookieOptions(secureCookies, COOKIE_PATH);
 
   router.get('/auth/google', (req, res) => {
     const state = randomText(18);
     const codeVerifier = randomText(32);
     const nonce = randomText(18);
     pending.add(state, { codeVerifier, nonce });
-    res.cookie(STATE_COOKIE, state, { ...cookieOptions, maxAge: PENDING_MS });
+    res.cookie(STATE_COOKIE, state, { ...stateCookie, maxAge: PENDING_MS });
     res.redirect(googleIdentity.authorizationUrl({ state, codeChallenge: challengeOf(codeVerifier), nonce }));
   });
 
   router.get('/auth/google/callback', async (req, res) => {
     const state = String(req.query.state ?? '');
     const saved = pending.take(state);
-    res.clearCookie(STATE_COOKIE, cookieOptions);
+    res.clearCookie(STATE_COOKIE, stateCookie);
     // Annulé chez Google, retour sans code, ou retour qui ne correspond pas à un aller de CE navigateur
-    if (!saved || readCookie(req, STATE_COOKIE) !== state || !req.query.code) return res.redirect('/?connexion=annulee');
+    if (!saved || readCookie(req, STATE_COOKIE) !== state || !req.query.code) return res.redirect('/');
 
     try {
-      const claims = await googleIdentity.exchangeCode({ code: String(req.query.code), codeVerifier: saved.codeVerifier });
-      if (claims.nonce !== saved.nonce) throw new Error('Jeton Google : nonce inattendu.');
+      const claims = await googleIdentity.exchangeCode({ code: String(req.query.code), ...saved });
       const { token } = await signInWithGoogle(claims);
       setSessionCookie(res, token, secureCookies);
       res.redirect('/');

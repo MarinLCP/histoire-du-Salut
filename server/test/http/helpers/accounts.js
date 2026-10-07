@@ -5,9 +5,10 @@ import request from 'supertest';
 import { makeApp } from '../../../src/app.js';
 import { createOutboxEmailSender } from '../../../src/infrastructure/emailSenders.js';
 
-export function appWithOutbox() {
+// googleIdentity : un faux Google, si le test en a besoin (sinon : pas de connexion Google)
+export function appWithOutbox({ googleIdentity = null } = {}) {
   const outbox = createOutboxEmailSender(() => {});
-  return { app: makeApp({ emailSender: outbox, testOutbox: outbox }), outbox };
+  return { app: makeApp({ emailSender: outbox, testOutbox: outbox, googleIdentity }), outbox };
 }
 
 // Le code du dernier e-mail envoyé à cette adresse (il est dans le sujet : « Ton code : 123456 »)

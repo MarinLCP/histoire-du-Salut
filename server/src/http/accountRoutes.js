@@ -8,9 +8,9 @@ import { Email } from '../domain/Email.js';
 import { readSessionToken, setSessionCookie, clearSessionCookie } from './sessionCookie.js';
 import { createAttemptLimiter } from './attemptLimiter.js';
 
-const LOGIN_LIMIT = { maxFailures: 10, windowMs: 15 * 60 * 1000 };
+const LOGIN_LIMIT = { maxAttempts: 10, windowMs: 15 * 60 * 1000 };
 // Renvoyer un code : 5 fois en 15 minutes au plus pour une adresse (pas de pluie d'e-mails)
-const RESEND_LIMIT = { maxFailures: 5, windowMs: 15 * 60 * 1000 };
+const RESEND_LIMIT = { maxAttempts: 5, windowMs: 15 * 60 * 1000 };
 const TOO_MANY = { error: 'Trop de tentatives. Réessaie dans quelques minutes.' };
 
 /**
@@ -41,7 +41,7 @@ export function accountRoutes(accounts, secureCookies) {
   router.post('/account/code', async (req, res) => {
     const key = Email.normalize(req.body?.email);
     if (resendLimiter.isBlocked(key)) return res.status(429).json(TOO_MANY);
-    resendLimiter.recordFailure(key);
+    resendLimiter.recordAttempt(key);
     await resendEmailCode(req.body ?? {});
     res.status(204).end();
   });
@@ -70,7 +70,7 @@ export function accountRoutes(accounts, secureCookies) {
 // Chaque essai compte AVANT la vérification (qui prend ~100 ms) : sinon, des milliers d'essais envoyés en
 // même temps passeraient tous avant que le premier échec soit compté. Une réussite remet le compteur à zéro.
 async function logInCounting(limiter, key, attempt) {
-  limiter.recordFailure(key);
+  limiter.recordAttempt(key);
   const result = await attempt();
   limiter.reset(key);
   return result;

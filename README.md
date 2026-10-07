@@ -164,6 +164,7 @@ histoire-du-Salut/
 │   │   │   ├── VerseReference.js    ← value object : la référence d'un verset (Gn 32,2), API et seed
 │   │   │   ├── Email.js             ← value object : adresse e-mail d'un compte (minuscules, bien formée)
 │   │   │   ├── Password.js          ← value object : mot de passe acceptable (10 à 128 caractères), jamais affiché
+│   │   │   ├── publicName.js        ← le prénom montré sur un lien de partage, nettoyé (30 caractères au plus)
 │   │   │   ├── overviewNode.js      ← un nœud de la frise (même forme à tous les niveaux, avec son kind)
 │   │   │   ├── historyOverview.js   ← arbre Histoire : époques → épisodes → chapitres couverts → sous-chapitres
 │   │   │   ├── bibleOverview.js     ← arbre Bible : ensembles → livres → dizaines (> 15 chapitres) → chapitres → sous-chapitres
@@ -208,6 +209,7 @@ histoire-du-Salut/
 │   │   │   ├── googleIdentity.js    ← OpenID Connect avec Google (adresse de connexion, échange du code, vérifications)
 │   │   │   ├── postgresLibraryRepository.js ← le SQL de la bibliothèque (fusion : la note la plus récente gagne)
 │   │   │   ├── postgresSharingRepository.js ← le SQL du partage (marque-page → épisode et chapitre en cours)
+│   │   │   ├── parallelRank.js      ← le classement des parallèles, partagé par la marge et le panneau
 │   │   │   ├── verseColumns.js      ← les colonnes d'un verset (et son intertitre), partagées par les repositories ;
 │   │   │   │                          VERSE_MARGIN : ses 3 parallèles les plus votés, rangés avec lui (la marge)
 │   │   │   └── rowsByOwner.js       ← range des lignes SQL par passage ou chapitre (une requête pour plusieurs)

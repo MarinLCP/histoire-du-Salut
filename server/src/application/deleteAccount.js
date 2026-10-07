@@ -3,9 +3,9 @@
 // Google sans mot de passe confirme en écrivant « SUPPRIMER ».
 
 import { UnauthorizedError, ValidationError } from '../domain/errors.js';
+import { requireUserId, typedPassword } from './sessions.js';
 
 const CONFIRMATION = 'SUPPRIMER';
-import { requireUserId, typedPassword } from './sessions.js';
 
 /** @param {{ userRepository, sessionRepository, passwordHasher }} dependencies (ports : domain/AccountRepository.js) */
 export function makeDeleteAccount({ userRepository, sessionRepository, passwordHasher }) {

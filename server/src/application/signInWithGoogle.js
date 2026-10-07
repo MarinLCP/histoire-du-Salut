@@ -8,21 +8,23 @@
 
 import { Email } from '../domain/Email.js';
 import { UnauthorizedError } from '../domain/errors.js';
-import { SESSION_DAYS } from './sessions.js';
+import { publicName } from '../domain/publicName.js';
+import { openSession } from './sessions.js';
 
 /** @param {{ userRepository, sessionRepository }} dependencies (ports : domain/AccountRepository.js) */
 export function makeSignInWithGoogle({ userRepository, sessionRepository }) {
   /** @param {import('../domain/AccountRepository.js').GoogleClaims} claims */
   return async function signInWithGoogle(claims) {
     if (!claims.emailVerified) throw new UnauthorizedError('Ton adresse Google n\'est pas vérifiée par Google.');
-    const user = await findOrCreate(userRepository, claims);
-    await userRepository.linkGoogle(user.id, claims.sub, claims.givenName);
-    const token = await sessionRepository.open(user.id, SESSION_DAYS);
-    return { user: { email: user.email }, token };
+    // Le prénom est montré sur le lien de partage : nettoyé avant d'être gardé
+    const givenName = publicName(claims.givenName);
+    const user = await findOrCreate(userRepository, claims, givenName);
+    await userRepository.linkGoogle(user.id, claims.sub, givenName);
+    return openSession(sessionRepository, user);
   };
 }
 
-async function findOrCreate(userRepository, claims) {
+async function findOrCreate(userRepository, claims, givenName) {
   const linked = await userRepository.findByGoogleSub(claims.sub);
   if (linked) return linked;
 
@@ -30,7 +32,7 @@ async function findOrCreate(userRepository, claims) {
   const existing = await userRepository.findByEmail(email);
   if (existing) return takeOver(userRepository, existing);
 
-  const created = await userRepository.createFromGoogle(email, claims.sub, claims.givenName);
+  const created = await userRepository.createFromGoogle(email, claims.sub, givenName);
   if (!created) throw new UnauthorizedError('Connexion impossible pour le moment : réessaie.');
   return created;
 }

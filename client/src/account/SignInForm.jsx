@@ -45,7 +45,7 @@ function SignInForm({ account, startWith = 'login' }) {
     <div className="account-sign-in">
       {account.options?.google && <GoogleButton />}
       {mode === 'create' && account.options?.emailSignUp === false
-        ? <EmailSignUpSoon onSwitch={switchMode} />
+        ? <EmailSignUpSoon hasGoogle={account.options?.google} onSwitch={switchMode} />
         : <EmailForm settings={settings} error={error} isSending={isSending} onSubmit={submit} onSwitch={switchMode} />}
     </div>
   );
@@ -56,11 +56,11 @@ function GoogleButton() {
   return <a className="account-google" href="/api/auth/google">Continuer avec Google</a>;
 }
 
-// En ligne, avant le nom de domaine : pas encore d'e-mails, donc pas de compte par e-mail
-function EmailSignUpSoon({ onSwitch }) {
+// Pas de service d'envoi d'e-mails réglé : pas de compte par e-mail (Google, s'il est réglé, est proposé au-dessus)
+function EmailSignUpSoon({ hasGoogle, onSwitch }) {
   return (
     <div className="account-form">
-      <p>La création de compte par e-mail arrive bientôt : utilise « Continuer avec Google ».</p>
+      <p>La création de compte par e-mail arrive bientôt{hasGoogle && ' : utilise « Continuer avec Google »'}.</p>
       <button type="button" className="account-link" onClick={onSwitch}>Déjà un compte ? Se connecter</button>
     </div>
   );

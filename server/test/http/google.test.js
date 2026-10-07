@@ -1,5 +1,5 @@
 // Tests de « Continuer avec Google » de bout en bout (supertest + base de dev), avec un FAUX Google (on ne
-// peut pas appeler le vrai) qui vérifie quand même le PKCE et renvoie le nonce reçu à l'aller.
+// peut pas appeler le vrai) qui vérifie quand même le PKCE et le nonce envoyés à l'aller.
 // Comptes de test en @exemple.test, effacés à la fin.
 
 import { describe, test, expect, afterAll } from 'vitest';
@@ -7,8 +7,7 @@ import request from 'supertest';
 import { createHash } from 'node:crypto';
 import { pool } from '../../src/infrastructure/db.js';
 import { makeApp } from '../../src/app.js';
-import { createOutboxEmailSender } from '../../src/infrastructure/emailSenders.js';
-import { signedUpAgent } from './helpers/accounts.js';
+import { appWithOutbox, signedUpAgent } from './helpers/accounts.js';
 
 const TEST_DOMAIN = '@exemple.test';
 const newEmail = () => `google-${Math.random().toString(36).slice(2)}${TEST_DOMAIN}`;
@@ -22,10 +21,11 @@ function fakeGoogle(claimsByCode) {
       lastRequest = googleRequest;
       return `https://accounts.google.test/auth?state=${googleRequest.state}`;
     },
-    async exchangeCode({ code, codeVerifier }) {
-      // PKCE : le secret doit correspondre à l'empreinte envoyée à l'aller
+    async exchangeCode({ code, codeVerifier, nonce }) {
+      // PKCE : le secret doit correspondre à l'empreinte envoyée à l'aller ; le nonce, à celui de l'aller
       if (createHash('sha256').update(codeVerifier).digest('base64url') !== lastRequest.codeChallenge) throw new Error('PKCE');
-      return { ...claimsByCode[code], nonce: lastRequest.nonce };
+      if (nonce !== lastRequest.nonce) throw new Error('nonce');
+      return claimsByCode[code];
     },
   };
 }
@@ -89,10 +89,9 @@ describe('Continuer avec Google', () => {
 
   test('un compte e-mail déjà validé : relié à Google, il garde son mot de passe', async () => {
     const email = newEmail();
-    const outbox = createOutboxEmailSender(() => {});
-    const google = fakeGoogle({ c: claims(email, newSub()) });
-    const app = makeApp({ emailSender: outbox, testOutbox: outbox, googleIdentity: google });
-    await signedUpAgent({ app, outbox }, email, 'un mot de passe long');
+    const world = appWithOutbox({ googleIdentity: fakeGoogle({ c: claims(email, newSub()) }) });
+    const { app } = world;
+    await signedUpAgent(world, email, 'un mot de passe long');
 
     const agent = request.agent(app);
     await signInWithGoogle(agent, 'c');
@@ -102,8 +101,7 @@ describe('Continuer avec Google', () => {
 
   test('vol de compte évité : un compte jamais validé avec MON adresse perd le mot de passe de l\'inconnu', async () => {
     const email = newEmail();
-    const outbox = createOutboxEmailSender(() => {});
-    const app = makeApp({ emailSender: outbox, testOutbox: outbox, googleIdentity: fakeGoogle({ d: claims(email, newSub()) }) });
+    const { app } = appWithOutbox({ googleIdentity: fakeGoogle({ d: claims(email, newSub()) }) });
     await request(app).post('/api/account').send({ email, password: 'le mot de passe de l\'inconnu' });
 
     const agent = request.agent(app);
@@ -119,7 +117,7 @@ describe('Continuer avec Google', () => {
 
     const res = await victim.get('/api/auth/google/callback?code=e&state=un-state-invente');
 
-    expect(res.headers.location).toBe('/?connexion=annulee');
+    expect(res.headers.location).toBe('/');
     expect((await victim.get('/api/session')).body).toEqual({ user: null });
   });
 

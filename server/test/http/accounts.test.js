@@ -208,11 +208,11 @@ describe('se connecter, se déconnecter, supprimer son compte', () => {
 });
 
 describe('sans service d\'envoi d\'e-mails (en ligne, avant le nom de domaine)', () => {
-  test('créer un compte par e-mail : 503, avec un message qui propose Google', async () => {
+  test('créer un compte par e-mail : 503, avec un message qui le dit (le site propose Google s\'il est là)', async () => {
     const { makeApp } = await import('../../src/app.js');
     const res = await request(makeApp({ emailSender: null })).post('/api/account').send({ email: newEmail(), password: PASSWORD });
 
     expect(res.status).toBe(503);
-    expect(res.body.error).toContain('Continuer avec Google');
+    expect(res.body.error).toContain('pas encore ouverte');
   });
 });

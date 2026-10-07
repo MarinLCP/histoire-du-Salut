@@ -10,9 +10,9 @@ describe('createAttemptLimiter', () => {
   };
 
   test('bloqué après 3 échecs, pour cet e-mail seulement', () => {
-    const limiter = createAttemptLimiter({ maxFailures: 3, windowMs: 1000, now: clock().now });
+    const limiter = createAttemptLimiter({ maxAttempts: 3, windowMs: 1000, now: clock().now });
 
-    ['a', 'a', 'a'].forEach((key) => limiter.recordFailure(key));
+    ['a', 'a', 'a'].forEach((key) => limiter.recordAttempt(key));
 
     expect(limiter.isBlocked('a')).toBe(true);
     expect(limiter.isBlocked('b')).toBe(false);
@@ -20,9 +20,9 @@ describe('createAttemptLimiter', () => {
 
   test('débloqué une fois la fenêtre passée', () => {
     const { now, advance } = clock();
-    const limiter = createAttemptLimiter({ maxFailures: 2, windowMs: 1000, now });
-    limiter.recordFailure('a');
-    limiter.recordFailure('a');
+    const limiter = createAttemptLimiter({ maxAttempts: 2, windowMs: 1000, now });
+    limiter.recordAttempt('a');
+    limiter.recordAttempt('a');
 
     advance(1000);
 
@@ -30,22 +30,22 @@ describe('createAttemptLimiter', () => {
   });
 
   test('une connexion réussie remet le compteur à zéro', () => {
-    const limiter = createAttemptLimiter({ maxFailures: 2, windowMs: 1000, now: clock().now });
-    limiter.recordFailure('a');
+    const limiter = createAttemptLimiter({ maxAttempts: 2, windowMs: 1000, now: clock().now });
+    limiter.recordAttempt('a');
 
     limiter.reset('a');
-    limiter.recordFailure('a');
+    limiter.recordAttempt('a');
 
     expect(limiter.isBlocked('a')).toBe(false);
   });
 
   test('au-delà de 10 000 adresses, le ménage des échecs anciens ne casse pas la limite', () => {
     const { now, advance } = clock();
-    const limiter = createAttemptLimiter({ maxFailures: 1, windowMs: 1000, now });
-    for (let index = 0; index < 10000; index++) limiter.recordFailure(`ancien-${index}`);
+    const limiter = createAttemptLimiter({ maxAttempts: 1, windowMs: 1000, now });
+    for (let index = 0; index < 10000; index++) limiter.recordAttempt(`ancien-${index}`);
 
     advance(1000);
-    limiter.recordFailure('nouveau');
+    limiter.recordAttempt('nouveau');
 
     expect(limiter.isBlocked('ancien-0')).toBe(false);
     expect(limiter.isBlocked('nouveau')).toBe(true);

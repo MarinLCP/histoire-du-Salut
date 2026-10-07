@@ -5,7 +5,7 @@
 
 import { Email } from '../domain/Email.js';
 import { UnauthorizedError, ValidationError } from '../domain/errors.js';
-import { SESSION_DAYS, typedPassword } from './sessions.js';
+import { openSession, typedPassword } from './sessions.js';
 import { sendVerificationCode, verificationNeeded } from './emailCodes.js';
 
 const WRONG_CREDENTIALS = 'E-mail ou mot de passe incorrect.';
@@ -25,9 +25,7 @@ export function makeLogIn(dependencies) {
       await sendVerificationCode(dependencies, user);
       return verificationNeeded(user.email);
     }
-
-    const token = await sessionRepository.open(user.id, SESSION_DAYS);
-    return { user: { email: user.email }, token };
+    return openSession(sessionRepository, user);
   };
 }
 

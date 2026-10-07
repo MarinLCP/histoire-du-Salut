@@ -23,13 +23,14 @@ export function readCookie(req, name) {
 
 /** @param {import('express').Response} res @param {string} token @param {boolean} secure */
 export function setSessionCookie(res, token, secure) {
-  res.cookie(NAME, token, { ...options(secure), maxAge: MAX_AGE_MS });
+  res.cookie(NAME, token, { ...cookieOptions(secure), maxAge: MAX_AGE_MS });
 }
 
 export function clearSessionCookie(res, secure) {
-  res.clearCookie(NAME, options(secure));
+  res.clearCookie(NAME, cookieOptions(secure));
 }
 
-function options(secure) {
-  return { httpOnly: true, secure, sameSite: 'lax', path: '/' };
+// Les réglages de nos cookies (voir en haut du fichier) ; path : les adresses où le navigateur l'envoie
+export function cookieOptions(secure, path = '/') {
+  return { httpOnly: true, secure, sameSite: 'lax', path };
 }

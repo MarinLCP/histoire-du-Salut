@@ -61,8 +61,8 @@ export function chooseEmailSender(env) {
 }
 
 // « Continuer avec Google », seulement si ses identifiants sont réglés (Google Cloud Console). APP_URL : l'adresse
-// du site (en ligne : https://histoire-du-salut.onrender.com) ; l'adresse de retour doit être la même que chez Google.
-export function chooseGoogleIdentity(env) {
+// du site (en ligne : https://lerouleau.com) ; l'adresse de retour doit être la même que chez Google.
+function chooseGoogleIdentity(env) {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return null;
   const appUrl = env.APP_URL ?? 'http://localhost:5173';
   return createGoogleIdentity({
@@ -73,10 +73,10 @@ export function chooseGoogleIdentity(env) {
 }
 
 // L'app assemblée. Les tests peuvent choisir l'envoyeur d'e-mails (une boîte de test, pour lire les codes)
-// et l'identité Google (une fausse).
-export function makeApp({
-  emailSender, testOutbox, googleIdentity = chooseGoogleIdentity(process.env),
-} = { ...chooseEmailSender(process.env) }) {
+// et l'identité Google (une fausse) ; sans choix, ceux réglés par les variables d'environnement.
+export function makeApp(choices = {}) {
+  const { emailSender, testOutbox } = 'emailSender' in choices ? choices : chooseEmailSender(process.env);
+  const googleIdentity = 'googleIdentity' in choices ? choices.googleIdentity : chooseGoogleIdentity(process.env);
   const accountDependencies = {
     userRepository: createPostgresUserRepository(pool),
     sessionRepository: createPostgresSessionRepository(pool),
@@ -101,7 +101,7 @@ export function makeApp({
       logOut: makeLogOut(accountDependencies.sessionRepository),
       getCurrentUser: makeGetCurrentUser(accountDependencies.sessionRepository),
       deleteAccount: makeDeleteAccount(accountDependencies),
-      options: { google: googleIdentity !== null, emailSignUp: emailSender !== null },
+      options: { google: Boolean(googleIdentity), emailSignUp: Boolean(emailSender) },
     },
     google: googleIdentity && { googleIdentity, signInWithGoogle: makeSignInWithGoogle(accountDependencies) },
     library: makeLibrary({

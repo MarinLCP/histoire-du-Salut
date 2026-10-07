@@ -3,10 +3,10 @@
 
 import { Email } from '../domain/Email.js';
 import { ValidationError } from '../domain/errors.js';
-import { SESSION_DAYS } from './sessions.js';
-import { sendVerificationCode } from './emailCodes.js';
+import { openSession } from './sessions.js';
+import { CODE_DIGITS, MAX_CODE_ATTEMPTS, sendVerificationCode } from './emailCodes.js';
 
-const CODE_FORMAT = /^\d{6}$/;
+const CODE_FORMAT = new RegExp(`^\\d{${CODE_DIGITS}}$`);
 const WRONG_CODE = 'Code incorrect.';
 const EXPIRED_CODE = 'Ce code n\'est plus valable : demandes-en un nouveau.';
 
@@ -15,17 +15,16 @@ export function makeVerifyEmail({ userRepository, sessionRepository, emailCodeRe
   /** @param {{ email?: unknown, code?: unknown }} form */
   return async function verifyEmail(form) {
     const code = String(form.code ?? '').trim();
-    if (!CODE_FORMAT.test(code)) throw new ValidationError('Le code fait 6 chiffres.');
+    if (!CODE_FORMAT.test(code)) throw new ValidationError(`Le code fait ${CODE_DIGITS} chiffres.`);
     const user = await userRepository.findByEmail(new Email(form.email));
     if (!user || user.emailVerifiedAt) throw new ValidationError(EXPIRED_CODE);
 
-    const result = await emailCodeRepository.check(user.id, code);
+    const result = await emailCodeRepository.check(user.id, code, MAX_CODE_ATTEMPTS);
     if (result === 'wrong') throw new ValidationError(WRONG_CODE);
     if (result === 'expired') throw new ValidationError(EXPIRED_CODE);
 
     await userRepository.markEmailVerified(user.id);
-    const token = await sessionRepository.open(user.id, SESSION_DAYS);
-    return { user: { email: user.email }, token };
+    return openSession(sessionRepository, user);
   };
 }
 

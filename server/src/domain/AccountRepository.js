@@ -32,19 +32,21 @@
 
 /**
  * @typedef {object} EmailCodeRepository - les codes de validation envoyés par e-mail (rangés hachés)
- * @property {(userId: number, minutes: number) => Promise<string>} create
- *   - un nouveau code de 6 chiffres (il remplace le précédent), valable `minutes` minutes
- * @property {(userId: number, code: string) => Promise<'valid' | 'wrong' | 'expired'>} check
- *   - 'valid' : le code est consommé ; 'wrong' : un essai de moins ; 'expired' : trop vieux, trop d'essais,
- *     ou aucun code (il faut en demander un nouveau)
+ * @property {(userId: number, rules: { digits: number, minutes: number }) => Promise<string>} create
+ *   - un nouveau code de `digits` chiffres (il remplace le précédent), valable `minutes` minutes
+ * @property {(userId: number, code: string, maxAttempts: number) => Promise<'valid' | 'wrong' | 'expired'>} check
+ *   - 'valid' : le code est consommé ; 'wrong' : un essai de moins ; 'expired' : trop vieux, `maxAttempts`
+ *     essais déjà faits, ou aucun code (il faut en demander un nouveau)
+ *   (les règles du code, 6 chiffres, 15 minutes, 5 essais : application/emailCodes.js)
  */
 
 /**
  * @typedef {object} GoogleIdentity - se connecter avec Google (OpenID Connect, flux « code »)
  * @property {(request: { state: string, codeChallenge: string, nonce: string }) => string} authorizationUrl
  *   - l'adresse de la page de connexion de Google
- * @property {(exchange: { code: string, codeVerifier: string }) => Promise<GoogleClaims>} exchangeCode
- *   - échange le code reçu au retour contre l'identité du lecteur (vérifiée : émetteur, destinataire, expiration)
+ * @property {(exchange: { code: string, codeVerifier: string, nonce: string }) => Promise<GoogleClaims>} exchangeCode
+ *   - échange le code reçu au retour contre l'identité du lecteur, entièrement vérifiée (émetteur, destinataire,
+ *     expiration, nonce de l'aller)
  */
 
 /**
@@ -52,8 +54,7 @@
  * @property {string} sub - son identifiant chez Google
  * @property {string} email
  * @property {boolean} emailVerified - Google a vérifié que l'adresse est à lui
- * @property {string | null} givenName - son prénom
- * @property {string | undefined} nonce - le nombre unique envoyé à l'aller (contre le rejeu)
+ * @property {string | null} givenName - son prénom, tel que Google le donne (nettoyé ensuite : domain/publicName.js)
  */
 
 /**

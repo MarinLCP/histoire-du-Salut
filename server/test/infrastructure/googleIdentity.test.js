@@ -28,22 +28,23 @@ describe('createGoogleIdentity', () => {
   test('l\'échange du code : le secret et le code_verifier partent chez Google ; l\'identité revient', async () => {
     googleAnswers(VALID);
 
-    const claims = await createGoogleIdentity(SETTINGS).exchangeCode({ code: 'code-1', codeVerifier: 'verif-1' });
+    const claims = await createGoogleIdentity(SETTINGS).exchangeCode({ code: 'code-1', codeVerifier: 'verif-1', nonce: 'n-1' });
 
     const body = new URLSearchParams(fetch.mock.calls[0][1].body);
     expect(fetch.mock.calls[0][0]).toBe('https://oauth2.googleapis.com/token');
     expect(Object.fromEntries(body)).toMatchObject({ code: 'code-1', code_verifier: 'verif-1', client_secret: 'mon-secret', grant_type: 'authorization_code' });
-    expect(claims).toEqual({ sub: '1234', email: 'marin@gmail.com', emailVerified: true, givenName: 'Marin', nonce: 'n-1' });
+    expect(claims).toEqual({ sub: '1234', email: 'marin@gmail.com', emailVerified: true, givenName: 'Marin' });
   });
 
   test.each([
     ['un autre émetteur', { iss: 'https://pirate.example' }, 'émetteur'],
     ['un autre site', { aud: 'un-autre-client' }, 'pas destiné à ce site'],
     ['expiré', { exp: NOW / 1000 - 1 }, 'expiré'],
+    ['rejouée (un autre nonce que celui de l\'aller)', { nonce: 'n-2' }, 'nonce inattendu'],
   ])('une carte d\'identité refusée : %s', async (_, change, message) => {
     googleAnswers({ ...VALID, ...change });
 
-    await expect(createGoogleIdentity(SETTINGS).exchangeCode({ code: 'c', codeVerifier: 'v' })).rejects.toThrow(message);
+    await expect(createGoogleIdentity(SETTINGS).exchangeCode({ code: 'c', codeVerifier: 'v', nonce: 'n-1' })).rejects.toThrow(message);
   });
 
   test('Google refuse l\'échange : une erreur', async () => {

@@ -2,6 +2,7 @@
 
 import { VERSE_COLUMNS, VERSE_SECTION } from './verseColumns.js';
 import { rowsByOwner } from './rowsByOwner.js';
+import { PARALLELS_FROM, PARALLEL_RANK } from './parallelRank.js';
 
 // Une plage peut être longue (jusqu'à 182 versets ; 99 % en ont 12 ou moins) : l'aperçu s'arrête à 5
 const PREVIEW_VERSES = 5;
@@ -30,16 +31,14 @@ export function createPostgresParallelRepository(pool) {
   };
 }
 
-// Les parallèles d'un verset, rangés : les plus votés d'abord, puis dans l'ordre de la Bible.
+// Les parallèles d'un verset, rangés : les plus votés d'abord, puis dans l'ordre de la Bible (parallelRank.js).
 // position = ce rang (calculé avant le filtre « après tel rang », pour la page suivante)
 const PARALLEL_PAGE = `
   SELECT * FROM (
-    SELECT row_number() OVER (ORDER BY p.votes DESC, s.position, e.position)::int AS position, p.votes,
+    SELECT row_number() OVER (${PARALLEL_RANK})::int AS position, p.votes,
            sb.code AS start_book, s.chapter AS start_chapter, s.verse AS start_verse, s.position AS first_position,
            eb.code AS end_book, e.chapter AS end_chapter, e.verse AS end_verse, e.position AS last_position
-    FROM parallels p
-    JOIN verses s ON s.id = p.to_start_verse_id JOIN books sb ON sb.id = s.book_id
-    JOIN verses e ON e.id = p.to_end_verse_id JOIN books eb ON eb.id = e.book_id
+    ${PARALLELS_FROM}
     WHERE p.from_verse_id = $1
   ) ranked
   WHERE position > $2

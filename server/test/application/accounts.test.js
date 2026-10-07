@@ -137,7 +137,7 @@ describe('les comptes', () => {
   test('sans service d\'envoi : la création par e-mail est indisponible (et ne crée rien)', async () => {
     const withoutSender = makeCreateAccount({ ...world.dependencies, emailSender: null });
 
-    await expect(withoutSender(FORM)).rejects.toThrow('Continuer avec Google');
+    await expect(withoutSender(FORM)).rejects.toThrow('pas encore ouverte');
     expect(world.users.size).toBe(0);
   });
 

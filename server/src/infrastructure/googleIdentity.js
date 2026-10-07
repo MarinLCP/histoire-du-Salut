@@ -5,7 +5,8 @@
 // - exchangeCode : le serveur échange le code contre l'« ID token » (la carte d'identité du lecteur), en
 //   parlant DIRECTEMENT à Google en HTTPS, avec notre secret. La norme OpenID (Core, 3.1.3.7) permet alors
 //   de se fier au jeton sans vérifier sa signature : il vient de Google, par un canal que Google authentifie.
-//   On vérifie quand même l'émetteur, le destinataire (notre identifiant) et l'expiration.
+//   On vérifie quand même l'émetteur, le destinataire (notre identifiant), l'expiration, et le nonce (le nombre
+//   unique envoyé à l'aller : un jeton rejoué ne passe pas). L'identité renvoyée est donc entièrement vérifiée.
 
 const AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -33,7 +34,7 @@ export function createGoogleIdentity({ clientId, clientSecret, redirectUri, now 
       return `${AUTHORIZATION_URL}?${query}`;
     },
 
-    async exchangeCode({ code, codeVerifier }) {
+    async exchangeCode({ code, codeVerifier, nonce }) {
       const response = await fetch(TOKEN_URL, {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -44,22 +45,22 @@ export function createGoogleIdentity({ clientId, clientSecret, redirectUri, now 
       });
       if (!response.ok) throw new Error(`Google a refusé l'échange du code (erreur ${response.status}).`);
       const { id_token: idToken } = await response.json();
-      return claimsFrom(idToken, { clientId, now: now() });
+      return claimsFrom(idToken, { clientId, nonce, now: now() });
     },
   };
 }
 
 // La charge utile du jeton (sa partie du milieu, en base64url), vérifiée
-function claimsFrom(idToken, { clientId, now }) {
+function claimsFrom(idToken, { clientId, nonce, now }) {
   const payload = JSON.parse(Buffer.from(String(idToken).split('.')[1] ?? '', 'base64url').toString('utf8'));
   if (!ISSUERS.includes(payload.iss)) throw new Error('Jeton Google : émetteur inattendu.');
   if (payload.aud !== clientId) throw new Error('Jeton Google : il n\'est pas destiné à ce site.');
   if (!(payload.exp * 1000 > now)) throw new Error('Jeton Google expiré.');
+  if (payload.nonce !== nonce) throw new Error('Jeton Google : nonce inattendu.');
   return {
     sub: String(payload.sub),
     email: String(payload.email ?? ''),
     emailVerified: payload.email_verified === true,
-    givenName: typeof payload.given_name === 'string' ? payload.given_name.slice(0, 100) : null,
-    nonce: payload.nonce,
+    givenName: typeof payload.given_name === 'string' ? payload.given_name : null,
   };
 }
