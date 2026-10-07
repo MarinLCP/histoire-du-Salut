@@ -18,7 +18,10 @@ const SMALL_ROW = 44; // en dessous de cette hauteur de rangée (px), le titre e
 const STRIP_WIDTHS = [34, 30, 28]; // largeur des bandes de gauche (px), de la plus haute à la plus basse
 const STRIP_STEP = 26; // chaque bande commence un peu plus bas que la précédente : un escalier, elles aussi
 const STRIP_RADIUS = 14;
-const STEP_RADIUS = 4;
+// Le bord extérieur de la cascade (les petites marches) est arrondi : l'eau passe le bord de la marche (« arrondi
+// doux », choisi par Marin). Le coin d'un bloc qui a des marches reste droit : elles le touchent, sinon le fond
+// de la page apparaîtrait entre les deux
+const STEP_RADIUS = 26;
 const STRIPS_LAYER = 1000; // les bandes passent au-dessus de l'escalier
 // Le bateau (2,3rem de côté) se pose au bord droit du haut d'un bloc, juste au-dessus
 const BOAT_FROM_RIGHT = 38;

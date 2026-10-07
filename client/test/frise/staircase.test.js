@@ -65,7 +65,7 @@ describe('staircase', () => {
   test('arrondi seulement en bout de surface : un bloc sans marches est arrondi, les autres non', () => {
     const stairs = stairsOf({ count: 2, stepsOf: (rank) => (rank === 0 ? 2 : 0) });
 
-    expect(stairs.map((stair) => stair.radius)).toEqual([0, 16]);
+    expect(stairs.map((stair) => stair.radius)).toEqual([0, 26]);
   });
 
   test('l\'écume : au pied de chaque chute (sauf la première), sur la largeur de la marche d\'où l\'eau tombe', () => {

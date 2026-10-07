@@ -6,7 +6,7 @@
 // - au pied de chaque chute (sauf la première), l'écume : là où l'eau du bloc précédent tombe sur celui-ci.
 
 const STEPS_SHARE_OF_ROW = 0.85; // le petit escalier occupe le haut de la rangée, pas toute sa hauteur
-const ROUNDED_END = 16; // arrondi (px) d'un bloc sans marches : le bout de la surface
+const ROUNDED_END = 26; // arrondi (px) d'un bloc sans marches : le bout de la surface (le même que ses marches)
 
 /**
  * @param {object} area
