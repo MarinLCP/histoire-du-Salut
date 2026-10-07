@@ -1,27 +1,20 @@
 /* La frise à gauche, la lecture à droite (écran large : pages Histoire du salut et Bible entière). */
 
 .with-frise {
-  /* Largeur de l'onglet « Frise » (écran étroit) */
-  --drawer-tab-width: 1.4rem;
   display: grid;
   grid-template-columns: 22rem minmax(0, 1fr);
 }
 
-/* L'onglet « Frise » n'existe que sur écran étroit */
+/* Le bouton « Frise » n'existe que sur écran étroit */
 .frise-drawer-tab {
   display: none;
 }
 
 /* Écran étroit (la même limite que dans ReadingWithFrise.jsx) : pas la place pour deux colonnes.
-   La frise devient un panneau qui glisse depuis le bord gauche, ouvert par l'onglet « Frise ». */
+   La frise devient un panneau qui glisse depuis le bord gauche, ouvert par le bouton « Frise » (en bas à gauche). */
 @media (max-width: 1099px) {
   .with-frise {
     display: block;
-  }
-
-  /* La lecture laisse à gauche la place de l'onglet « Frise » : il ne cache jamais le début d'une ligne */
-  .with-frise-reading {
-    padding-left: var(--drawer-tab-width);
   }
 
   .frise-drawer {
@@ -50,25 +43,39 @@
     height: 100dvh;
   }
 
+  /* Le bouton « Frise » : une petite pastille qui flotte en bas à gauche, comme les autres boutons */
   .frise-drawer-tab {
-    display: block;
     position: fixed;
-    top: 40%;
-    left: 0;
+    left: .9rem;
+    bottom: 1.25rem;
     z-index: 40;
-    width: var(--drawer-tab-width);
-    padding: .8rem 0;
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    height: 2.75rem;
+    padding: 0 1rem 0 .8rem;
     border: 0;
-    border-radius: 8px 0 0 8px;
-    background: var(--level-2);
-    color: var(--ink-on-dark);
-    font: 600 .7rem/1 var(--ui-font);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    /* Écrit à la verticale, de bas en haut, comme les bandes de la frise */
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
+    border-radius: 999px;
+    background: var(--float);
+    box-shadow: var(--float-shadow);
+    color: var(--text);
+    font: 600 .82rem/1 var(--ui-font);
     cursor: pointer;
+  }
+
+  .frise-drawer-tab svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: var(--level-1);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .frise-drawer-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 
   .frise-drawer-tab[aria-expanded="true"] {

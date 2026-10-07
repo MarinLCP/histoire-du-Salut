@@ -1,4 +1,5 @@
-/* La frise : une colonne à gauche du texte, qui reste à l'écran pendant qu'on lit (sticky).
+/* La frise : une colonne à gauche du texte, qui reste à l'écran pendant qu'on lit (sticky). Pas de fond ni de
+   trait : elle coule directement sur la page (V11).
    Couleurs : un bleu par niveau (variables --level-* dans index.css), liseré clair en haut de chaque bloc. */
 
 .frise {
@@ -11,22 +12,24 @@
   display: flex;
   flex-direction: column;
   height: calc(100dvh - var(--nav-height));
-  border-right: 1px solid var(--border);
 }
 
-/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin */
+/* Les onglets : vue d'ensemble, 2e niveau, niveau le plus fin. Une pastille qui flotte, comme la navigation */
 .frise-tabs {
   display: flex;
+  gap: 2px;
   margin: .5rem .7rem .6rem;
-  border: 1px solid var(--border);
+  padding: 3px;
   border-radius: 99px;
-  overflow: hidden;
+  background: var(--float);
+  box-shadow: var(--float-shadow);
 }
 
 .frise-tabs button {
   flex: 1;
-  padding: .55rem .2rem;
+  padding: .5rem .2rem;
   border: 0;
+  border-radius: 99px;
   background: transparent;
   color: var(--text-muted);
   font: 600 .74rem/1 var(--ui-font);

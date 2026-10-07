@@ -1,7 +1,7 @@
 // La mise en page des pages de lecture : la frise à gauche, la lecture à droite.
 // - Écran large : les deux côte à côte.
 // - Écran étroit (moins de 1100 px) : pas la place ; la frise est rangée dans un panneau glissant
-//   (2/3 de l'écran), ouvert par l'onglet « Frise » au bord gauche. Il reste ouvert pendant qu'on zoome
+//   (2/3 de l'écran), ouvert par le bouton « Frise » (en bas à gauche). Il reste ouvert pendant qu'on zoome
 //   et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (le tiers visible) ou Échap le referme.
 
 import { useEffect, useState } from 'react';
@@ -28,6 +28,8 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
       </div>
       <button type="button" className="frise-drawer-tab" aria-controls="frise-drawer" aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}>
+        {/* L'escalier de la cascade */}
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7v5h5v5h6v4H3z" /></svg>
         Frise
       </button>
       <div className="with-frise-reading" onClick={isOpen ? close : undefined}>{children}</div>

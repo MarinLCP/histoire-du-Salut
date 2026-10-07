@@ -343,7 +343,8 @@ histoire-du-Salut/
     │   │   ├── useBookmark.js       ← le marque-page : retenu pendant la lecture, montré à la visite suivante
     │   │   ├── bookmark.storage.js  ← sauvegarde du marque-page dans le navigateur (une position par lecture)
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
-    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche ; < 1100 px : panneau (2/3 de l'écran), onglet « Frise »
+    │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (sans fond) ; < 1100 px : panneau (2/3 de l'écran),
+    │   │   │                          ouvert par le bouton flottant « Frise » (en bas à gauche)
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
