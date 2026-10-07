@@ -119,7 +119,7 @@ describe('Frise', () => {
   });
 
   test('marque-page : un ruban sur le bloc où on s\'était arrêté ; un clic y ramène, puis il disparaît', async () => {
-    localStorage.setItem('bookmarks', JSON.stringify({ version: 1, bookmarks: { history: 3.4 } }));
+    localStorage.setItem('bookmarks', JSON.stringify({ version: 2, bookmarks: { history: { position: 3.4, verse: null } } }));
     const onJump = vi.fn();
     renderFrise(onJump);
 

@@ -1,4 +1,5 @@
-// Parcours : le menu d'un verset (appui long) pour surligner, écrire une note (il faut un compte), copier.
+// Parcours : le menu d'un verset (appui long) pour surligner, poser le marque-page, écrire une note (il faut un
+// compte), copier.
 
 import { test, expect } from '@playwright/test';
 import { allowClipboard, emailCode, firstVerse, longPress, readClipboard, uniqueEmail } from './helpers.js';
@@ -30,6 +31,27 @@ test('surligner un verset, et le retrouver surligné après avoir rechargé la p
   await longPress(page, firstVerse(page));
 
   await expect(page.getByRole('button', { name: 'Retirer le surlignage' })).toBeVisible();
+});
+
+test('poser le marque-page sur un verset : il y reste quand on lit plus loin, jusqu\'à ce qu\'on le retire', async ({ page, isMobile }) => {
+  const tag = page.getByText('Marque-page', { exact: true });
+  await longPress(page, firstVerse(page));
+  await page.getByRole('button', { name: 'Poser le marque-page ici' }).click();
+  await expect(tag).toBeVisible();
+
+  // Lire plus loin, assez longtemps pour que la lecture soit retenue : le marque-page posé à la main ne suit pas
+  await page.getByRole('heading', { name: "L'appel d'Abraham" }).scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, 200));
+  await page.waitForTimeout(2500);
+  await page.goto('/');
+
+  await expect(tag).toBeVisible();
+  // Sur ordinateur, le ruban de la frise le montre aussi (sur téléphone, la frise est dans un panneau)
+  if (!isMobile) await expect(page.getByRole('button', { name: /Reprendre la lecture.*Les origines/ })).toBeVisible();
+
+  await longPress(page, firstVerse(page));
+  await page.getByRole('button', { name: 'Retirer le marque-page' }).click();
+  await expect(tag).toHaveCount(0);
 });
 
 test('une note demande un compte : on le crée sur place, la note est gardée, privée, et retrouvée', async ({ page }) => {

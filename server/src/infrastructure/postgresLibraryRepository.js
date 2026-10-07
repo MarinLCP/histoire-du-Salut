@@ -14,12 +14,12 @@ export function createPostgresLibraryRepository(pool) {
       const [notes, highlights, bookmarks] = await Promise.all([
         pool.query('SELECT verse_key, text, updated_at FROM user_notes WHERE user_id = $1', [userId]),
         pool.query('SELECT verse_key, created_at FROM user_highlights WHERE user_id = $1', [userId]),
-        pool.query('SELECT mode, position FROM user_bookmarks WHERE user_id = $1', [userId]),
+        pool.query('SELECT mode, position, verse_key FROM user_bookmarks WHERE user_id = $1', [userId]),
       ]);
       return {
         notes: Object.fromEntries(notes.rows.map((row) => [row.verse_key, { text: row.text, updatedAt: row.updated_at.toISOString() }])),
         highlights: Object.fromEntries(highlights.rows.map((row) => [row.verse_key, { createdAt: row.created_at.toISOString() }])),
-        bookmarks: Object.fromEntries(bookmarks.rows.map((row) => [row.mode, row.position])),
+        bookmarks: Object.fromEntries(bookmarks.rows.map((row) => [row.mode, { position: row.position, verse: row.verse_key }])),
       };
     },
 
@@ -30,7 +30,7 @@ export function createPostgresLibraryRepository(pool) {
         await inTransaction(client, async () => {
           await client.query(MERGE_NOTES, [userId, ...columns(notes, ['verseKey', 'text', 'updatedAt'])]);
           await client.query(MERGE_HIGHLIGHTS, [userId, ...columns(highlights, ['verseKey', 'createdAt'])]);
-          await client.query(MERGE_BOOKMARKS, [userId, ...columns(bookmarks, ['mode', 'position'])]);
+          await client.query(MERGE_BOOKMARKS, [userId, ...columns(bookmarks, ['mode', 'position', 'verse'])]);
         });
       } finally {
         client.release();
@@ -61,12 +61,19 @@ export function createPostgresLibraryRepository(pool) {
       await pool.query('DELETE FROM user_highlights WHERE user_id = $1 AND verse_key = $2', [userId, verseKey]);
     },
 
-    async saveBookmark(userId, mode, position) {
+    // Le WHERE : la lecture (verse NULL) ne déplace pas un marque-page posé à la main, même depuis un autre appareil
+    async saveBookmark(userId, mode, { position, verse }) {
       await pool.query(
-        `INSERT INTO user_bookmarks (user_id, mode, position) VALUES ($1, $2, $3)
-         ON CONFLICT (user_id, mode) DO UPDATE SET position = EXCLUDED.position, updated_at = now()`,
-        [userId, mode, position],
+        `INSERT INTO user_bookmarks (user_id, mode, position, verse_key) VALUES ($1, $2, $3, $4)
+         ON CONFLICT (user_id, mode) DO UPDATE
+           SET position = EXCLUDED.position, verse_key = EXCLUDED.verse_key, updated_at = now()
+         WHERE user_bookmarks.verse_key IS NULL OR EXCLUDED.verse_key IS NOT NULL`,
+        [userId, mode, position, verse],
       );
+    },
+
+    async removeBookmark(userId, mode) {
+      await pool.query('DELETE FROM user_bookmarks WHERE user_id = $1 AND mode = $2', [userId, mode]);
     },
   };
 }
@@ -88,9 +95,12 @@ const MERGE_HIGHLIGHTS = `
   SELECT $1, * FROM unnest($2::text[], $3::timestamptz[])
   ON CONFLICT (user_id, verse_key) DO NOTHING
 `;
-// Le marque-page du compte est gardé : il suit la lecture sur tous les appareils, c'est le plus à jour
+// Le marque-page du compte est gardé : il suit la lecture sur tous les appareils, c'est le plus à jour.
+// Sauf s'il suit la lecture et que celui du navigateur a été posé à la main (un choix du lecteur)
 const MERGE_BOOKMARKS = `
-  INSERT INTO user_bookmarks (user_id, mode, position)
-  SELECT $1, * FROM unnest($2::text[], $3::float8[])
-  ON CONFLICT (user_id, mode) DO NOTHING
+  INSERT INTO user_bookmarks (user_id, mode, position, verse_key)
+  SELECT $1, * FROM unnest($2::text[], $3::float8[], $4::text[])
+  ON CONFLICT (user_id, mode) DO UPDATE
+    SET position = EXCLUDED.position, verse_key = EXCLUDED.verse_key, updated_at = now()
+  WHERE user_bookmarks.verse_key IS NULL AND EXCLUDED.verse_key IS NOT NULL
 `;

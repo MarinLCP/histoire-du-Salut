@@ -6,6 +6,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import Passage from '../../src/components/Passage.jsx';
+import { ReadingModeContext } from '../../src/frise/ReadingModeContext.js';
 import { LONG_PRESS_DELAY } from '../../src/hooks/longPress.js';
 
 const passage = {
@@ -27,18 +28,24 @@ const passage = {
 const FIRST_VERSE = {
   key: 'Gn 1,1', text: 'Au commencement, Dieu créa le ciel et la terre.', reference: { book: 'Gn', chapter: '1', verse: '1' },
   returnTo: { key: 'Gn 1,1', href: '/?passage=creation' },
+  // Hors d'une lecture (pas de ReadingWithFrise autour) : pas de marque-page à poser
+  readingMode: null,
 };
 
 function renderPassage({
   highlights = new Map(),
   notes = new Map(),
+  placedBookmarks = {},
+  readingMode = null,
   // Faux partage : par défaut, le lien a été copié
   onShare = vi.fn().mockResolvedValue('copied'),
 } = {}) {
   const openMenu = vi.fn();
   render(
     <MemoryRouter>
-      <Passage passage={passage} annotations={{ highlights, notes, openMenu }} onShare={onShare} />
+      <ReadingModeContext.Provider value={readingMode}>
+        <Passage passage={passage} annotations={{ highlights, notes, placedBookmarks, openMenu }} onShare={onShare} />
+      </ReadingModeContext.Provider>
     </MemoryRouter>,
   );
   return { openMenu, onShare };
@@ -174,6 +181,22 @@ describe('Passage : lire tout le chapitre', () => {
     const firstVerse = screen.getByText('Au commencement, Dieu créa le ciel et la terre.');
     expect(title.compareDocumentPosition(firstVerse) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getAllByRole('heading')).toHaveLength(2);
+  });
+
+  test('le marque-page posé à la main sur un verset de CETTE lecture se voit sous lui (pas celui de l\'autre lecture)', () => {
+    renderPassage({ readingMode: 'history', placedBookmarks: { history: 'Gn 1,1', bible: 'Gn 1,2' } });
+
+    expect(screen.getAllByText('Marque-page')).toHaveLength(1);
+    const tag = screen.getByText('Marque-page');
+    expect(firstVerse().compareDocumentPosition(tag) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('dans une lecture, le menu sait laquelle (pour y poser le marque-page)', () => {
+    const { openMenu } = renderPassage({ readingMode: 'history' });
+
+    fireEvent.contextMenu(firstVerse());
+
+    expect(openMenu).toHaveBeenCalledWith({ ...FIRST_VERSE, readingMode: 'history' });
   });
 
   test('les personnages de l\'épisode, sous sa référence', () => {

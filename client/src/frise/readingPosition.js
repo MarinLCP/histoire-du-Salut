@@ -35,7 +35,9 @@ export function lastIndexAbove(count, topOf, line) {
 }
 
 // La part de l'élément ({ top, height }, en px) déjà passée au-dessus de la ligne de lecture
+// (un élément sans hauteur, ex. pas encore mis en page : 0)
 export function progressThrough({ top, height }, line) {
+  if (!(height > 0)) return 0;
   const progress = Math.min(MAX_PROGRESS, Math.max(0, (line - top) / height));
   return Math.round(progress * PRECISION) / PRECISION;
 }
@@ -64,4 +66,15 @@ export function readingTitleAt(position) {
   const item = document.querySelector(`[data-reading-position="${Math.floor(position)}"]`);
   if (!item || item.getBoundingClientRect().top > 0) return null;
   return item.dataset.readingTitle ?? null;
+}
+
+// La position de lecture d'un verset (data-verse="Gn 1,3") : son haut, dans son passage ou son chapitre
+// (ex. 20.47 = à 47 % de la hauteur du n° 20) ; jumpToReadingPosition l'amène en haut de l'écran.
+// null s'il n'est pas dans la page.
+export function verseReadingPosition(key) {
+  const verse = document.querySelector(`[data-verse="${key}"]`);
+  const item = verse?.closest('[data-reading-position]');
+  if (!item) return null;
+
+  return Number(item.dataset.readingPosition) + progressThrough(item.getBoundingClientRect(), verse.getBoundingClientRect().top);
 }

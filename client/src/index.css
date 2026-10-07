@@ -32,6 +32,8 @@
   --accent-soft: #e7f3f8;
   /* Le surlignage : le jaune de Notion */
   --highlight: #f9eac0;
+  /* Le marque-page posé sur un verset : l'or du ruban de la frise, plus foncé pour rester lisible sur blanc */
+  --bookmark: #9f6b00;
   /* Largeur de la colonne de lecture (passages, chapitres, menus) */
   --reading-width: 38rem;
   /* Largeur de la marge des parallèles, à droite du texte (grand écran) */
@@ -76,6 +78,7 @@
     --accent: #529cca;
     --accent-soft: #1f3442;
     --highlight: #4a4430;
+    --bookmark: #e0a21a;
   }
 }
 
@@ -88,6 +91,7 @@
   --accent: #529cca;
   --accent-soft: #1f3442;
   --highlight: #4a4430;
+  --bookmark: #e0a21a;
   color-scheme: dark;
 }
 

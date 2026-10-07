@@ -57,6 +57,25 @@ describe('VerseMenu', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  test('« Poser le marque-page ici » le pose puis ferme le menu ; sur son verset, on peut le retirer', async () => {
+    const onToggleBookmark = vi.fn();
+    const { onClose } = renderMenu({ isBookmarked: false, onToggleBookmark });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Poser le marque-page ici' }));
+
+    expect(onToggleBookmark).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+    cleanup();
+    renderMenu({ isBookmarked: true, onToggleBookmark: vi.fn() });
+    expect(screen.getByRole('button', { name: 'Retirer le marque-page' })).toBeDefined();
+  });
+
+  test('hors d\'une lecture (pas de onToggleBookmark) : pas de bouton marque-page', () => {
+    renderMenu();
+
+    expect(screen.queryByRole('button', { name: /marque-page/ })).toBeNull();
+  });
+
   test('un verset déjà surligné propose de retirer le surlignage', () => {
     renderMenu({ isHighlighted: true });
 

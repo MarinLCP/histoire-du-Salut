@@ -21,6 +21,7 @@ export function libraryRoutes(library) {
   router.put('/highlights/:key', noContent((token, req) => library.addHighlight(token, req.params.key)));
   router.delete('/highlights/:key', noContent((token, req) => library.removeHighlight(token, req.params.key)));
   router.put('/bookmarks/:mode', noContent((token, req) => library.saveBookmark(token, req.params.mode, req.body)));
+  router.delete('/bookmarks/:mode', noContent((token, req) => library.removeBookmark(token, req.params.mode)));
 
   return router;
 }

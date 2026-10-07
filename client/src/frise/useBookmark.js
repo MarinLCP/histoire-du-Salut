@@ -1,9 +1,10 @@
 // Hook React : le marque-page d'une lecture ('history' ou 'bible'), dans le compte ou le navigateur
 // (BookmarksContext, rempli par App).
-// - bookmark : où on s'était arrêté à la visite précédente (lu une fois, au premier affichage), ou null ;
-// - forget() : on y est retourné, il n'est plus montré ;
+// - bookmark : la position où il est (lue au premier affichage, ou là où le lecteur l'a posé), ou null ;
+// - forget() : on y est retourné, il n'est plus montré (sauf s'il a été posé à la main : il reste) ;
 // - pendant la lecture, la position est retenue pour la prochaine visite. Pas tant qu'on n'a pas bougé :
-//   ouvrir l'app (au début, ou par un lien) ne doit pas écraser le marque-page.
+//   ouvrir l'app (au début, ou par un lien) ne doit pas écraser le marque-page. Jamais s'il a été posé à la
+//   main : il ne bouge plus tout seul.
 
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { loadBookmarks } from './bookmark.storage.js';
@@ -18,16 +19,18 @@ export function useBookmark(mode, readingAt) {
   const [localSaved] = useState(loadBookmarks);
   const [isForgotten, setIsForgotten] = useState(false);
   const firstPosition = useRef(null);
-  const bookmark = isForgotten ? null : ((saved ?? localSaved).get(mode) ?? null);
+  const entry = (saved ?? localSaved).get(mode) ?? null;
+  const isPlaced = entry?.verse != null;
+  const bookmark = entry && (isPlaced || !isForgotten) ? entry.position : null;
 
   useEffect(() => {
     if (readingAt === null) return;
     firstPosition.current ??= readingAt;
-    if (readingAt === firstPosition.current) return;
+    if (isPlaced || readingAt === firstPosition.current) return;
 
     const timer = setTimeout(() => save(mode, readingAt), SAVE_DELAY);
     return () => clearTimeout(timer);
-  }, [mode, readingAt, save]);
+  }, [mode, readingAt, save, isPlaced]);
 
   const forget = useCallback(() => setIsForgotten(true), []);
   return { bookmark, forget };

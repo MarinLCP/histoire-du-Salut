@@ -7,13 +7,14 @@
 import { useEffect, useState } from 'react';
 import Frise from './Frise.jsx';
 import ReadingTitle from './ReadingTitle.jsx';
+import { ReadingModeContext } from './ReadingModeContext.js';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import './ReadingWithFrise.css';
 
 // La même limite que dans ReadingWithFrise.css
 const NARROW_SCREEN = '(max-width: 1099px)';
 
-// mode, tabNames, onJump : transmis à la frise (voir Frise.jsx) ; children : la lecture
+// mode, tabNames, onJump : transmis à la frise (voir Frise.jsx) ; children : la lecture (mode : ReadingModeContext)
 function ReadingWithFrise({ mode, tabNames, onJump, children }) {
   const isNarrow = useMediaQuery(NARROW_SCREEN);
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +36,8 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
       </button>
       <div className="with-frise-reading" onClick={isOpen ? close : undefined}>
         <ReadingTitle />
-        {children}
+        {/* Les versets savent à quelle lecture ils appartiennent (leur marque-page) */}
+        <ReadingModeContext.Provider value={mode}>{children}</ReadingModeContext.Provider>
       </div>
     </div>
   );

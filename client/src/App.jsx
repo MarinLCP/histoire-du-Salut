@@ -1,5 +1,5 @@
 // Assemble l'app : la barre de navigation, les deux lectures (une adresse chacune), le menu d'un verset
-// (surligner, noter, copier, parallèles), partagé par les deux, le panneau des parallèles (à droite)
+// (surligner, noter, poser le marque-page, copier, parallèles), partagé par les deux, le panneau des parallèles (à droite)
 // et le panneau Paramètres (dont « Mon compte »). Le compte et la bibliothèque du lecteur (notes,
 // surlignages, marque-pages : useLibrary) sont gérés ici, une fois pour toutes les pages.
 // Le routeur lui-même (BrowserRouter) est branché dans main.jsx : les tests utilisent un autre routeur.
@@ -19,6 +19,7 @@ import ProgressPage from './pages/ProgressPage.jsx';
 import { useLibrary } from './library/useLibrary.js';
 import { BookmarksContext } from './library/BookmarksContext.js';
 import { copyText } from './copy/clipboard.js';
+import { verseReadingPosition } from './frise/readingPosition.js';
 import { useSettings } from './settings/useSettings.js';
 import { useMediaQuery } from './hooks/useMediaQuery.js';
 
@@ -35,7 +36,7 @@ function App() {
   const account = useAccount();
   const library = useLibrary(account.user);
   const { highlights, notes } = library;
-  // Verset dont le menu est ouvert, { key: "Gn 1,3", text, reference }, ou null si aucun
+  // Verset dont le menu est ouvert, { key: "Gn 1,3", text, reference, returnTo, readingMode }, ou null si aucun
   const [menuVerse, setMenuVerse] = useState(null);
   // Verset dont les parallèles sont affichés (le même objet que menuVerse), ou null
   const [parallelsVerse, setParallelsVerse] = useState(null);
@@ -48,10 +49,23 @@ function App() {
 
   // useMemo : le même objet tant que surlignages et notes ne changent pas.
   // Ouvrir le menu ne redessine donc pas les passages ni les chapitres (voir les memo de Passage, Chapter, VerseList).
-  const annotations = useMemo(() => ({ highlights, notes, openMenu: setMenuVerse }), [highlights, notes]);
+  const savedBookmarks = library.bookmarks.saved;
+  const placedBookmarks = useMemo(() => placedVerses(savedBookmarks), [savedBookmarks]);
+  const annotations = useMemo(
+    () => ({ highlights, notes, placedBookmarks, openMenu: setMenuVerse }),
+    [highlights, notes, placedBookmarks],
+  );
 
   // useCallback : la même fonction d'un affichage à l'autre (le panneau fixé écoute Échap avec elle)
   const closeParallels = useCallback(() => setParallelsVerse(null), []);
+
+  // Le marque-page de la lecture du verset : posé sur lui (il ne bouge plus avec la lecture), ou retiré s'il y était
+  function toggleBookmark() {
+    const { key, readingMode } = menuVerse;
+    if (placedBookmarks[readingMode] === key) return library.bookmarks.remove(readingMode);
+    const position = verseReadingPosition(key);
+    if (position !== null) library.bookmarks.place(readingMode, key, position);
+  }
 
   // Le menu laisse la place au panneau des parallèles
   function showParallels(verse) {
@@ -93,6 +107,8 @@ function App() {
           onReleaseNote={library.releaseNote}
           onCopy={copyText}
           onShowParallels={() => showParallels(menuVerse)}
+          isBookmarked={placedBookmarks[menuVerse.readingMode] === menuVerse.key}
+          onToggleBookmark={menuVerse.readingMode ? toggleBookmark : undefined}
           onClose={() => { library.releaseNote(); setMenuVerse(null); }}
         />
       )}
@@ -113,6 +129,11 @@ function App() {
       )}
     </>
   );
+}
+
+// Le verset de chaque marque-page posé à la main : { history: "Gn 1,3" } (ceux qui suivent la lecture : aucun)
+function placedVerses(bookmarks) {
+  return Object.fromEntries([...bookmarks].filter(([, bookmark]) => bookmark.verse).map(([mode, bookmark]) => [mode, bookmark.verse]));
 }
 
 export default App;

@@ -123,7 +123,8 @@ histoire-du-Salut/
 │   │   │   ├── 012_sharing.sql      ← le lien de partage de progression d'un lecteur
 │   │   │   ├── 013_given_name.sql   ← pseudo retiré ; prénom donné par Google (lien de partage)
 │   │   │   ├── 014_email_verification.sql ← e-mail validé par un code (comptes existants : déjà validés)
-│   │   │   └── 015_google_sign_in.sql ← mot de passe facultatif, identifiant Google (google_sub)
+│   │   │   ├── 015_google_sign_in.sql ← mot de passe facultatif, identifiant Google (google_sub)
+│   │   │   └── 016_placed_bookmarks.sql ← le verset où le marque-page a été posé à la main (verse_key)
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -237,7 +238,8 @@ histoire-du-Salut/
 │       │   ├── helpers/accounts.js  ← une app avec boîte d'e-mails de test ; un lecteur inscrit et validé
 │       │   ├── accounts.test.js     ← comptes : créer, code par e-mail, cookie, se (dé)connecter, 401/409/429/503
 │       │   ├── google.test.js       ← Continuer avec Google (faux Google) : créer, relier, vol de compte évité, state
-│       │   ├── library.test.js      ← notes, surlignages, marque-pages du compte ; fusion ; chacun ne voit que les siens
+│       │   ├── library.test.js      ← notes, surlignages, marque-pages du compte (posé à la main : ne bouge plus) ;
+│       │   │                          fusion ; chacun ne voit que les siens
 │       │   ├── sharing.test.js      ← lien de partage (prénom Google, sans e-mail ni notes), arrêter de partager
 │       │   ├── attemptLimiter.test.js ← limite d'essais (horloge remplacée)
 │       │   └── timeline.test.js     ← GET /api/timeline (dont la fin de la timeline)
@@ -270,7 +272,8 @@ histoire-du-Salut/
 │       ├── sharing.spec.js          ← partager où j'en suis ; le lien ouvert sans compte ; arrêter de partager
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement)
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
-│       ├── verse-menu.spec.js       ← surligner, copier ; une note demande un compte (créé sur place), retrouvée
+│       ├── verse-menu.spec.js       ← surligner, poser le marque-page, copier ; une note demande un compte (créé
+│       │                              sur place), retrouvée
 │       ├── parallels.spec.js        ← les parallèles d'un verset (dans les deux lectures), « Voir plus », aller au verset ; écran large : fixé à droite
 │       └── share.spec.js            ← lien partagé, retour au début, bouton Partager
 │
@@ -315,11 +318,11 @@ histoire-du-Salut/
     │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un clic sur un parallèle
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
     │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
-    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, copier, voir les parallèles) ;
+    │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, marque-page, copier, parallèles) ;
     │   │                              sans compte, « Enregistrer » propose d'en créer un
     │   ├── library/                 ← la bibliothèque du lecteur : compte si connecté, sinon navigateur
     │   │   ├── useLibrary.js        ← notes (compte obligatoire), surlignages, marque-pages ; fusion à la connexion
-    │   │   └── BookmarksContext.js  ← le marque-page de chaque lecture, partagé avec la frise
+    │   │   └── BookmarksContext.js  ← le marque-page de chaque lecture, partagé avec la frise et les versets
     │   ├── highlights/              ← surlignages
     │   │   ├── highlights.js        ← logique pure (surligner / retirer)
     │   │   └── highlights.storage.js← sauvegarde dans le navigateur
@@ -341,13 +344,15 @@ histoire-du-Salut/
     │   │   ├── cascadeView.js       ← état de la frise : niveau affiché, glissement, suivi de la lecture
     │   │   ├── readingSync.js       ← lecture ↔ frise : nœud lu, place du bateau, la frise suit la lecture
     │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu) ;
-    │   │   │                          le titre de ce qu'on lit (readingTitleAt)
+    │   │   │                          le titre de ce qu'on lit (readingTitleAt) ; la position d'un verset
     │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) collé en haut pendant la lecture
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
-    │   │   ├── useBookmark.js       ← le marque-page : retenu pendant la lecture, montré à la visite suivante
-    │   │   ├── bookmark.storage.js  ← sauvegarde du marque-page dans le navigateur (une position par lecture)
+    │   │   ├── useBookmark.js       ← le marque-page : retenu pendant la lecture, montré à la visite suivante ;
+    │   │   │                          posé à la main (menu d'un verset), il ne bouge plus
+    │   │   ├── bookmark.storage.js  ← sauvegarde du marque-page dans le navigateur ({ position, verse } par lecture)
+    │   │   ├── ReadingModeContext.js ← la lecture en cours ('history' | 'bible'), pour les versets qu'elle contient
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
     │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (sans fond) ; < 1100 px : panneau (2/3 de l'écran),
     │   │   │                          ouvert par le bouton flottant « Frise » (en bas à gauche)

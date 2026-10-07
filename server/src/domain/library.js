@@ -2,7 +2,8 @@
 // marque-pages. Fonctions pures qui vérifient ce qui arrive du navigateur ("fail fast") : une valeur fausse
 // lève une ValidationError (400) avant d'atteindre la base.
 // Format d'échange (le même que dans le navigateur) :
-//   { notes: { "Gn 1,3": { text, updatedAt } }, highlights: { "Gn 1,3": { createdAt } }, bookmarks: { history: 12.4 } }
+//   { notes: { "Gn 1,3": { text, updatedAt } }, highlights: { "Gn 1,3": { createdAt } },
+//     bookmarks: { history: { position: 12.4, verse: null } } }
 
 import { ValidationError } from './errors.js';
 import { VerseReference } from './VerseReference.js';
@@ -40,14 +41,22 @@ export function readingPosition(position) {
   return position;
 }
 
+// Un marque-page : { position, verse }. verse : le verset où le lecteur l'a posé à la main ("Gn 1,3"), ou null
+// s'il suit la lecture. Un nombre seul (l'ancien format du navigateur) est un marque-page qui suit la lecture.
+/** @param {unknown} value @returns {{ position: number, verse: string | null }} */
+export function readingBookmark(value) {
+  if (typeof value === 'number') return { position: readingPosition(value), verse: null };
+  return { position: readingPosition(value?.position), verse: value?.verse == null ? null : verseKey(value.verse) };
+}
+
 // Une bibliothèque envoyée d'un coup (ce qui était dans le navigateur, à la première connexion), vérifiée
 // et mise à plat : { notes: [{ verseKey, text, updatedAt }], highlights: [{ verseKey, createdAt }],
-// bookmarks: [{ mode, position }] }
+// bookmarks: [{ mode, position, verse }] }
 export function libraryFrom({ notes = {}, highlights = {}, bookmarks = {} } = {}) {
   return {
     notes: entriesOf(notes).map(([key, note]) => ({ verseKey: verseKey(key), text: noteText(note?.text), updatedAt: date(note?.updatedAt) })),
     highlights: entriesOf(highlights).map(([key, highlight]) => ({ verseKey: verseKey(key), createdAt: date(highlight?.createdAt) })),
-    bookmarks: entriesOf(bookmarks).map(([mode, position]) => ({ mode: readingMode(mode), position: readingPosition(position) })),
+    bookmarks: entriesOf(bookmarks).map(([mode, bookmark]) => ({ mode: readingMode(mode), ...readingBookmark(bookmark) })),
   };
 }
 

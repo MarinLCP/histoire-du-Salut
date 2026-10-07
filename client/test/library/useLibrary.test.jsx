@@ -48,14 +48,17 @@ describe('useLibrary', () => {
   test('connecté : le navigateur rejoint le compte (fusion), puis il est vidé', async () => {
     store('notes', { 'Gn 1,3': OLD_NOTE });
     store('bookmarks', { history: 3 });
-    const fetchMock = fakeServer({ notes: { 'Gn 1,3': OLD_NOTE }, highlights: {}, bookmarks: { history: 12.4 } });
+    const fetchMock = fakeServer({ notes: { 'Gn 1,3': OLD_NOTE }, highlights: {}, bookmarks: { history: { position: 12.4, verse: null } } });
 
     const result = await signedIn();
 
     expect(fetchMock.mock.calls[0][1].method).toBe('POST');
-    expect(Object.keys(JSON.parse(fetchMock.mock.calls[0][1].body).notes)).toEqual(['Gn 1,3']);
+    const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(Object.keys(sent.notes)).toEqual(['Gn 1,3']);
+    // L'ancien format du navigateur (une position seule) part au nouveau format
+    expect(sent.bookmarks).toEqual({ history: { position: 3, verse: null } });
     expect(result.current.notes.get('Gn 1,3').text).toBe('Une note d\'avant');
-    expect(result.current.bookmarks.saved.get('history')).toBe(12.4);
+    expect(result.current.bookmarks.saved.get('history')).toEqual({ position: 12.4, verse: null });
     expect([loadNotes().size, loadHighlights().size, loadBookmarks().size]).toEqual([0, 0, 0]);
   });
 
@@ -126,5 +129,33 @@ describe('useLibrary', () => {
     expect(result.current.bookmarks).toBe(bookmarksBefore);
     expect(fetchMock).toHaveBeenCalledWith('/api/me/bookmarks/bible', expect.objectContaining({ body: '{"position":300.5}' }));
     expect(loadBookmarks().size).toBe(0);
+  });
+
+  test('pas connecté : poser le marque-page sur un verset se voit tout de suite et reste dans le navigateur', () => {
+    localStorage.clear();
+    const { result } = renderHook(() => useLibrary(null));
+
+    act(() => result.current.bookmarks.place('history', 'Gn 1,3', 4.2));
+
+    expect(result.current.bookmarks.saved.get('history')).toEqual({ position: 4.2, verse: 'Gn 1,3' });
+    expect(loadBookmarks().get('history')).toEqual({ position: 4.2, verse: 'Gn 1,3' });
+
+    act(() => result.current.bookmarks.remove('history'));
+
+    expect(result.current.bookmarks.saved.has('history')).toBe(false);
+    expect(loadBookmarks().has('history')).toBe(false);
+  });
+
+  test('connecté : poser le marque-page l\'écrit dans le compte ; si l\'écriture échoue, il revient où il était', async () => {
+    const before = { position: 9, verse: null };
+    const fetchMock = fakeServer({ ...EMPTY, bookmarks: { bible: before } }, { failWrites: true });
+    const result = await signedIn();
+
+    act(() => result.current.bookmarks.place('bible', 'Ps 22,1', 30.5));
+
+    expect(result.current.bookmarks.saved.get('bible')).toEqual({ position: 30.5, verse: 'Ps 22,1' });
+    expect(fetchMock).toHaveBeenCalledWith('/api/me/bookmarks/bible',
+      expect.objectContaining({ method: 'PUT', body: '{"position":30.5,"verse":"Ps 22,1"}' }));
+    await waitFor(() => expect(result.current.bookmarks.saved.get('bible')).toEqual(before));
   });
 });

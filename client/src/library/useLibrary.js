@@ -12,7 +12,9 @@ import { toggleHighlight as toggledHighlights } from '../highlights/highlights.j
 import { loadHighlights, saveHighlights } from '../highlights/highlights.storage.js';
 import { setNote } from '../notes/notes.js';
 import { loadNotes, saveNotes } from '../notes/notes.storage.js';
-import { loadBookmarks, saveBookmark as saveLocalBookmark, clearBookmarks } from '../frise/bookmark.storage.js';
+import {
+  loadBookmarks, saveBookmark as saveLocalBookmark, removeBookmark as removeLocalBookmark, clearBookmarks,
+} from '../frise/bookmark.storage.js';
 import { useStoredMap } from '../storage/useStoredMap.js';
 import * as libraryApi from '../api/library.api.js';
 
@@ -106,14 +108,52 @@ function useAccountLibrary(email, { setLocalNotes, setLocalHighlights }) {
   };
 }
 
-// Le marque-page, pour la frise (BookmarksContext) : le même objet tant que le compte ne change pas
-// (surligner ou noter ne redessine pas la frise). saved : ceux du compte, ou null (ceux du navigateur).
+// Les marque-pages, pour la frise et les versets (BookmarksContext) : le même objet tant que le compte et les
+// marque-pages posés à la main ne changent pas (surligner ou noter ne redessine pas la frise).
+// - saved : ceux du compte une fois chargé, sinon ceux du navigateur ; lus une fois, puis seuls les
+//   marque-pages posés (ou retirés) à la main y changent, tout de suite ;
+// - save(mode, position) : la lecture avance (le serveur ne déplace pas un marque-page posé à la main) ;
+// - place(mode, verse, position) : poser le marque-page sur un verset ; remove(mode) : le retirer (la lecture
+//   le reprendra). Annulé à l'écran si l'écriture dans le compte échoue.
 function useBookmarks(email, accountBookmarks) {
+  const source = accountBookmarks ?? BROWSER;
+  const [shown, setShown] = useState(() => ({ source, bookmarks: initialBookmarks(source) }));
+  // Le compte vient d'être chargé (ou quitté) : on repart de ses marque-pages (calcul pendant l'affichage,
+  // comme le conseille React, plutôt qu'un effet qui afficherait d'abord les anciens)
+  if (shown.source !== source) setShown({ source, bookmarks: initialBookmarks(source) });
+
   const save = useCallback((mode, position) => {
-    if (!email) return saveLocalBookmark(mode, position);
-    libraryApi.saveBookmark(mode, position).catch(() => {});
+    if (!email) return saveLocalBookmark(mode, { position, verse: null });
+    libraryApi.saveBookmark(mode, { position }).catch(() => {});
   }, [email]);
-  return useMemo(() => ({ saved: accountBookmarks, save }), [accountBookmarks, save]);
+
+  const change = useCallback((mode, bookmark, before) => {
+    const show = (value) => setShown((previous) => ({ ...previous, bookmarks: withBookmark(previous.bookmarks, mode, value) }));
+    show(bookmark);
+    if (!email) return bookmark ? saveLocalBookmark(mode, bookmark) : removeLocalBookmark(mode);
+    const write = bookmark ? libraryApi.saveBookmark(mode, bookmark) : libraryApi.removeBookmark(mode);
+    write.catch(() => show(before));
+  }, [email]);
+
+  const saved = shown.bookmarks;
+  return useMemo(() => ({
+    saved,
+    save,
+    place: (mode, verse, position) => change(mode, { position, verse }, saved.get(mode)),
+    remove: (mode) => change(mode, null, saved.get(mode)),
+  }), [saved, save, change]);
+}
+
+// Les marque-pages lus au départ : ceux du compte (une Map), ou ceux du navigateur
+const BROWSER = 'browser';
+const initialBookmarks = (source) => (source === BROWSER ? loadBookmarks() : source);
+
+// Une copie de bookmarks où le marque-page de cette lecture est remplacé (ou retiré : bookmark vide)
+function withBookmark(bookmarks, mode, bookmark) {
+  const next = new Map(bookmarks);
+  next.delete(mode);
+  if (bookmark) next.set(mode, bookmark);
+  return next;
 }
 
 // Ce qui attend dans le navigateur (et la note mise de côté), au format d'échange avec le serveur

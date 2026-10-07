@@ -95,6 +95,22 @@
   white-space: pre-line;
 }
 
+/* Le marque-page posé à la main sur ce verset (menu du verset) : le ruban de la frise, en petit */
+.verse-bookmark {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin: -0.4rem 0 .9rem;
+  font: 600 .75rem/1 var(--ui-font);
+  color: var(--bookmark);
+}
+
+.verse-bookmark svg {
+  width: .6rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
 /* L'intertitre d'un sous-chapitre, juste avant le verset où il commence : discret, comme dans une Bible imprimée */
 .verse-section {
   margin: 1.6rem 0 .6rem;
