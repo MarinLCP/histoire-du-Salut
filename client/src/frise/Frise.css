@@ -63,8 +63,8 @@
   font: 600 .8rem/1.2 var(--ui-font);
   transition: left var(--morph), top var(--morph), width var(--morph), height var(--morph),
     border-radius var(--morph), filter .2s ease;
-  /* De fines rayures verticales et un liseré clair en haut : l'eau qui tombe en cascade */
-  background-image: repeating-linear-gradient(90deg, transparent 0 1.5rem, #ffffff1f 1.5rem calc(1.5rem + 1px));
+  /* Un liseré clair en haut : le bord de la marche, d'où l'eau tombe (plus de rayures verticales, retirées à la
+     demande de Marin) */
   box-shadow: inset 0 2px 0 #ffffff59, inset 0 -1px 0 #0d16301f, 0 -2px 0 #0d163024;
 }
 
