@@ -20,6 +20,6 @@ export function codeSentTo(outbox, email) {
 export async function signedUpAgent({ app, outbox }, email, password) {
   const agent = request.agent(app);
   await agent.post('/api/account').send({ email, password });
-  await agent.post('/api/account/verify').send({ email, code: codeSentTo(outbox, email) });
+  await agent.post('/api/account/verify').send({ email, password, code: codeSentTo(outbox, email) });
   return agent;
 }

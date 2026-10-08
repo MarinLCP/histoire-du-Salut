@@ -100,7 +100,8 @@ describe('AccountSection', () => {
     await userEvent.type(screen.getByLabelText('Code reçu par e-mail'), '123456');
     await userEvent.click(screen.getByRole('button', { name: 'Valider' }));
 
-    expect(account.verifyEmail).toHaveBeenCalledWith({ email: 'marin@exemple.fr', code: '123456' });
+    // Avec le mot de passe tapé : le serveur vérifie que c'est bien CETTE inscription qu'on valide
+    expect(account.verifyEmail).toHaveBeenCalledWith({ email: 'marin@exemple.fr', password: 'un mot de passe long', code: '123456' });
   });
 
   test('l\'étape du code : renvoyer un code, ou changer d\'adresse', async () => {

@@ -81,7 +81,7 @@ describe('les comptes', () => {
   // Un compte créé ET validé (connecté une première fois)
   async function validatedAccount() {
     await createAccount(FORM);
-    return verifyEmail({ email: FORM.email, code: lastCode(world) });
+    return verifyEmail({ ...FORM, code: lastCode(world) });
   }
 
   beforeEach(() => {
@@ -114,7 +114,7 @@ describe('les comptes', () => {
   ])('valider avec %s : refusé', async (_, code, message) => {
     await createAccount(FORM);
 
-    await expect(verifyEmail({ email: FORM.email, code })).rejects.toThrow(message);
+    await expect(verifyEmail({ ...FORM, code })).rejects.toThrow(message);
   });
 
   test('un compte validé ne se recrée pas (409) ; un compte jamais validé est repris', async () => {
@@ -147,7 +147,7 @@ describe('les comptes', () => {
 
     await resend({ email: FORM.email });
     expect(world.sent).toHaveLength(2);
-    await verifyEmail({ email: FORM.email, code: lastCode(world) });
+    await verifyEmail({ ...FORM, code: lastCode(world) });
     await resend({ email: FORM.email });
     expect(world.sent).toHaveLength(2);
   });

@@ -40,14 +40,14 @@ describe('créer un compte et valider l\'e-mail', () => {
     await agent.post('/api/account').send({ email, password: PASSWORD });
     const code = codeSentTo(outbox, email);
 
-    const res = await agent.post('/api/account/verify').send({ email, code });
+    const res = await agent.post('/api/account/verify').send({ email, password: PASSWORD, code });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ user: { email } });
     expect(res.headers['set-cookie'][0]).toMatch(/^session=.+HttpOnly; SameSite=Lax/);
     expect(res.headers['cache-control']).toBe('no-store');
     expect((await agent.get('/api/session')).body).toEqual({ user: { email, hasPassword: true } });
-    expect((await agent.post('/api/account/verify').send({ email, code })).status).toBe(400);
+    expect((await agent.post('/api/account/verify').send({ email, password: PASSWORD, code })).status).toBe(400);
   });
 
   test('un mauvais code : 400 ; au 5e essai raté, le code ne vaut plus rien ; un nouveau code marche', async () => {
@@ -56,13 +56,13 @@ describe('créer un compte et valider l\'e-mail', () => {
     const code = codeSentTo(outbox, email);
     const wrong = code === '000000' ? '111111' : '000000';
 
-    const first = await request(app).post('/api/account/verify').send({ email, code: wrong });
-    for (let attempt = 2; attempt <= 5; attempt++) await request(app).post('/api/account/verify').send({ email, code: wrong });
+    const first = await request(app).post('/api/account/verify').send({ email, password: PASSWORD, code: wrong });
+    for (let attempt = 2; attempt <= 5; attempt++) await request(app).post('/api/account/verify').send({ email, password: PASSWORD, code: wrong });
 
     expect(first.body).toEqual({ error: 'Code incorrect.' });
-    expect((await request(app).post('/api/account/verify').send({ email, code })).body.error).toContain('demandes-en un nouveau');
+    expect((await request(app).post('/api/account/verify').send({ email, password: PASSWORD, code })).body.error).toContain('demandes-en un nouveau');
     expect((await request(app).post('/api/account/code').send({ email })).status).toBe(204);
-    expect((await request(app).post('/api/account/verify').send({ email, code: codeSentTo(outbox, email) })).status).toBe(200);
+    expect((await request(app).post('/api/account/verify').send({ email, password: PASSWORD, code: codeSentTo(outbox, email) })).status).toBe(200);
   }, 30000);
 
   test('le code et le mot de passe ne sont jamais rangés tels quels, ni le jeton de session', async () => {
@@ -74,7 +74,7 @@ describe('créer un compte et valider l\'e-mail', () => {
       'SELECT u.password_hash, c.code_hash FROM users u JOIN email_codes c ON c.user_id = u.id WHERE u.email = $1',
       [email],
     );
-    const res = await request(app).post('/api/account/verify').send({ email, code });
+    const res = await request(app).post('/api/account/verify').send({ email, password: PASSWORD, code });
     const token = res.headers['set-cookie'][0].match(/^session=([^;]+)/)[1];
     const { rows: sessions } = await pool.query('SELECT 1 FROM sessions WHERE token_hash = $1', [token]);
 
@@ -92,8 +92,22 @@ describe('créer un compte et valider l\'e-mail', () => {
 
     expect((await request(app).post('/api/account').send({ email: validated, password: PASSWORD })).status).toBe(409);
     expect((await request(app).post('/api/account').send({ email: abandoned, password: PASSWORD })).status).toBe(202);
-    await request(app).post('/api/account/verify').send({ email: abandoned, code: codeSentTo(outbox, abandoned) });
+    await request(app).post('/api/account/verify').send({ email: abandoned, password: PASSWORD, code: codeSentTo(outbox, abandoned) });
     expect((await request(app).post('/api/session').send({ email: abandoned, password: PASSWORD })).status).toBe(200);
+  });
+
+  test('reprise volée : quelqu\'un remplace le mot de passe pendant mon inscription ; mon code ne valide pas SON compte', async () => {
+    const email = newEmail();
+    await request(app).post('/api/account').send({ email, password: PASSWORD });
+    // L'attaquant connaît mon adresse : il « reprend » mon compte pas encore validé, avec son mot de passe
+    await request(app).post('/api/account').send({ email, password: 'le mot de passe de l\'attaquant' });
+
+    // Je tape le dernier code reçu, avec MON mot de passe (le site le renvoie) : refusé, rien n'est validé
+    const res = await request(app).post('/api/account/verify').send({ email, password: PASSWORD, code: codeSentTo(outbox, email) });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('recommence la création du compte');
+    expect((await request(app).post('/api/session').send({ email, password: 'le mot de passe de l\'attaquant' })).status).toBe(202);
   });
 
   test('mot de passe trop court : 400, aucun e-mail envoyé', async () => {

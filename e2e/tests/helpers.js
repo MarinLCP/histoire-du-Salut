@@ -68,10 +68,11 @@ export function uniqueEmail(prefix) {
 }
 
 // Le code de validation envoyé à cette adresse (boîte de test du serveur, EMAIL_OUTBOX=1). On attend que
-// l'e-mail soit parti : le serveur répond au clic avant ou après l'envoi, selon la vitesse
+// l'e-mail soit parti : le serveur répond au clic avant ou après l'envoi, selon la vitesse. Jusqu'à 10 s :
+// quand tous les parcours tournent ensemble, chaque création de compte hache un mot de passe (exprès lent)
 export async function emailCode(page, email) {
   const latest = () => page.request.get(`/api/test/emails/latest?to=${encodeURIComponent(email)}`);
-  await expect.poll(async () => (await latest()).status()).toBe(200);
+  await expect.poll(async () => (await latest()).status(), { timeout: 10000 }).toBe(200);
   const { subject } = await (await latest()).json();
   return subject.match(/\d{6}/)[0];
 }
@@ -79,5 +80,5 @@ export async function emailCode(page, email) {
 // Un compte créé et validé par l'API (sans passer par l'écran), connecté dans ce navigateur
 export async function createAccountByApi(page, email, password) {
   await page.request.post('/api/account', { data: { email, password } });
-  await page.request.post('/api/account/verify', { data: { email, code: await emailCode(page, email) } });
+  await page.request.post('/api/account/verify', { data: { email, password, code: await emailCode(page, email) } });
 }

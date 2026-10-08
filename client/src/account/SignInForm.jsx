@@ -22,7 +22,9 @@ function SignInForm({ account, startWith = 'login' }) {
   const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
   // L'adresse à qui un code vient d'être envoyé (il faut le taper), ou null
-  const [pendingEmail, setPendingEmail] = useState(null);
+  // L'inscription en attente de son code : l'adresse, et le mot de passe tapé (renvoyé avec le code : le serveur
+  // vérifie que c'est bien cette inscription qu'on valide). Gardé en mémoire seulement, le temps de taper le code
+  const [pending, setPending] = useState(null);
   const settings = MODES[mode];
 
   async function submit(event) {
@@ -31,15 +33,16 @@ function SignInForm({ account, startWith = 'login' }) {
     setIsSending(true);
     setError(null);
     try {
-      const result = await account[settings.action]({ email: form.get('email'), password: form.get('password') });
-      if (result?.verificationNeeded) setPendingEmail(result.email);
+      const password = form.get('password');
+      const result = await account[settings.action]({ email: form.get('email'), password });
+      if (result?.verificationNeeded) setPending({ email: result.email, password });
     } catch (submitError) {
       setError(submitError.message);
     }
     setIsSending(false);
   }
 
-  if (pendingEmail) return <CodeForm account={account} email={pendingEmail} onBack={() => setPendingEmail(null)} />;
+  if (pending) return <CodeForm account={account} {...pending} onBack={() => setPending(null)} />;
   const switchMode = () => { setMode(settings.switchTo); setError(null); };
   return (
     <div className="account-sign-in">
@@ -85,7 +88,7 @@ function EmailForm({ settings, error, isSending, onSubmit, onSwitch }) {
 }
 
 // Le code de 6 chiffres reçu par e-mail : une fois tapé, le compte est validé et le lecteur connecté
-function CodeForm({ account, email, onBack }) {
+function CodeForm({ account, email, password, onBack }) {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
@@ -93,7 +96,7 @@ function CodeForm({ account, email, onBack }) {
     event.preventDefault();
     setError(null);
     try {
-      await account.verifyEmail({ email, code: new FormData(event.currentTarget).get('code') });
+      await account.verifyEmail({ email, password, code: new FormData(event.currentTarget).get('code') });
     } catch (verifyError) {
       setError(verifyError.message);
     }
