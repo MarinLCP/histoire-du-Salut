@@ -275,6 +275,7 @@ histoire-du-Salut/
 │       ├── sharing.spec.js          ← partager où j'en suis ; le lien ouvert sans compte ; arrêter de partager
 │       ├── settings.spec.js         ← Paramètres : texte, thème (retenus après rechargement) ; lien Confidentialité
 │       ├── onboarding.spec.js       ← première visite : cartes d'accueil, astuce de l'appui long, puis plus rien
+│       ├── pwa.spec.js              ← l'application : installable (manifeste, icônes)
 │       ├── timeline.spec.js         ← lire toute l'histoire ; API en panne puis "Réessayer"
 │       ├── verse-menu.spec.js       ← surligner, poser le marque-page, copier ; une note demande un compte (créé
 │       │                              sur place), retrouvée
@@ -285,6 +286,8 @@ histoire-du-Salut/
     ├── index.html                   ← la seule page HTML (app "single page") ; icône de l'onglet, police préchargée
     ├── public/
     │   ├── favicon.svg              ← l'icône de l'onglet (cascade, vague, croix) et la marque du site
+    │   ├── manifest.webmanifest     ← l'application (PWA) : nom, icônes, plein écran ; le site devient installable
+    │   ├── icons/                   ← icônes de l'app (192, 512, « maskable » Android, iPhone 180), tirées de favicon.svg
     │   └── fonts/                   ← Literata (texte biblique), hébergée par le site (pas d'appel à Google), et sa licence OFL
     ├── vite.config.js               ← proxy /api → localhost:3000 en dev ; préparation des tests (test/setup.js)
     ├── src/

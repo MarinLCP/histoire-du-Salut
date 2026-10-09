@@ -4,8 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>L'histoire d'un Salut</title>
+    <meta name="description" content="Lire la Bible comme une seule grande histoire, de la Création à l'Apocalypse." />
     <!-- L'icône de l'onglet : la cascade de la frise, la vague et la croix -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- L'application (PWA) : le manifeste (nom, icônes, plein écran) rend le site installable sur l'écran d'accueil.
+         L'iPhone lit aussi ces balises : son icône (un carré plein, iOS arrondit les coins) et le nom sous l'icône -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Salut" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- La couleur de la barre du téléphone : le fond du site, clair ou sombre -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)" />
     <!-- La police du texte biblique (Literata), hébergée par le site : chargée tout de suite, sans appel à Google -->
     <link rel="preload" href="/fonts/literata-latin.woff2" as="font" type="font/woff2" crossorigin />
   </head>
