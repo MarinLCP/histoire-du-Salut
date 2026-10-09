@@ -133,11 +133,25 @@ export function ribbonPlace(blocks, bookmarkNodePath) {
   return { left: block.left + block.width - RIBBON_FROM_RIGHT, top: block.top, title: block.node.title };
 }
 
-// Les blocs qui arrivent avec un changement de niveau : ceux de `after` qui n'étaient pas dans `before` (même
-// clé = même nœud, qui glisse vers sa nouvelle place). Au tout premier affichage (before vide) : aucun, la frise
-// apparaît d'un coup. Renvoie un Set de clés.
-export function enteringKeys(before, after) {
-  if (before.length === 0) return new Set();
-  const known = new Set(before.map((block) => block.key));
-  return new Set(after.filter((block) => !known.has(block.key)).map((block) => block.key));
+// Le passage d'une disposition (before) à la suivante (after), pour une transition propre :
+// - un bloc qui garde son rôle de bloc qui glisse garde sa clé React : il glisse vers sa nouvelle place ;
+// - un bloc qui arrive (absent avant) ou qui redevient une petite marche (bande ou bloc de l'escalier devenu
+//   marche, quand on remonte d'un niveau) apparaît en fondu, une fois les autres en place. Sinon il glisserait
+//   à contretemps du bloc qu'il doit toucher, et le fond de la page apparaîtrait entre les deux. S'il était
+//   affiché, il reçoit une nouvelle clé React : React le recrée au lieu de le faire glisser.
+// Au tout premier affichage (before vide) : rien en fondu, la frise apparaît d'un coup.
+// previousKeys : les clés React d'avant (Map clé du nœud -> clé React) ; generation : un numéro qui change à
+// chaque transition (pour fabriquer des clés React neuves). Renvoie { reactKeys, entering } (Map, Set).
+export function blockTransition(before, after, previousKeys = new Map(), generation = 0) {
+  const roleBefore = new Map(before.map((block) => [block.key, block.role]));
+  const reactKeys = new Map();
+  const entering = new Set();
+  for (const block of after) {
+    const role = roleBefore.get(block.key);
+    const isDemoted = block.role === 'step' && role !== undefined && role !== 'step';
+    if (before.length > 0 && (role === undefined || isDemoted)) entering.add(block.key);
+    const reactKey = isDemoted ? `${block.key}~${generation}` : (previousKeys.get(block.key) ?? block.key);
+    reactKeys.set(block.key, reactKey);
+  }
+  return { reactKeys, entering };
 }

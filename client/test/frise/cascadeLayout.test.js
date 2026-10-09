@@ -2,7 +2,7 @@
 // path : le chemin des nœuds dans lesquels on est entré ([] = vue d'ensemble, [1, 0] = 1er enfant du 2e nœud).
 
 import { describe, test, expect } from 'vitest';
-import { layoutCascade, boatPlace, ribbonPlace, MAX_STEPS, enteringKeys } from '../../src/frise/cascadeLayout.js';
+import { layoutCascade, boatPlace, ribbonPlace, MAX_STEPS, blockTransition } from '../../src/frise/cascadeLayout.js';
 
 // Un nœud de l'API (forme commune à tous les niveaux) avec `childCount` enfants
 const node = (title, childCount = 0) => ({
@@ -163,14 +163,26 @@ describe('ribbonPlace : le ruban du marque-page, sur le bloc de l\'escalier qui 
   });
 });
 
-describe('enteringKeys : les blocs qui arrivent avec un changement de niveau', () => {
-  const blocks = (...keys) => keys.map((key) => ({ key }));
+describe('blockTransition : d\'une disposition à la suivante', () => {
+  const blocks = (...items) => items.map(([key, role]) => ({ key, role }));
 
-  test('ceux qui n\'étaient pas là avant ; ceux qui restent glissent (pas dans la liste)', () => {
-    expect([...enteringKeys(blocks('0', '1', '1/0'), blocks('1', '1/0', '1/0/0', '2'))]).toEqual(['1/0/0', '2']);
+  test('un bloc qui garde son rôle glisse (même clé React) ; un bloc nouveau arrive en fondu', () => {
+    const { reactKeys, entering } = blockTransition(blocks(['0', 'stair'], ['1', 'stair']), blocks(['1', 'strip'], ['1/0', 'stair']));
+
+    expect(reactKeys.get('1')).toBe('1');
+    expect([...entering]).toEqual(['1/0']);
   });
 
-  test('au tout premier affichage : aucun, la frise apparaît d\'un coup', () => {
-    expect(enteringKeys([], blocks('0', '1')).size).toBe(0);
+  test('en remontant, un bloc redevenu petite marche arrive en fondu, avec une clé React neuve (recréé, pas glissé)', () => {
+    const before = blocks(['1', 'strip'], ['1/0', 'stair']);
+    const { reactKeys, entering } = blockTransition(before, blocks(['1', 'stair'], ['1/0', 'step']), new Map([['1/0', '1/0']]), 7);
+
+    expect([...entering]).toEqual(['1/0']);
+    expect(reactKeys.get('1/0')).toBe('1/0~7');
+    expect(reactKeys.get('1')).toBe('1');
+  });
+
+  test('au tout premier affichage : rien en fondu, la frise apparaît d\'un coup', () => {
+    expect(blockTransition([], blocks(['0', 'stair'], ['1', 'stair'])).entering.size).toBe(0);
   });
 });
