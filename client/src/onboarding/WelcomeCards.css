@@ -97,6 +97,20 @@
   fill: var(--bookmark);
 }
 
+/* Carte 4 : l'icône de l'application sur un écran d'accueil */
+.welcome-app {
+  display: grid;
+  justify-items: center;
+  gap: .35rem;
+  color: var(--text);
+  font: 500 .75rem/1 var(--ui-font);
+}
+
+.welcome-app img {
+  border-radius: 14px;
+  box-shadow: var(--float-shadow);
+}
+
 /* Carte 3 : un verset surligné, avec son marque-page et sa note (comme dans la lecture) */
 .welcome-verse {
   width: 85%;

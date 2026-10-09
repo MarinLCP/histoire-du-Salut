@@ -13,6 +13,7 @@ import VerseMenu from './components/VerseMenu.jsx';
 import SettingsPanel from './settings/SettingsPanel.jsx';
 import ParallelsPanel from './parallels/ParallelsPanel.jsx';
 import AccountSection from './account/AccountSection.jsx';
+import InstallSection from './install/InstallSection.jsx';
 import WelcomeCards from './onboarding/WelcomeCards.jsx';
 import LongPressHint from './onboarding/LongPressHint.jsx';
 import { useOnboarding } from './onboarding/useOnboarding.js';
@@ -145,6 +146,7 @@ function App() {
           onShowWelcome={isReadingPage ? () => { setIsSettingsOpen(false); onboarding.openWelcome(); } : undefined}>
           <AccountSection account={account} waitingNotes={library.waitingNotes.size}
             libraryStatus={library.status} onRetryLibrary={library.retry} googleFailed={googleFailed} />
+          <InstallSection />
         </SettingsPanel>
       )}
     </>

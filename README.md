@@ -388,7 +388,12 @@ histoire-du-Salut/
     │   │   ├── settings.storage.js  ← sauvegarde des réglages dans le navigateur
     │   │   ├── useSettings.js       ← branchement React (appliqués et sauvegardés à chaque changement)
     │   │   └── SettingsPanel.jsx / .css ← le panneau « Compte et réglages » (dans un SidePanel)
-    │   ├── onboarding/              ← la présentation du site aux nouveaux venus (V11.4)
+    │   ├── install/                 ← installer l'application (V12.4) : le bouton du navigateur, ou les gestes (iPhone)
+    │   │   ├── installPrompt.js     ← ce que le navigateur permet (garde sa proposition d'installer, déjà installée ?)
+    │   │   ├── useInstall.js        ← comment proposer : bouton, gestes de l'iPhone, menu du navigateur, ou rien
+    │   │   ├── InstallHelp.jsx / .css ← le bouton ou les gestes expliqués (carte d'accueil, Compte et réglages)
+    │   │   └── InstallSection.jsx   ← « L'application » dans le panneau Compte et réglages
+    │   ├── onboarding/              ← la présentation du site aux nouveaux venus (V11.4 ; 4e carte : l'application)
     │   │   ├── WelcomeCards.jsx / .css ← les 3 cartes d'accueil (les deux lectures, la frise, les notes)
     │   │   ├── LongPressHint.jsx / .css ← l'astuce de l'appui long, une seule fois
     │   │   ├── useOnboarding.js     ← quand les montrer (première visite, « Revoir la présentation »)
@@ -426,6 +431,7 @@ histoire-du-Salut/
         ├── library/                 ← useLibrary (sans compte, fusion à la connexion, écriture annulée si échec)
         ├── settings/                ← règles des réglages, panneau
         ├── onboarding/              ← cartes d'accueil, useOnboarding (une seule fois, revoir)
+        ├── install/                 ← InstallHelp : bouton, gestes de l'iPhone, menu, rien si déjà installée
         ├── parallels/               ← panneau des parallèles (ordre, « Voir plus », lien, source), marge
         ├── notes/                   ← notes, notes.storage
         ├── share/                   ← share, shareLink

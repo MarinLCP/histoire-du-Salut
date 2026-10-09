@@ -1,5 +1,5 @@
-// Les cartes d'accueil (V11.4) : trois cartes qui présentent le site à la première visite (rouvertes par
-// « Revoir la présentation »). « Passer », Échap ou un toucher à côté les referment ; « Suivant » (ou glisser
+// Les cartes d'accueil (V11.4) : les cartes qui présentent le site à la première visite (rouvertes par
+// « Revoir la présentation »). La 4e propose de l'installer comme une application (V12.4), sauf si c'est déjà fait. « Passer », Échap ou un toucher à côté les referment ; « Suivant » (ou glisser
 // du doigt, ou les flèches du clavier) passe à la carte d'après ; « Commencer » referme la dernière.
 // Les petites illustrations reprennent le style du site (pastilles, blocs bleus de la frise, ruban doré) :
 // elles sont décoratives (aria-hidden), tout est dit dans le texte.
@@ -9,6 +9,8 @@ import { useModalDialog } from '../hooks/useModalDialog.js';
 import { TOUCH_SCREEN, useMediaQuery } from '../hooks/useMediaQuery.js';
 import { RibbonIcon } from '../frise/RibbonIcon.jsx';
 import BookmarkTag from '../components/BookmarkTag.jsx';
+import InstallHelp from '../install/InstallHelp.jsx';
+import { useInstall } from '../install/useInstall.js';
 import './WelcomeCards.css';
 
 // Un glissement de doigt plus long que ça (en px) change de carte
@@ -22,7 +24,8 @@ function WelcomeCards({ onClose }) {
   const swipeStart = useRef(null);
   // Écran tactile : « appui long » ; souris : « clic droit » (les deux marchent partout)
   const isTouch = useMediaQuery(TOUCH_SCREEN);
-  const cards = welcomeCards(isTouch);
+  const isInstalled = useInstall().way === 'installed';
+  const cards = welcomeCards(isTouch, isInstalled);
   const card = cards[index];
   const isLast = index === cards.length - 1;
 
@@ -67,10 +70,10 @@ function WelcomeCards({ onClose }) {
   );
 }
 
-// Les trois cartes : titre, texte, illustration
-function welcomeCards(isTouch) {
+// Les cartes : titre, texte, illustration ; la dernière (installer) seulement si l'app n'est pas déjà installée
+function welcomeCards(isTouch, isInstalled) {
   const press = isTouch ? 'Appui long' : 'Clic droit (ou appui long)';
-  return [
+  const cards = [
     {
       title: 'Bienvenue',
       text: (
@@ -106,6 +109,27 @@ function welcomeCards(isTouch) {
       illustration: <VerseIllustration />,
     },
   ];
+  if (isInstalled) return cards;
+  return [...cards, {
+    title: 'Une application',
+    text: (
+      <>
+        <p>Mets-la sur ton écran d'accueil : elle s'ouvre comme une app, en plein écran, et se relit même sans réseau.</p>
+        <InstallHelp />
+      </>
+    ),
+    illustration: <AppIllustration />,
+  }];
+}
+
+// L'icône de l'application sur un écran d'accueil
+function AppIllustration() {
+  return (
+    <div className="welcome-app">
+      <img src="/icons/icon-192.png" alt="" width="64" height="64" />
+      <span>Salut</span>
+    </div>
+  );
 }
 
 // Les deux lectures, comme les pastilles de la navigation
