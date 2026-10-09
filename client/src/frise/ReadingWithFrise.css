@@ -30,7 +30,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 1.25rem;
+  bottom: calc(1.25rem + var(--safe-bottom));
   z-index: var(--z-reading-bottom);
   height: 0;
   display: flex;
@@ -113,15 +113,15 @@
 
   /* Le titre et « Revenir à … » : sur la même ligne que le bouton « Frise », centrés dans la place à sa droite */
   .reading-bottom {
-    left: calc(.9rem + var(--frise-tab-width) + .6rem);
-    right: .9rem;
+    left: calc(.9rem + var(--frise-tab-width) + .6rem + var(--safe-left));
+    right: calc(.9rem + var(--safe-right));
   }
 
   /* Le bouton « Frise » : une petite pastille qui flotte en bas à gauche, comme les autres boutons */
   .frise-drawer-tab {
     position: fixed;
-    left: .9rem;
-    bottom: 1.25rem;
+    left: calc(.9rem + var(--safe-left));
+    bottom: calc(1.25rem + var(--safe-bottom));
     z-index: var(--z-frise-button);
     display: flex;
     align-items: center;

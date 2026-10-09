@@ -36,8 +36,8 @@
 /* Le bouton « personne » : le compte et les réglages, au bord droit */
 .nav-account {
   position: absolute;
-  top: .6rem;
-  right: 1rem;
+  top: calc(.6rem + var(--safe-top));
+  right: calc(1rem + var(--safe-right));
   display: grid;
   place-items: center;
   width: 2.75rem;
@@ -69,9 +69,9 @@
    sur un très petit écran, un libellé trop long finit par « … » plutôt que de déborder */
 @media (max-width: 599px) {
   .nav-pages {
-    left: .75rem;
+    left: calc(.75rem + var(--safe-left));
     /* la place moins : le bord gauche (.75rem), le bouton « personne » (2.75rem, à 1rem du bord) et .5rem d'écart */
-    max-width: calc(100% - .75rem - 1rem - 2.75rem - .5rem);
+    max-width: calc(100% - .75rem - 1rem - 2.75rem - .5rem - var(--safe-left) - var(--safe-right));
     transform: none;
   }
 

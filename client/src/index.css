@@ -40,10 +40,16 @@
   --margin-notes: 10rem;
   /* Largeur du panneau fixé à droite de la lecture (parallèles, écran large) */
   --docked-panel-width: 22rem;
+  /* Les zones de sécurité de l'iPhone (encoche, barre du bas, côtés en paysage), 0 ailleurs : ce qui flotte près
+     d'un bord s'en écarte d'autant (surtout pour l'app installée, en plein écran) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
   /* La navigation qui flotte : à quelle distance du haut elle se pose, et la place gardée pour elle (le contenu
      des pages commence dessous ; la frise, elle, monte jusqu'en haut) */
-  --nav-top: .75rem;
-  --nav-height: 4.25rem;
+  --nav-top: calc(.75rem + var(--safe-top));
+  --nav-height: calc(4.25rem + var(--safe-top));
   /* Les couches de ce qui flotte au-dessus de la lecture (z-index), de bas en haut */
   --z-reading-bottom: 20; /* le titre de la lecture et « Revenir à … » */
   --z-nav: 30; /* la navigation, le panneau des parallèles fixé à droite */

@@ -16,7 +16,8 @@
 }
 
 .verse-menu-content {
-  padding: 1.25rem 1rem 1.5rem;
+  /* en bas : la barre de l'iPhone ne cache pas le dernier bouton */
+  padding: 1.25rem 1rem calc(1.5rem + var(--safe-bottom));
 }
 
 .verse-menu-title {
