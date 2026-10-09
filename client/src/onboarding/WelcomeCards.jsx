@@ -127,7 +127,7 @@ function AppIllustration() {
   return (
     <div className="welcome-app">
       <img src="/icons/icon-192.png" alt="" width="64" height="64" />
-      <span>Salut</span>
+      <span>Lerouleau</span>
     </div>
   );
 }
