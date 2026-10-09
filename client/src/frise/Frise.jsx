@@ -11,7 +11,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { Icon } from './Icon.jsx';
 import { Boat } from './Boat.jsx';
 import { BookmarkRibbon } from './BookmarkRibbon.jsx';
-import { layoutCascade, boatPlace, ribbonPlace } from './cascadeLayout.js';
+import { layoutCascade, boatPlace, ribbonPlace, enteringKeys } from './cascadeLayout.js';
 import { pathAfterClick, pathOfTab, pressedTab } from './cascadeNavigation.js';
 import { readingPath, currentStair } from './readingSync.js';
 import { startsWith } from './nodePath.js';
@@ -55,6 +55,8 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
     () => (size.width > 0 ? layoutCascade(tree, view.path, size) : []),
     [tree, view.path, size],
   );
+  // Les blocs nouveaux à ce niveau attendent que les autres aient glissé, puis apparaissent en fondu
+  const entering = useEnteringKeys(blocks);
   const stair = blocks.length > 0 ? currentStair(tree, view.path, readingAt) : null;
   const ribbon = ribbonPlace(blocks, readingPath(tree, bookmark));
 
@@ -78,7 +80,8 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
       )}
       <div className={`frise-stage ${view.slide ? 'slide-b' : 'slide-a'}`} ref={stageRef}>
         {blocks.map((block) => (
-          <CascadeBlock key={block.key} block={block} isRead={startsWith(reading, block.nodePath)} onOpen={openBlock} />
+          <CascadeBlock key={block.key} block={block} isRead={startsWith(reading, block.nodePath)}
+            isEntering={entering.has(block.key)} onOpen={openBlock} />
         ))}
         {stair && <Boat {...boatPlace(blocks, stair)} />}
         {ribbon && <BookmarkRibbon {...ribbon} onResume={resumeReading} />}
@@ -94,7 +97,8 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
 const READ_CLASS = { stair: 'current', step: 'reading-here', strip: null };
 
 // memo : un bloc ne se redessine que si sa place ou son état de lecture change
-const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
+// isEntering : le bloc arrive avec ce changement de niveau (il apparaît en fondu, une fois les autres en place)
+const CascadeBlock = memo(function CascadeBlock({ block, isRead, isEntering, onOpen }) {
   const style = {
     left: block.left, top: block.top, width: block.width, height: block.height, zIndex: block.layer,
     borderRadius: `0 ${block.radius}px 0 0`,
@@ -102,7 +106,7 @@ const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
   };
   const className = [
     'frise-block', `depth-${Math.min(block.depth, 4)}`, block.role,
-    block.small && 'small', block.foam && 'foamy', isRead && READ_CLASS[block.role],
+    block.small && 'small', block.foam && 'foamy', isRead && READ_CLASS[block.role], isEntering && 'entering',
   ].filter(Boolean).join(' ');
 
   if (block.role === 'step') return <div className={className} style={style} aria-hidden="true" />;
@@ -119,6 +123,17 @@ const CascadeBlock = memo(function CascadeBlock({ block, isRead, onOpen }) {
     </button>
   );
 });
+
+// Les clés des blocs arrivés au dernier changement de disposition (enteringKeys), gardées jusqu'au suivant : le
+// défilement (qui redessine la frise sans changer ses blocs) ne les efface pas en plein fondu. Calcul pendant
+// l'affichage, comme la vue (viewAfterReading) : pas d'effet ni d'affichage intermédiaire
+function useEnteringKeys(blocks) {
+  const [last, setLast] = useState({ blocks, entering: new Set() });
+  if (last.blocks === blocks) return last.entering;
+  const entering = enteringKeys(last.blocks, blocks);
+  setLast({ blocks, entering });
+  return entering;
+}
 
 // memo : la frise ne se redessine pas quand la page change à côté (surlignage, menu d'un verset...)
 export default memo(Frise);

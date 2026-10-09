@@ -111,6 +111,18 @@ button.frise-block:focus-visible {
   outline-offset: -3px;
 }
 
+/* Un bloc qui arrive avec un changement de niveau (il n'était pas au niveau d'avant) : il attend que les blocs
+   qui glissent soient presque arrivés, puis apparaît en fondu. Sinon il surgirait à sa place finale au milieu
+   du glissement, et la frise semblerait en désordre un instant */
+.frise-block.entering {
+  animation: frise-block-in .3s ease .4s both;
+}
+
+@keyframes frise-block-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Le titre apparaît une fois le bloc arrivé à sa place */
 .frise-label {
   animation: frise-fade-in-a .3s ease .25s both;
@@ -267,6 +279,7 @@ button.frise-block:focus-visible {
   }
 
   .frise-label,
+  .frise-block.entering,
   .frise-boat svg,
   .frise-stage .frise-boat,
   .frise-stage .frise-block.foamy::before {

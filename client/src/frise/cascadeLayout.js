@@ -132,3 +132,12 @@ export function ribbonPlace(blocks, bookmarkNodePath) {
   if (!block) return null;
   return { left: block.left + block.width - RIBBON_FROM_RIGHT, top: block.top, title: block.node.title };
 }
+
+// Les blocs qui arrivent avec un changement de niveau : ceux de `after` qui n'étaient pas dans `before` (même
+// clé = même nœud, qui glisse vers sa nouvelle place). Au tout premier affichage (before vide) : aucun, la frise
+// apparaît d'un coup. Renvoie un Set de clés.
+export function enteringKeys(before, after) {
+  if (before.length === 0) return new Set();
+  const known = new Set(before.map((block) => block.key));
+  return new Set(after.filter((block) => !known.has(block.key)).map((block) => block.key));
+}

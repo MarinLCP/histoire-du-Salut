@@ -2,7 +2,7 @@
 // path : le chemin des nœuds dans lesquels on est entré ([] = vue d'ensemble, [1, 0] = 1er enfant du 2e nœud).
 
 import { describe, test, expect } from 'vitest';
-import { layoutCascade, boatPlace, ribbonPlace, MAX_STEPS } from '../../src/frise/cascadeLayout.js';
+import { layoutCascade, boatPlace, ribbonPlace, MAX_STEPS, enteringKeys } from '../../src/frise/cascadeLayout.js';
 
 // Un nœud de l'API (forme commune à tous les niveaux) avec `childCount` enfants
 const node = (title, childCount = 0) => ({
@@ -160,5 +160,17 @@ describe('ribbonPlace : le ruban du marque-page, sur le bloc de l\'escalier qui 
 
   test('pas de marque-page : pas de ruban', () => {
     expect(ribbonPlace(layoutCascade(deep, [], box), [])).toBeNull();
+  });
+});
+
+describe('enteringKeys : les blocs qui arrivent avec un changement de niveau', () => {
+  const blocks = (...keys) => keys.map((key) => ({ key }));
+
+  test('ceux qui n\'étaient pas là avant ; ceux qui restent glissent (pas dans la liste)', () => {
+    expect([...enteringKeys(blocks('0', '1', '1/0'), blocks('1', '1/0', '1/0/0', '2'))]).toEqual(['1/0/0', '2']);
+  });
+
+  test('au tout premier affichage : aucun, la frise apparaît d\'un coup', () => {
+    expect(enteringKeys([], blocks('0', '1')).size).toBe(0);
   });
 });
