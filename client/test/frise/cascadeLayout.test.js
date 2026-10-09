@@ -137,11 +137,6 @@ describe('boatPlace : le bateau glisse d\'un bloc de l\'escalier au suivant, au 
     expect(place.left).toBe(anchorOf(stairs[1]).left);
     expect(place.top).toBeGreaterThanOrEqual(-6);
   });
-
-  test('les blocs de l\'escalier portent leur écume ; le premier n\'en a pas', () => {
-    expect(stairs[0].foam).toBeNull();
-    expect(stairs[1].foam).not.toBeNull();
-  });
 });
 
 describe('ribbonPlace : le ruban du marque-page, sur le bloc de l\'escalier qui contient la position retenue', () => {

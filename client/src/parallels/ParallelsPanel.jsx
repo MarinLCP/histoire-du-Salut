@@ -4,9 +4,9 @@
 // - écran large (isDocked) : fixé à droite de la lecture, il reste ouvert (on lit à côté) ;
 // - sinon : par-dessus la lecture (SidePanel), refermé par le clic.
 
-import { Link } from 'react-router';
 import SidePanel from '../components/SidePanel.jsx';
 import DockedPanel from '../components/DockedPanel.jsx';
+import ReturnLink from '../components/ReturnLink.jsx';
 import ListStatus from '../components/ListStatus.jsx';
 import { useParallels } from './useParallels.js';
 import { rangeReference } from '../bible/reference.js';
@@ -45,10 +45,10 @@ function ParallelItem({ parallel, returnTo, onOpen }) {
 
   return (
     <li>
-      <Link className="parallel-link" to={verseLink(parallel.start)} state={{ returnTo }} onClick={onOpen}>
+      <ReturnLink className="parallel-link" to={verseLink(parallel.start)} returnTo={returnTo} onClick={onOpen}>
         <span className="parallel-reference">{rangeReference(parallel.start, parallel.end)}</span>
         <span className="parallel-text">{parallel.isTruncated ? `${preview} …` : preview}</span>
-      </Link>
+      </ReturnLink>
     </li>
   );
 }

@@ -1,8 +1,9 @@
-/* Un panneau qui glisse depuis le bord droit, par-dessus la lecture (fond grisé derrière) */
+/* Un panneau qui glisse depuis le bord droit, par-dessus la lecture (fond grisé derrière). Sur téléphone, il
+   laisse toujours voir un quart de l'écran : un toucher dessus (le fond grisé) le referme */
 
 .side-panel {
   margin: 0 0 0 auto;
-  width: min(22rem, 100vw);
+  width: min(22rem, 75vw);
   max-width: 100vw;
   height: 100dvh;
   max-height: 100dvh;

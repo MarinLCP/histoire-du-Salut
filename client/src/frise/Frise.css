@@ -28,18 +28,21 @@
   white-space: nowrap;
 }
 
-/* Le panneau de la frise sur téléphone (2/3 de l'écran) : les mêmes onglets, en plus petit ; un libellé trop
-   long passe sur deux lignes plutôt que de déborder du panneau */
+/* Le panneau de la frise sur téléphone (2/3 de l'écran) : les mêmes onglets, en plus petit, qui se partagent la
+   largeur du panneau (le plus long en prend plus) sans jamais en sortir. Un libellé trop long passe sur deux
+   lignes, un mot trop long se coupe avec un trait d'union (en français : lang="fr") */
 @media (max-width: 1099px) {
   .frise-tabs {
     margin-inline: .5rem;
   }
 
   .frise-tabs button {
-    padding: .5rem .3rem;
-    font-size: .74rem;
+    flex: 1 1 auto;
+    padding: .5rem .25rem;
+    font-size: .72rem;
     line-height: 1.15;
     white-space: normal;
+    hyphens: auto;
   }
 }
 
@@ -78,6 +81,15 @@
   padding-block: .4rem;
 }
 
+/* Sur téléphone (le panneau de la frise), les rangées sont basses : un titre sur trois lignes y tient encore */
+@media (max-width: 1099px) {
+  .frise-block {
+    padding-block: .45rem;
+    font-size: .72rem;
+    line-height: 1.1;
+  }
+}
+
 .frise-block.depth-1 { --block-color: var(--level-1); background-color: var(--block-color); color: var(--ink-on-light); }
 .frise-block.depth-2 { --block-color: var(--level-2); background-color: var(--block-color); color: var(--ink-on-light); }
 .frise-block.depth-3 { --block-color: var(--level-3); background-color: var(--block-color); color: var(--ink-on-dark); }
@@ -91,6 +103,9 @@
   /* Le titre reste dans son bloc, même pendant qu'il glisse et s'élargit (sinon il déborde un instant) */
   overflow: hidden;
   text-wrap: balance;
+  /* Un mot plus large que le bloc (« Pentateuque » sur téléphone) se coupe avec un trait d'union, sans être rogné */
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .frise-icon {
@@ -179,25 +194,6 @@ button.frise-block:focus-visible {
   filter: brightness(1.2);
 }
 
-/* L'écume au pied de chaque chute (--foam-x, --foam-w : où tombe l'eau, calculé par staircase.js) : un amas de
-   bulles de tailles variées, des gouttes projetées au-dessus, qui bouillonne doucement (frise-foam). Sous une
-   chute étroite, elle est plus petite, pas déformée */
-.frise-block.foamy::before {
-  content: "";
-  position: absolute;
-  /* sa hauteur suit la largeur de la chute (le dessin garde à peu près ses proportions, 3 pour 1) */
-  --foam-height: clamp(.7rem, calc(var(--foam-w) * .42), 1.3rem);
-  /* posée sur l'eau, au pied de la chute (à moitié dans l'eau), au-dessus des vagues */
-  z-index: 1;
-  top: calc(var(--foam-height) * -.4);
-  left: calc(var(--foam-x) - var(--foam-w) * .1);
-  width: calc(var(--foam-w) * 1.15);
-  height: var(--foam-height);
-  pointer-events: none;
-  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 20' preserveAspectRatio='none'><g fill='%23fff'><ellipse cx='30' cy='17.5' rx='29' ry='3.5' opacity='.5'/><circle cx='7' cy='15.5' r='3.5' opacity='.75'/><circle cx='14' cy='13.5' r='5' opacity='.9'/><circle cx='23' cy='12' r='6.5'/><circle cx='33' cy='12.5' r='6'/><circle cx='42' cy='13.5' r='5' opacity='.92'/><circle cx='50' cy='15' r='4' opacity='.8'/><circle cx='56' cy='16.5' r='2.5' opacity='.6'/><circle cx='19' cy='6.5' r='1.8' opacity='.75'/><circle cx='37' cy='5.5' r='1.5' opacity='.7'/><circle cx='28' cy='3.2' r='1.1' opacity='.6'/><circle cx='46' cy='7.5' r='1.1' opacity='.6'/><circle cx='11' cy='9' r='.9' opacity='.5'/><circle cx='52' cy='10.5' r='.8' opacity='.5'/></g><g fill='%23d6e6f7' opacity='.7'><circle cx='23' cy='14.5' r='3'/><circle cx='34' cy='15' r='2.6'/><circle cx='14' cy='15.5' r='2.1'/><circle cx='43' cy='15.5' r='2'/></g></svg>") center bottom / 100% 100% no-repeat;
-  transform-origin: 50% 100%;
-}
-
 /* L'eau qui coule : le dessus de chaque marche ondule (des vagues dans la couleur du bloc, avec une crête claire),
    et les vagues avancent lentement vers la chute. Contre le fond de la page, on voit le vrai bord ondulé de l'eau ;
    contre la marche du dessus (même couleur), la crête claire dessine la vague. Elles s'arrêtent avant le coin
@@ -221,12 +217,6 @@ button.frise-block:focus-visible {
 
 @keyframes frise-wave {
   to { background-position: 48px 0, 0 0; mask-position: 48px 0; }
-}
-
-/* Le bouillonnement de l'écume : elle se gonfle et retombe, sans fin */
-@keyframes frise-foam {
-  from { transform: scaleY(.86) scaleX(.97); opacity: .9; }
-  to { transform: scaleY(1.06) scaleX(1.02); opacity: 1; }
 }
 
 /* Le bateau : il descend en continu au fil de la lecture, en se balançant doucement */
@@ -282,8 +272,8 @@ button.frise-block:focus-visible {
   outline-offset: 2px;
 }
 
-/* Pendant un changement de niveau, l'écume et le bateau se cachent le temps que les blocs glissent (0,6 s),
-   puis reviennent en fondu. Deux animations identiques, alternées à chaque changement : changer de nom
+/* Pendant un changement de niveau, le bateau se cache le temps que les blocs glissent (0,6 s),
+   puis revient en fondu. Deux animations identiques, alternées à chaque changement : changer de nom
    d'animation la fait recommencer. */
 .frise-stage.slide-a .frise-boat {
   animation: frise-fade-in-a .35s ease .6s both;
@@ -291,14 +281,6 @@ button.frise-block:focus-visible {
 
 .frise-stage.slide-b .frise-boat {
   animation: frise-fade-in-b .35s ease .6s both;
-}
-
-.frise-stage.slide-a .frise-block.foamy::before {
-  animation: frise-fade-in-a .35s ease .6s both, frise-foam 1.9s ease-in-out .95s infinite alternate;
-}
-
-.frise-stage.slide-b .frise-block.foamy::before {
-  animation: frise-fade-in-b .35s ease .6s both, frise-foam 1.9s ease-in-out .95s infinite alternate;
 }
 
 /* Deux apparitions en fondu identiques : alterner leur nom relance l'animation (slide-a / slide-b) */
@@ -323,9 +305,7 @@ button.frise-block:focus-visible {
   .frise-block.stair::after,
   .frise-boat svg,
   .frise-stage.slide-a .frise-boat,
-  .frise-stage.slide-b .frise-boat,
-  .frise-stage.slide-a .frise-block.foamy::before,
-  .frise-stage.slide-b .frise-block.foamy::before {
+  .frise-stage.slide-b .frise-boat {
     animation: none;
   }
 }

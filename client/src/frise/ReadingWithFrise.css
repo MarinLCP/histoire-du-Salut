@@ -89,9 +89,10 @@
     position: fixed;
     inset: 0 auto 0 0;
     z-index: var(--z-drawer);
-    /* 2/3 de l'écran : le tiers de droite laisse voir le texte (un toucher dessus referme le panneau) */
+    /* 2/3 de l'écran. Sans fond : on ne voit que la frise, la lecture reste visible autour. Un toucher à côté
+       des blocs (pointer-events: none) arrive donc à la lecture, qui referme le panneau */
     width: calc(100vw * 2 / 3);
-    background: var(--background);
+    pointer-events: none;
     /* Fermé : hors de l'écran, et invisible une fois le glissement fini (pas un pixel ne dépasse) */
     visibility: hidden;
     transform: translateX(-100%);
@@ -101,8 +102,25 @@
   .frise-drawer.open {
     visibility: visible;
     transform: none;
-    box-shadow: 8px 0 24px rgb(0 0 0 / .25);
     transition: transform .25s ease;
+  }
+
+  /* Ce qui se touche dans la frise : les onglets, les blocs, le ruban */
+  .frise-drawer .frise-tabs,
+  .frise-drawer .frise-block,
+  .frise-drawer .frise-bookmark {
+    pointer-events: auto;
+  }
+
+  /* Frise ouverte : la navigation du haut s'efface (elle passerait sous les onglets, à travers le panneau) */
+  .nav-bar {
+    transition: opacity .25s ease, visibility 0s linear;
+  }
+
+  body:has(.frise-drawer.open) .nav-bar {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility 0s linear .25s;
   }
 
   /* Dans le panneau, la frise prend toute la hauteur de l'écran */

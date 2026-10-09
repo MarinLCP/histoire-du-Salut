@@ -105,11 +105,10 @@ const CascadeBlock = memo(function CascadeBlock({ block, isRead, isEntering, onO
     borderRadius: `0 ${block.radius}px 0 0`,
     // l'arrondi du coin, pour que la vague du dessus s'arrête avant lui (Frise.css)
     '--corner': `${block.radius}px`,
-    ...(block.foam && { '--foam-x': `${block.foam.x}px`, '--foam-w': `${block.foam.width}px` }),
   };
   const className = [
     'frise-block', `depth-${Math.min(block.depth, 4)}`, block.role,
-    block.small && 'small', block.foam && 'foamy', isRead && READ_CLASS[block.role], isEntering && 'entering',
+    block.small && 'small', isRead && READ_CLASS[block.role], isEntering && 'entering',
   ].filter(Boolean).join(' ');
 
   if (block.role === 'step') return <div className={className} style={style} aria-hidden="true" />;

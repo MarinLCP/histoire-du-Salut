@@ -1,8 +1,9 @@
 // La mise en page des pages de lecture : la frise à gauche, la lecture à droite.
 // - Écran large : les deux côte à côte.
 // - Écran étroit (moins de 1100 px) : pas la place ; la frise est rangée dans un panneau glissant
-//   (2/3 de l'écran), ouvert par le bouton « Frise » (en bas à gauche). Il reste ouvert pendant qu'on zoome
-//   et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (le tiers visible) ou Échap le referme.
+//   (2/3 de l'écran, sans fond : on ne voit que la frise), ouvert par le bouton « Frise » (en bas à gauche). Il
+//   reste ouvert pendant qu'on zoome et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (à côté des
+//   blocs) ou Échap le referme.
 // En bas de la lecture flottent le titre de ce qu'on lit et, après un clic sur un parallèle, « Revenir à … ».
 
 import { useCallback, useState } from 'react';

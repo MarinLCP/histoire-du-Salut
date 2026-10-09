@@ -1,18 +1,23 @@
 // @vitest-environment jsdom
-// Tests du bouton « Revenir à … » : visible seulement après un clic sur un parallèle (location.state.returnTo),
-// il ramène à la lecture de départ, en demandant d'aller au verset (state.scrollToVerse).
+// Tests du bouton « Revenir à … » : visible seulement après un clic sur un parallèle (location.state.returnStack),
+// il ramène à la lecture de départ, en demandant d'aller au verset (state.scrollToVerse) ; après plusieurs
+// parallèles de suite, il revient pas à pas jusqu'à la première lecture.
 
 import { describe, test, expect, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import ReturnButton from '../../src/components/ReturnButton.jsx';
-import { returnPoint } from '../../src/bible/returnPoint.js';
+import { returnPoint, withReturn } from '../../src/bible/returnPoint.js';
 
 // Montre l'adresse et l'état de navigation actuels, pour vérifier où le bouton mène
 function Where() {
   const location = useLocation();
   return <p data-testid="where">{`${location.pathname}${location.search} ${JSON.stringify(location.state)}`}</p>;
 }
+
+const FALL = { key: 'Ps 78,9', href: '/?passage=chute' };
+const JEREMIAH = { key: 'Jr 14,7', href: '/bible?livre=Jr&chapitre=14&verset=7' };
+const MATTHEW = { key: 'Mt 1,1', href: '/bible?livre=Mt&chapitre=1&verset=1' };
 
 function renderAt(entry) {
   render(
@@ -33,11 +38,23 @@ describe('ReturnButton', () => {
   });
 
   test('après un parallèle : « Revenir à Ps 78,9 » ramène au verset de départ', () => {
-    renderAt({ pathname: '/bible', search: '?livre=Jr&chapitre=14&verset=7', state: { returnTo: { key: 'Ps 78,9', href: '/?passage=chute' } } });
+    renderAt({ pathname: '/bible', search: '?livre=Jr&chapitre=14&verset=7', state: { returnStack: [FALL] } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Revenir à Ps 78,9' }));
 
-    expect(screen.getByTestId('where').textContent).toBe('/?passage=chute {"scrollToVerse":"Ps 78,9"}');
+    expect(screen.getByTestId('where').textContent).toBe('/?passage=chute {"scrollToVerse":"Ps 78,9","returnStack":[]}');
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  test('trois parallèles de suite : on revient pas à pas jusqu\'à la toute première lecture', () => {
+    const stack = [FALL, JEREMIAH, MATTHEW];
+    renderAt({ pathname: '/bible', search: '?livre=Lc&chapitre=1&verset=1', state: { returnStack: stack } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir à Mt 1,1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir à Jr 14,7' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Revenir à Ps 78,9' }));
+
+    expect(screen.getByTestId('where').textContent).toBe('/?passage=chute {"scrollToVerse":"Ps 78,9","returnStack":[]}');
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
@@ -48,5 +65,10 @@ describe('returnPoint', () => {
 
     expect(returnPoint('Ps 78,9', reference)).toEqual({ key: 'Ps 78,9', href: '/bible?livre=Ps&chapitre=78&verset=9' });
     expect(returnPoint('Ps 78,9', reference, '/?passage=chute')).toEqual({ key: 'Ps 78,9', href: '/?passage=chute' });
+  });
+
+  test('withReturn : le verset de départ s\'ajoute en haut de la pile, sans effacer les précédents', () => {
+    expect(withReturn(null, FALL)).toEqual({ returnStack: [FALL] });
+    expect(withReturn({ returnStack: [FALL], scrollToVerse: 'Ps 78,9' }, JEREMIAH)).toEqual({ returnStack: [FALL, JEREMIAH] });
   });
 });

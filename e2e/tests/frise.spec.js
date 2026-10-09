@@ -147,6 +147,12 @@ test('sur téléphone : la frise est rangée dans un panneau, ouvert par l\'ongl
   // Le panneau prend les 2/3 de l'écran : le tiers de droite laisse voir le texte
   const panelBox = await frise.boundingBox();
   expect(panelBox.width).toBeCloseTo(page.viewportSize().width * 2 / 3, -1);
+  // La navigation du haut s'efface ; les onglets tiennent dans le panneau, leur texte dans sa pastille
+  await expect(page.getByRole('button', { name: 'Mon compte' })).toBeHidden();
+  // (mesuré d'un coup, dans la page : le panneau peut encore glisser)
+  const tabsFit = await frise.evaluate((nav) => [...nav.querySelectorAll('.frise-tabs button')].every((tab) =>
+    tab.getBoundingClientRect().right <= nav.getBoundingClientRect().right && tab.scrollWidth <= tab.clientWidth));
+  expect(tabsFit).toBe(true);
 
   // Un clic sur une époque : la lecture y saute, et le panneau reste ouvert (on peut continuer à zoomer)
   await frise.getByRole('button', { name: 'Les patriarches' }).getByText('Les patriarches').click();
@@ -155,5 +161,13 @@ test('sur téléphone : la frise est rangée dans un panneau, ouvert par l\'ongl
 
   // Un toucher dans le texte (le tiers visible à droite) referme le panneau
   await page.mouse.click(page.viewportSize().width - 20, page.viewportSize().height / 2);
+  await expect(frise).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Mon compte' })).toBeVisible();
+
+  // Le panneau n'a pas de fond : un toucher à côté des blocs (en haut à droite de l'escalier) le referme aussi
+  await page.getByRole('button', { name: 'Frise' }).click();
+  await expect(frise).toBeVisible();
+  const tabsBox = await frise.getByRole('group', { name: 'Niveau de la frise' }).boundingBox();
+  await page.mouse.click(page.viewportSize().width * 2 / 3 - 8, tabsBox.y + tabsBox.height + 20);
   await expect(frise).toBeHidden();
 });

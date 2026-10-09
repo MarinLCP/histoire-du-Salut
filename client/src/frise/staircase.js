@@ -2,8 +2,7 @@
 // - `count` blocs, chacun une rangée plus bas que le précédent, et tous descendent jusqu'en bas (rien ne flotte) ;
 // - chaque bloc est plus large que le précédent d'une « marche » ;
 // - à droite de chaque bloc, ses enfants forment un petit escalier qui part du HAUT du bloc
-//   et finit pile au début du bloc suivant ;
-// - au pied de chaque chute (sauf la première), l'écume : là où l'eau du bloc précédent tombe sur celui-ci.
+//   et finit pile au début du bloc suivant.
 
 const STEPS_SHARE_OF_ROW = 0.85; // le petit escalier occupe le haut de la rangée, pas toute sa hauteur
 const ROUNDED_END = 26; // arrondi (px) d'un bloc sans marches : le bout de la surface (le même que ses marches)
@@ -35,8 +34,6 @@ export function staircase({ left, top, width, height, count, minFirstWidth, maxS
       steps,
       rowHeight,
       radius: steps.length === 0 ? ROUNDED_END : 0,
-      // Position relative au bloc : sous la dernière marche du bloc précédent
-      foam: rank === 0 ? null : { x: right - stairWidth - left, width: stairWidth },
     };
   });
 }

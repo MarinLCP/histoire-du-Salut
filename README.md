@@ -315,7 +315,7 @@ histoire-du-Salut/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "Mc 9,11-13" (plage),
     │   │   │                          "La Genèse 1, 1 – 2, 25" (passage)
     │   │   ├── bibleLink.js         ← lien vers un chapitre ou un verset : /bible?livre=Gn&chapitre=3&verset=15
-    │   │   ├── returnPoint.js       ← le verset où revenir après un parallèle (sa clé et l'adresse de sa page)
+    │   │   ├── returnPoint.js       ← le verset où revenir après un parallèle ; la pile des retours
     │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── NavBar.jsx / .css    ← la navigation qui flotte : les deux lectures, le bouton « personne »
@@ -325,7 +325,8 @@ histoire-du-Salut/
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres, marge), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
-    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un parallèle (en bas de la lecture)
+    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un parallèle, plusieurs fois de suite
+    │   │   ├── ReturnLink.jsx       ← un lien vers un parallèle qui ajoute son verset de départ à la pile des retours
     │   │   ├── BookmarkTag.jsx / .css ← « Marque-page » sous le verset où il est posé (aussi sur une carte d'accueil)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)
     │   │   ├── DockedPanel.jsx / .css ← un panneau fixé à droite de la lecture (parallèles, écran large)
@@ -356,7 +357,7 @@ histoire-du-Salut/
     │   │   ├── readingSync.js       ← lecture ↔ frise : nœud lu, place du bateau, la frise suit la lecture
     │   │   ├── readingPosition.js   ← où en est la lecture dans la page ; sauter à un passage (avec fondu) ;
     │   │   │                          le titre de ce qu'on lit (readingTitleAt) ; la position d'un verset
-    │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) en bas pendant la lecture
+    │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) en bas ; un toucher le déplie
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
     │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
@@ -368,7 +369,7 @@ histoire-du-Salut/
     │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
     │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (sans fond, toute la hauteur) ; < 1100 px : panneau (2/3 de l'écran),
     │   │   │                          ouvert par le bouton flottant « Frise » (en bas à gauche) ; en bas : titre + « Revenir à … »
-    │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, écume
+    │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, vagues
     │   │   ├── useOverview.js       ← charge l'arbre d'un mode (vide si l'API échoue)
     │   │   ├── useElementSize.js    ← la taille d'un élément (ResizeObserver)
     │   │   ├── Icon.jsx             ← un pictogramme au trait (SVG, couleur du texte)
@@ -424,7 +425,7 @@ histoire-du-Salut/
         ├── pages/ProgressPage.test.jsx ← où en est un lecteur ; pas commencé ; lien inconnu
         ├── pages/HistoryPage.test.jsx ← point de départ (lien partagé) et retour au début, sans rechargement
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
-        ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant
+        ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant, titre du bas
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
         ├── account/                 ← section « Mon compte », useAccount, « Partager où j'en suis »

@@ -1,6 +1,6 @@
 // L'état de la frise (fonctions pures) : { path, slide, readingKey }.
 //   - path : les nœuds dans lesquels on est entré ([] = vue d'ensemble) ;
-//   - slide : basculé à chaque changement de niveau, pour relancer l'animation qui cache l'écume et le bateau
+//   - slide : basculé à chaque changement de niveau, pour relancer l'animation qui cache le bateau
 //     pendant le glissement (deux classes CSS alternées, voir Frise.css) ;
 //   - readingKey : le nœud lu la dernière fois, pour ne suivre la lecture que quand elle change de nœud.
 

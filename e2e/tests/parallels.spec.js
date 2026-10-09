@@ -80,6 +80,22 @@ test('« Revenir à … » : après un parallèle de la marge, retour au verset 
   await expect(page.getByRole('button', { name: /Revenir à/ })).toHaveCount(0);
 });
 
+test('« Revenir à … » plusieurs fois de suite : deux parallèles, puis deux retours jusqu\'au tout début', async ({ page }) => {
+  await page.goto('/bible');
+  await page.getByRole('list', { name: 'Parallèles de Gn 1,1', exact: true }).getByRole('link', { name: 'Jn 1,1-3' }).click();
+  await expect(page).toHaveURL(/livre=Jn/);
+  await page.getByRole('list', { name: 'Parallèles de Jn 1,1', exact: true }).getByRole('link').first().click();
+  await expect(page).not.toHaveURL(/livre=Jn&chapitre=1&verset=1$/);
+
+  await page.getByRole('button', { name: 'Revenir à Jn 1,1' }).click();
+  await expect(page).toHaveURL(/\/bible\?livre=Jn&chapitre=1&verset=1$/);
+  await page.getByRole('button', { name: 'Revenir à Gn 1,1' }).click();
+
+  await expect(page).toHaveURL(/\/bible\?livre=Gn&chapitre=1&verset=1$/);
+  await expect(firstVerse(page)).toBeInViewport();
+  await expect(page.getByRole('button', { name: /Revenir à/ })).toHaveCount(0);
+});
+
 test('les épisodes n\'ont pas de marge : « Voir les parallèles » (menu du verset), puis « Revenir à … » ramène à l\'épisode', async ({ page }) => {
   await page.goto('/?passage=chute');
   const verse = page.locator('[data-verse="Gn 3,15"]');
