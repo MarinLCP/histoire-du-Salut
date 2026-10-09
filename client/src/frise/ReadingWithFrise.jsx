@@ -6,6 +6,7 @@
 //   blocs) ou Échap le referme.
 // En bas de la lecture flottent le titre de ce qu'on lit et, après un clic sur un parallèle, « Revenir à … ».
 // La lecture se souvient d'où on en est, et y revient à l'ouverture de l'app (useReadingMemory).
+// Un saut dans la frise abandonne « Revenir à … » : le lecteur a choisi d'aller ailleurs.
 
 import { useCallback, useState } from 'react';
 import Frise from './Frise.jsx';
@@ -16,6 +17,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape.js';
 import { useReadingPosition } from './useReadingPosition.js';
 import { useReadingMemory } from './useReadingMemory.js';
+import { useReturnStack } from '../bible/useReturnStack.js';
 import './ReadingWithFrise.css';
 
 // La même limite que dans ReadingWithFrise.css
@@ -29,6 +31,11 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
   // Où en est la lecture : mesuré UNE fois ici, pour la frise et pour le titre du bas
   const readingAt = useReadingPosition();
   useReadingMemory(mode, readingAt, onJump);
+  const { dismiss: dismissReturn } = useReturnStack();
+  const jumpFromFrise = useCallback((position) => {
+    dismissReturn();
+    onJump(position);
+  }, [dismissReturn, onJump]);
 
   useCloseOnEscape(close, isOpen);
 
@@ -36,7 +43,7 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
     <div className="with-frise">
       {/* inert : panneau fermé sur écran étroit = ni clavier ni lecteur d'écran n'y entrent */}
       <div id="frise-drawer" className={`frise-drawer${isOpen ? ' open' : ''}`} inert={isNarrow && !isOpen}>
-        <Frise mode={mode} tabNames={tabNames} onJump={onJump} readingAt={readingAt} />
+        <Frise mode={mode} tabNames={tabNames} onJump={jumpFromFrise} readingAt={readingAt} />
       </div>
       <button type="button" className="frise-drawer-tab" aria-controls="frise-drawer" aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}>

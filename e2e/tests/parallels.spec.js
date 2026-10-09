@@ -80,6 +80,24 @@ test('« Revenir à … » : après un parallèle de la marge, retour au verset 
   await expect(page.getByRole('button', { name: /Revenir à/ })).toHaveCount(0);
 });
 
+test('« Revenir à … » : la croix permet de rester ici ; un saut dans la frise l\'abandonne aussi', async ({ page, isMobile }) => {
+  const margin = page.getByRole('list', { name: 'Parallèles de Gn 1,1', exact: true });
+  const back = page.getByRole('button', { name: /Revenir à/ });
+  await page.goto('/bible');
+  await margin.getByRole('link', { name: 'Jn 1,1-3' }).click();
+
+  await page.getByRole('button', { name: 'Rester ici' }).click();
+  await expect(back).toHaveCount(0);
+  await expect(page).toHaveURL(/livre=Jn/);
+
+  await page.goto('/bible');
+  await margin.getByRole('link', { name: 'Jn 1,1-3' }).click();
+  await expect(back).toBeVisible();
+  if (isMobile) await page.getByRole('button', { name: 'Frise' }).click();
+  await page.getByRole('navigation', { name: 'Frise' }).getByRole('button', { name: /Les Évangiles/ }).getByText('Les Évangiles').click();
+  await expect(back).toHaveCount(0);
+});
+
 test('« Revenir à … » plusieurs fois de suite : deux parallèles, puis deux retours jusqu\'au tout début', async ({ page }) => {
   await page.goto('/bible');
   await page.getByRole('list', { name: 'Parallèles de Gn 1,1', exact: true }).getByRole('link', { name: 'Jn 1,1-3' }).click();

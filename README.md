@@ -316,7 +316,8 @@ histoire-du-Salut/
     │   │   ├── reference.js         ← références : "Gn 1,3" (verset), "Mc 9,11-13" (plage),
     │   │   │                          "La Genèse 1, 1 – 2, 25" (passage)
     │   │   ├── bibleLink.js         ← lien vers un chapitre ou un verset : /bible?livre=Gn&chapitre=3&verset=15
-    │   │   ├── returnPoint.js       ← le verset où revenir après un parallèle ; la pile des retours
+    │   │   ├── returnPoint.js       ← le verset où revenir après un parallèle (sa clé et l'adresse de sa page)
+    │   │   ├── useReturnStack.js    ← la pile des retours (« Revenir à … ») ; l'abandonner (croix, saut dans la frise)
     │   │   └── useScrollToVerse.js  ← arrivé par un lien vers un verset : défiler jusqu'à lui, le faire briller
     │   ├── components/              ← ce qui s'affiche à l'écran
     │   │   ├── NavBar.jsx / .css    ← la navigation qui flotte : les deux lectures, le bouton « personne »
@@ -326,7 +327,7 @@ histoire-du-Salut/
     │   │   ├── Chapter.jsx / .css   ← un chapitre de la Bible entière
     │   │   ├── VerseList.jsx / .css ← les versets (appui long, surlignage, notes, intertitres, marge), passages et chapitres
     │   │   ├── StatusButton.jsx     ← bouton qui confirme son action (Copier, Partager)
-    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un parallèle, plusieurs fois de suite
+    │   │   ├── ReturnButton.jsx / .css ← « Revenir à Gn 1,1 » après un parallèle, plusieurs fois de suite ; × pour rester
     │   │   ├── ReturnLink.jsx       ← un lien vers un parallèle qui ajoute son verset de départ à la pile des retours
     │   │   ├── BookmarkTag.jsx / .css ← « Marque-page » sous le verset où il est posé (aussi sur une carte d'accueil)
     │   │   ├── SidePanel.jsx / .css ← un panneau qui glisse depuis la droite (Paramètres, parallèles)

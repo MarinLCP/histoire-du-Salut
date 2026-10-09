@@ -1,26 +1,48 @@
 /* « Revenir à … » : une pastille sombre, en bas de la lecture, juste au-dessus du titre de ce qu'on lit
-   (placée par ReadingWithFrise.css) */
+   (placée par ReadingWithFrise.css). Deux boutons dedans : revenir (à gauche), la croix pour rester (à droite),
+   séparés par un trait fin */
 
-.return-button {
+.return-pill {
   display: flex;
-  align-items: center;
-  gap: .4rem;
+  align-items: stretch;
   max-width: 100%;
   height: var(--bottom-pill-height);
-  padding: 0 .95rem 0 .7rem;
-  border: 0;
   border-radius: 999px;
   background: var(--text);
   color: var(--background);
   box-shadow: var(--float-shadow);
-  font: 600 .74rem/1 var(--ui-font);
-  white-space: nowrap;
-  cursor: pointer;
-  /* Son conteneur laisse passer les clics (il ne prend aucune place) : pas le bouton */
+  /* Son conteneur laisse passer les clics (il ne prend aucune place) : pas la pastille */
   pointer-events: auto;
 }
 
-.return-button svg {
+.return-button,
+.return-dismiss {
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.return-button {
+  gap: .4rem;
+  min-width: 0;
+  padding: 0 .7rem;
+  border-radius: 999px 0 0 999px;
+  font: 600 .74rem/1 var(--ui-font);
+  white-space: nowrap;
+}
+
+.return-dismiss {
+  justify-content: center;
+  width: 2.4rem;
+  padding: 0 .2rem 0 0;
+  border-left: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 0 999px 999px 0;
+}
+
+.return-pill svg {
   flex-shrink: 0;
   width: 1rem;
   height: 1rem;
@@ -31,7 +53,13 @@
   stroke-linejoin: round;
 }
 
-.return-button:focus-visible {
+.return-dismiss svg {
+  width: .8rem;
+  height: .8rem;
+}
+
+.return-button:focus-visible,
+.return-dismiss:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

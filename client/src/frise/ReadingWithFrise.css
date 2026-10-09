@@ -58,7 +58,7 @@
     height: auto;
   }
 
-  .reading-bottom > .return-button {
+  .reading-bottom > .return-pill {
     grid-area: 1 / 3;
     justify-self: start;
   }
