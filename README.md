@@ -287,11 +287,13 @@ histoire-du-Salut/
     ├── public/
     │   ├── favicon.svg              ← l'icône de l'onglet (cascade, vague, croix) et la marque du site
     │   ├── manifest.webmanifest     ← l'application (PWA) : nom, icônes, plein écran ; le site devient installable
+    │   ├── sw.js                    ← le service worker : l'app se rouvre et se relit sans réseau (rien de privé gardé)
     │   ├── icons/                   ← icônes de l'app (192, 512, « maskable » Android, iPhone 180), tirées de favicon.svg
     │   └── fonts/                   ← Literata (texte biblique), hébergée par le site (pas d'appel à Google), et sa licence OFL
     ├── vite.config.js               ← proxy /api → localhost:3000 en dev ; préparation des tests (test/setup.js)
     ├── src/
     │   ├── main.jsx                 ← point d'entrée : monte React (et le routeur) dans la page
+    │   ├── registerServiceWorker.js ← enregistre le service worker (site construit seulement)
     │   ├── App.jsx                  ← assemble tout : barre de navigation, pages (routes), menu d'un verset, panneaux
     │   ├── pages/                   ← une page par adresse (react-router), toujours dans la même SPA
     │   │   ├── HistoryPage.jsx      ← /       : l'histoire du salut (timeline), la frise à gauche
@@ -408,6 +410,7 @@ histoire-du-Salut/
         ├── App.test.jsx             ← routage, frise sur /, panneau Paramètres, panneau des parallèles
         ├── setup.js                 ← préparation commune à tous les tests (vide le cache et le stockage ;
         │                              présentation du site marquée « déjà vue »)
+        ├── serviceWorker.test.js    ← le service worker dans un bac à sable : rien de privé, lecture sans réseau
         ├── helpers/                 ← outils des tests (faux ResizeObserver)
         ├── api/                     ← passages.api (données, messages d'erreur), overview.api (cache)
         ├── bible/                   ← reference, bibleLink

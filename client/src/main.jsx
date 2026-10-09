@@ -5,6 +5,7 @@ import './index.css';
 import App from './App.jsx';
 import { applySettings } from './settings/settings.js';
 import { loadSettings } from './settings/settings.storage.js';
+import { registerServiceWorker } from './registerServiceWorker.js';
 
 // Les réglages (thème, taille du texte) avant le premier affichage : pas d'éclair du mauvais thème
 applySettings(loadSettings(), document.documentElement);
@@ -18,3 +19,6 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+// L'application installée se rouvre et se relit sans réseau (site construit seulement)
+registerServiceWorker();
