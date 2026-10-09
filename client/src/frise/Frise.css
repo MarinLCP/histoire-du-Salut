@@ -39,18 +39,19 @@
   .frise-tabs button {
     flex: 1 1 auto;
     padding: .5rem .25rem;
-    font-size: .72rem;
+    /* La taille suit la largeur de l'écran (le panneau en fait les 2/3) : les trois mots tiennent même sans
+       coupure de mot (tous les navigateurs ne savent pas couper le français) */
+    font-size: min(.72rem, 2.9vw);
     line-height: 1.15;
     white-space: normal;
     hyphens: auto;
   }
 }
 
-/* Très petit écran (ex. 320 px) : un cran plus petit */
+/* Très petit écran (ex. 320 px) : moins de marge dans les onglets */
 @media (max-width: 359px) {
   .frise-tabs button {
     padding-inline: .2rem;
-    font-size: .66rem;
   }
 }
 
