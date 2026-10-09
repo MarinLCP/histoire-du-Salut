@@ -5,6 +5,7 @@
 //   reste ouvert pendant qu'on zoome et qu'on saute d'un bloc à l'autre ; un toucher dans la lecture (à côté des
 //   blocs) ou Échap le referme.
 // En bas de la lecture flottent le titre de ce qu'on lit et, après un clic sur un parallèle, « Revenir à … ».
+// La lecture se souvient d'où on en est, et y revient à l'ouverture de l'app (useReadingMemory).
 
 import { useCallback, useState } from 'react';
 import Frise from './Frise.jsx';
@@ -14,6 +15,7 @@ import { ReadingModeContext } from './ReadingModeContext.js';
 import { useMediaQuery } from '../hooks/useMediaQuery.js';
 import { useCloseOnEscape } from '../hooks/useCloseOnEscape.js';
 import { useReadingPosition } from './useReadingPosition.js';
+import { useReadingMemory } from './useReadingMemory.js';
 import './ReadingWithFrise.css';
 
 // La même limite que dans ReadingWithFrise.css
@@ -26,6 +28,7 @@ function ReadingWithFrise({ mode, tabNames, onJump, children }) {
   const close = useCallback(() => setIsOpen(false), []);
   // Où en est la lecture : mesuré UNE fois ici, pour la frise et pour le titre du bas
   const readingAt = useReadingPosition();
+  useReadingMemory(mode, readingAt, onJump);
 
   useCloseOnEscape(close, isOpen);
 

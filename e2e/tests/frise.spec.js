@@ -52,7 +52,7 @@ test('lecture : le bloc lu est surligné, et la frise le suit quand on avance', 
 
   await expect(frise.getByRole('button', { name: 'Les origines' })).toHaveAttribute('aria-current', 'location');
   await page.getByRole('heading', { name: "L'appel d'Abraham" }).scrollIntoViewIfNeeded();
-  await page.mouse.wheel(0, 200);
+  await page.evaluate(() => window.scrollBy(0, 200));
   await expect(frise.getByRole('button', { name: 'Les patriarches' })).toHaveAttribute('aria-current', 'location');
 });
 
@@ -114,24 +114,23 @@ test('Bible entière : ensembles → livres → dizaines → chapitres, et la le
   await expect(frise.getByRole('button', { name: 'Chapitre 23', exact: true })).toHaveAttribute('aria-current', 'location');
 });
 
-test('marque-page : après avoir lu, un ruban montre où on s\'était arrêté ; un clic y ramène', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'Sur téléphone, la frise est dans un panneau');
+test('reprendre sa lecture : après avoir lu, l\'app rouvre là où on en était', async ({ page }) => {
   await page.goto('/');
   // La police chargée, le texte ne bougera plus : la position lue est la bonne
   await page.evaluate(() => document.fonts.ready);
   await page.getByRole('heading', { name: "L'appel d'Abraham" }).scrollIntoViewIfNeeded();
-  await page.mouse.wheel(0, 200);
+  await page.evaluate(() => window.scrollBy(0, 200));
   // L'app retient la position une fois la lecture posée
   await page.waitForTimeout(2500);
 
   await page.goto('/');
-  const ribbon = page.getByRole('button', { name: /Reprendre la lecture.*Les patriarches/ });
-  await expect(ribbon).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'La Création' })).toBeInViewport();
-
-  await ribbon.click();
   await expect(page.getByRole('heading', { name: "L'appel d'Abraham" })).toBeInViewport();
-  await expect(ribbon).toHaveCount(0);
+  // Pas de ruban : seul un marque-page posé à la main en a un
+  await expect(page.getByRole('button', { name: /Aller au marque-page/ })).toHaveCount(0);
+
+  // Par un lien (ici, un passage partagé), on va où le lien mène
+  await page.goto('/?passage=creation');
+  await expect(page.getByRole('heading', { name: 'La Création' })).toBeInViewport();
 });
 
 test('sur téléphone : la frise est rangée dans un panneau, ouvert par l\'onglet « Frise »', async ({ page, isMobile }) => {

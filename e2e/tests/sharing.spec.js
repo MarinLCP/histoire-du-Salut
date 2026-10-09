@@ -13,9 +13,9 @@ test('partager où j\'en suis, l\'ouvrir sans compte, puis arrêter de partager'
   const email = uniqueEmail('partage');
   await page.goto('/');
 
-  // Un compte, et un marque-page dans l'épisode n° 2 (posé directement : pas besoin de lire pour de vrai)
+  // Un compte, et la lecture dans l'épisode n° 2 (retenue directement : pas besoin de lire pour de vrai)
   await createAccountByApi(page, email, PASSWORD);
-  await page.request.put('/api/me/bookmarks/history', { data: { position: 2.4 } });
+  await page.request.put('/api/me/readings/history', { data: { position: 2.4 } });
   await page.reload();
 
   const account = await openAccount(page);

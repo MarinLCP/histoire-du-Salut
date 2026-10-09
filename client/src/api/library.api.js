@@ -1,7 +1,8 @@
-// Appels à l'API de la bibliothèque du lecteur connecté (notes privées, surlignages, marque-pages).
-// Format d'échange, le même que dans le navigateur :
+// Appels à l'API de la bibliothèque du lecteur connecté (notes privées, surlignages, marque-pages, positions de
+// lecture). Format d'échange, le même que dans le navigateur :
 //   { notes: { "Gn 1,3": { text, updatedAt } }, highlights: { "Gn 1,3": { createdAt } },
-//     bookmarks: { history: { position: 12.4, verse: null } } }
+//     bookmarks: { history: { position: 12.4, verse: "Gn 3,15" } },
+//     readings: { history: { position: 14.2, savedAt } } }
 
 import { getJson, sendJson } from './http.js';
 
@@ -33,12 +34,16 @@ export function removeHighlight(key) {
   return sendJson('DELETE', versePath('highlights', key));
 }
 
-// bookmark : { position } (il suit la lecture : ne remplace pas un marque-page posé à la main)
-// ou { position, verse } (posé à la main sur ce verset)
+// bookmark : { position, verse } (posé à la main sur ce verset)
 export function saveBookmark(mode, bookmark) {
   return sendJson('PUT', `/api/me/bookmarks/${mode}`, bookmark);
 }
 
 export function removeBookmark(mode) {
   return sendJson('DELETE', `/api/me/bookmarks/${mode}`);
+}
+
+// Où on en est dans cette lecture (retenu pendant la lecture)
+export function saveReading(mode, position) {
+  return sendJson('PUT', `/api/me/readings/${mode}`, { position });
 }

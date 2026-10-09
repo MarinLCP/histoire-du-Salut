@@ -1,9 +1,10 @@
 // Règles de ce qu'un lecteur garde dans son compte (sa « bibliothèque ») : notes privées, surlignages,
-// marque-pages. Fonctions pures qui vérifient ce qui arrive du navigateur ("fail fast") : une valeur fausse
-// lève une ValidationError (400) avant d'atteindre la base.
+// marque-pages posés à la main, et où il en est dans chaque lecture. Fonctions pures qui vérifient ce qui arrive
+// du navigateur ("fail fast") : une valeur fausse lève une ValidationError (400) avant d'atteindre la base.
 // Format d'échange (le même que dans le navigateur) :
 //   { notes: { "Gn 1,3": { text, updatedAt } }, highlights: { "Gn 1,3": { createdAt } },
-//     bookmarks: { history: { position: 12.4, verse: null } } }
+//     bookmarks: { history: { position: 12.4, verse: "Gn 3,15" } },
+//     readings: { history: { position: 14.2, savedAt } } }
 
 import { ValidationError } from './errors.js';
 import { VerseReference } from './VerseReference.js';
@@ -41,22 +42,25 @@ export function readingPosition(position) {
   return position;
 }
 
-// Un marque-page : { position, verse }. verse : le verset où le lecteur l'a posé à la main ("Gn 1,3"), ou null
-// s'il suit la lecture. Un nombre seul (l'ancien format du navigateur) est un marque-page qui suit la lecture.
-/** @param {unknown} value @returns {{ position: number, verse: string | null }} */
+// Un marque-page, posé à la main sur un verset : { position, verse: "Gn 1,3" }
+/** @param {unknown} value @returns {{ position: number, verse: string }} */
 export function readingBookmark(value) {
-  if (typeof value === 'number') return { position: readingPosition(value), verse: null };
-  return { position: readingPosition(value?.position), verse: value?.verse == null ? null : verseKey(value.verse) };
+  return { position: readingPosition(value?.position), verse: verseKey(value?.verse) };
 }
 
 // Une bibliothèque envoyée d'un coup (ce qui était dans le navigateur, à la première connexion), vérifiée
 // et mise à plat : { notes: [{ verseKey, text, updatedAt }], highlights: [{ verseKey, createdAt }],
-// bookmarks: [{ mode, position, verse }] }
-export function libraryFrom({ notes = {}, highlights = {}, bookmarks = {} } = {}) {
+// bookmarks: [{ mode, position, verse }], readings: [{ mode, position, savedAt }] }.
+// Un marque-page sans verset vient d'une version plus ancienne de l'app (il suivait la lecture) : ignoré
+export function libraryFrom({ notes = {}, highlights = {}, bookmarks = {}, readings = {} } = {}) {
   return {
     notes: entriesOf(notes).map(([key, note]) => ({ verseKey: verseKey(key), text: noteText(note?.text), updatedAt: date(note?.updatedAt) })),
     highlights: entriesOf(highlights).map(([key, highlight]) => ({ verseKey: verseKey(key), createdAt: date(highlight?.createdAt) })),
-    bookmarks: entriesOf(bookmarks).map(([mode, bookmark]) => ({ mode: readingMode(mode), ...readingBookmark(bookmark) })),
+    bookmarks: entriesOf(bookmarks).filter(([, bookmark]) => bookmark?.verse != null)
+      .map(([mode, bookmark]) => ({ mode: readingMode(mode), ...readingBookmark(bookmark) })),
+    readings: entriesOf(readings).map(([mode, reading]) => ({
+      mode: readingMode(mode), position: readingPosition(reading?.position), savedAt: date(reading?.savedAt),
+    })),
   };
 }
 

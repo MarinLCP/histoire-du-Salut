@@ -31,8 +31,8 @@ describe('API du partage de progression', () => {
 
   test('un lien, toujours le même, qui montre où on en est (sans compte, sans e-mail ; compte e-mail : sans nom)', async () => {
     const reader = await signedInReader();
-    await reader.put('/api/me/bookmarks/history').send({ position: 2.4 });
-    await reader.put('/api/me/bookmarks/bible').send({ position: 3.1 });
+    await reader.put('/api/me/readings/history').send({ position: 2.4 });
+    await reader.put('/api/me/readings/bible').send({ position: 3.1 });
 
     const { token } = (await reader.post('/api/me/sharing')).body;
     expect((await reader.post('/api/me/sharing')).body.token).toBe(token);

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-// Tests du hook useLibrary : où vivent notes, surlignages et marque-pages, avec ou sans compte (faux fetch).
+// Tests du hook useLibrary : où vivent notes, surlignages, marque-pages et positions de lecture, avec ou sans
+// compte (faux fetch).
 
 import { describe, test, expect, vi, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
@@ -7,9 +8,11 @@ import { useLibrary } from '../../src/library/useLibrary.js';
 import { loadNotes } from '../../src/notes/notes.storage.js';
 import { loadHighlights } from '../../src/highlights/highlights.storage.js';
 import { loadBookmarks } from '../../src/frise/bookmark.storage.js';
+import { loadReadingPositions, saveReadingPosition } from '../../src/frise/readingPositions.storage.js';
 
 const SIGNED_IN = { email: 'marin@exemple.fr' };
-const EMPTY = { notes: {}, highlights: {}, bookmarks: {} };
+const EMPTY = { notes: {}, highlights: {}, bookmarks: {}, readings: {} };
+const PLACED = { position: 12.4, verse: 'Gn 12,1' };
 const OLD_NOTE = { text: 'Une note d\'avant', updatedAt: '2026-01-01T00:00:00.000Z' };
 const store = (key, entries) => localStorage.setItem(key, JSON.stringify({ version: 1, [key]: entries }));
 const json = (body, status = 200) => new Response(body === null ? null : JSON.stringify(body), { status });
@@ -30,7 +33,10 @@ async function signedIn() {
   return hook.result;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  localStorage.clear();
+});
 
 describe('useLibrary', () => {
   test('pas connecté : surlignages dans le navigateur, pas de notes (elles attendent la connexion)', () => {
@@ -45,21 +51,22 @@ describe('useLibrary', () => {
     expect(loadHighlights().has('Gn 1,1')).toBe(true);
   });
 
-  test('connecté : le navigateur rejoint le compte (fusion), puis il est vidé', async () => {
+  test('connecté : le navigateur rejoint le compte (fusion), puis il est vidé, sauf les positions de lecture', async () => {
     store('notes', { 'Gn 1,3': OLD_NOTE });
-    store('bookmarks', { history: 3 });
-    const fetchMock = fakeServer({ notes: { 'Gn 1,3': OLD_NOTE }, highlights: {}, bookmarks: { history: { position: 12.4, verse: null } } });
+    localStorage.setItem('bookmarks', JSON.stringify({ version: 3, bookmarks: { bible: { position: 3, verse: 'Gn 3,1' } } }));
+    const reading = saveReadingPosition('history', 5.5);
+    const fetchMock = fakeServer({ ...EMPTY, notes: { 'Gn 1,3': OLD_NOTE }, bookmarks: { history: PLACED } });
 
     const result = await signedIn();
 
     expect(fetchMock.mock.calls[0][1].method).toBe('POST');
     const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(Object.keys(sent.notes)).toEqual(['Gn 1,3']);
-    // L'ancien format du navigateur (une position seule) part au nouveau format
-    expect(sent.bookmarks).toEqual({ history: { position: 3, verse: null } });
+    expect(sent.bookmarks).toEqual({ bible: { position: 3, verse: 'Gn 3,1' } });
+    expect(sent.readings).toEqual({ history: reading });
     expect(result.current.notes.get('Gn 1,3').text).toBe('Une note d\'avant');
-    expect(result.current.bookmarks.saved.get('history')).toEqual({ position: 12.4, verse: null });
-    expect([loadNotes().size, loadHighlights().size, loadBookmarks().size]).toEqual([0, 0, 0]);
+    expect(result.current.bookmarks.saved.get('history')).toEqual(PLACED);
+    expect([loadNotes().size, loadHighlights().size, loadBookmarks().size, loadReadingPositions().size]).toEqual([0, 0, 0, 1]);
   });
 
   test('connecté, rien dans le navigateur : une simple lecture du compte', async () => {
@@ -118,17 +125,41 @@ describe('useLibrary', () => {
     await waitFor(() => expect(result.current.notes.get('Gn 1,3').text).toBe('Une note d\'avant'));
   });
 
-  test('connecté : le marque-page va dans le compte ; surligner ne change pas l\'objet des marque-pages', async () => {
+  test('connecté : où on en est va sur l\'appareil et dans le compte ; surligner ne change pas les marque-pages', async () => {
     const fetchMock = fakeServer(EMPTY);
     const result = await signedIn();
     const bookmarksBefore = result.current.bookmarks;
 
     act(() => result.current.toggleHighlight('Gn 1,1'));
-    act(() => result.current.bookmarks.save('bible', 300.5));
+    act(() => result.current.readings.save('bible', 300.5));
 
     expect(result.current.bookmarks).toBe(bookmarksBefore);
-    expect(fetchMock).toHaveBeenCalledWith('/api/me/bookmarks/bible', expect.objectContaining({ body: '{"position":300.5}' }));
-    expect(loadBookmarks().size).toBe(0);
+    expect(fetchMock).toHaveBeenCalledWith('/api/me/readings/bible', expect.objectContaining({ method: 'PUT', body: '{"position":300.5}' }));
+    expect(loadReadingPositions().get('bible').position).toBe(300.5);
+  });
+
+  test('où revenir à l\'ouverture : la position la plus récente, de cet appareil ou du compte', async () => {
+    localStorage.setItem('readings', JSON.stringify({ version: 1, readings: {
+      history: { position: 5, savedAt: '2026-10-09T10:00:00.000Z' },
+      bible: { position: 7, savedAt: '2026-10-01T10:00:00.000Z' },
+    } }));
+    fakeServer({ ...EMPTY, readings: { history: { position: 2, savedAt: '2026-10-01T10:00:00.000Z' }, bible: { position: 300, savedAt: '2026-10-08T10:00:00.000Z' } } });
+    const hook = renderHook(() => useLibrary(SIGNED_IN));
+
+    // Le compte se charge : pas encore su
+    expect(hook.result.current.readings.latest('history')).toBeUndefined();
+    await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+
+    expect(hook.result.current.readings.latest('history')).toBe(5);
+    expect(hook.result.current.readings.latest('bible')).toBe(300);
+  });
+
+  test('pas connecté : la position de cet appareil, ou aucune', () => {
+    saveReadingPosition('history', 5.5);
+    const { result } = renderHook(() => useLibrary(null));
+
+    expect(result.current.readings.latest('history')).toBe(5.5);
+    expect(result.current.readings.latest('bible')).toBeNull();
   });
 
   test('pas connecté : poser le marque-page sur un verset se voit tout de suite et reste dans le navigateur', () => {
@@ -147,7 +178,7 @@ describe('useLibrary', () => {
   });
 
   test('connecté : poser le marque-page l\'écrit dans le compte ; si l\'écriture échoue, il revient où il était', async () => {
-    const before = { position: 9, verse: null };
+    const before = { position: 9, verse: 'Ps 1,1' };
     const fetchMock = fakeServer({ ...EMPTY, bookmarks: { bible: before } }, { failWrites: true });
     const result = await signedIn();
 

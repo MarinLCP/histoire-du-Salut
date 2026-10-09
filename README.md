@@ -124,7 +124,8 @@ histoire-du-Salut/
 │   │   │   ├── 013_given_name.sql   ← pseudo retiré ; prénom donné par Google (lien de partage)
 │   │   │   ├── 014_email_verification.sql ← e-mail validé par un code (comptes existants : déjà validés)
 │   │   │   ├── 015_google_sign_in.sql ← mot de passe facultatif, identifiant Google (google_sub)
-│   │   │   └── 016_placed_bookmarks.sql ← le verset où le marque-page a été posé à la main (verse_key)
+│   │   │   ├── 016_placed_bookmarks.sql ← le verset où le marque-page a été posé à la main (verse_key)
+│   │   │   └── 017_reading_positions.sql ← où on en est dans chaque lecture, à part du marque-page posé à la main
 │   │   ├── bible-groups.data.js     ← les 8 grands ensembles (Pentateuque... Apocalypse) : premier et dernier livre
 │   │   ├── epochs.data.js           ← les 10 époques de l'histoire du salut (slug, titre, pictogramme)
 │   │   ├── sections.data.js         ← les sous-chapitres (proposés par Claude, statut « proposé » / « validé »)
@@ -333,8 +334,10 @@ histoire-du-Salut/
     │   │   └── VerseMenu.jsx / .css ← le menu d'un verset (surligner, note, marque-page, copier, parallèles) ;
     │   │                              sans compte, « Enregistrer » propose d'en créer un
     │   ├── library/                 ← la bibliothèque du lecteur : compte si connecté, sinon navigateur
-    │   │   ├── useLibrary.js        ← notes (compte obligatoire), surlignages, marque-pages ; fusion à la connexion
-    │   │   └── BookmarksContext.js  ← le marque-page de chaque lecture, partagé avec la frise et les versets
+    │   │   ├── useLibrary.js        ← notes (compte obligatoire), surlignages, marque-pages, positions de lecture ;
+    │   │   │                          fusion à la connexion
+    │   │   ├── BookmarksContext.js  ← le marque-page posé dans chaque lecture, partagé avec la frise et les versets
+    │   │   └── ReadingPositionsContext.js ← où on en est dans chaque lecture (appareil et compte), pour y revenir
     │   ├── highlights/              ← surlignages
     │   │   ├── highlights.js        ← logique pure (surligner / retirer)
     │   │   └── highlights.storage.js← sauvegarde dans le navigateur
@@ -360,13 +363,14 @@ histoire-du-Salut/
     │   │   ├── ReadingTitle.jsx / .css ← le titre (livre et chapitre, ou épisode) en bas ; un toucher le déplie
     │   │   ├── useReadingPosition.js ← la position de lecture, mise à jour pendant le défilement
     │   │   ├── Boat.jsx             ← le petit bateau qui descend la cascade
-    │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page (où on s'était arrêté ; clic = y retourner)
+    │   │   ├── BookmarkRibbon.jsx   ← le ruban du marque-page posé à la main (clic = y aller)
     │   │   ├── RibbonIcon.jsx       ← le dessin du ruban, partagé (frise, verset, carte d'accueil)
-    │   │   ├── useBookmark.js       ← le marque-page : retenu pendant la lecture, montré à la visite suivante ;
-    │   │   │                          posé à la main (menu d'un verset), il ne bouge plus
+    │   │   ├── useBookmark.js       ← le marque-page posé à la main (menu d'un verset) : il ne bouge plus
     │   │   ├── bookmark.storage.js  ← sauvegarde du marque-page dans le navigateur ({ position, verse } par lecture)
+    │   │   ├── useReadingMemory.js  ← retient où on en est pendant la lecture ; à l'ouverture, y revient
+    │   │   ├── readingPositions.storage.js ← où on en est, sur cet appareil ({ position, savedAt } par lecture)
     │   │   ├── ReadingModeContext.js ← la lecture en cours ('history' | 'bible'), pour les versets qu'elle contient
-    │   │   ├── useJump.js           ← clic dans la frise : saut direct, ou liste recommencée à ce passage
+    │   │   ├── useJump.js           ← saut (frise, reprise) : direct, ou liste recommencée puis position exacte
     │   │   ├── ReadingWithFrise.jsx / .css ← frise à gauche (sans fond, toute la hauteur) ; < 1100 px : panneau (2/3 de l'écran),
     │   │   │                          ouvert par le bouton flottant « Frise » (en bas à gauche) ; en bas : titre + « Revenir à … »
     │   │   ├── Frise.jsx / .css     ← le composant : onglets, blocs cliquables, glissement, surlignage, vagues
@@ -425,7 +429,8 @@ histoire-du-Salut/
         ├── pages/ProgressPage.test.jsx ← où en est un lecteur ; pas commencé ; lien inconnu
         ├── pages/HistoryPage.test.jsx ← point de départ (lien partagé) et retour au début, sans rechargement
         ├── copy/                    ← copyVerse, clipboard (moderne + secours hors HTTPS)
-        ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant, titre du bas
+        ├── frise/                   ← escalier, disposition, navigation, lecture, pictogrammes (vs données), composant, titre du bas,
+        │                              marque-page, mémoire de lecture (reprise à l'ouverture)
         ├── highlights/              ← highlights, highlights.storage
         ├── hooks/                   ← longPress, useLoaded
         ├── account/                 ← section « Mon compte », useAccount, « Partager où j'en suis »

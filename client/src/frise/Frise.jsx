@@ -29,8 +29,8 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
   const tree = useOverview(mode);
   const [stageRef, size] = useElementSize();
   const [view, setView] = useState(INITIAL_VIEW);
-  // Le marque-page de la visite précédente (un ruban sur le bloc où on s'était arrêté)
-  const { bookmark, forget: forgetBookmark } = useBookmark(mode, readingAt);
+  // Le marque-page posé à la main (un ruban sur son bloc)
+  const bookmark = useBookmark(mode);
 
   // La lecture a changé de nœud : la frise la suit, au même niveau de zoom (voir cascadeView.js).
   // Mise à jour pendant l'affichage : React recommence aussitôt, sans effet ni affichage intermédiaire
@@ -61,11 +61,6 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
   const stair = blocks.length > 0 ? currentStair(tree, view.path, readingAt) : null;
   const ribbon = ribbonPlace(blocks, readingPath(tree, bookmark));
 
-  function resumeReading() {
-    onJump(bookmark);
-    forgetBookmark();
-  }
-
   return (
     <nav className="frise" aria-label="Frise">
       {/* Pas d'onglets tant que l'arbre n'est pas là (ou si son chargement a échoué) : rien à zoomer */}
@@ -85,7 +80,7 @@ function Frise({ mode, tabNames, onJump, readingAt = null }) {
             isEntering={entering.has(block.key)} onOpen={openBlock} />
         ))}
         {stair && <Boat {...boatPlace(blocks, stair)} />}
-        {ribbon && <BookmarkRibbon {...ribbon} onResume={resumeReading} />}
+        {ribbon && <BookmarkRibbon {...ribbon} onOpen={() => onJump(bookmark)} />}
       </div>
     </nav>
   );

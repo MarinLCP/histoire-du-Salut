@@ -1,89 +1,32 @@
 // @vitest-environment jsdom
-// Tests du marque-page : l'app retient où on en était (une position par lecture), sans l'écraser
-// tant qu'on n'a pas lu, et montre celui de la visite précédente. Posé à la main, il ne bouge plus.
+// Tests du marque-page posé à la main (sans App : celui du navigateur) : sa position, pour cette lecture ; il ne
+// bouge pas avec la lecture. Ceux de l'ancien format qui suivaient la lecture ne sont plus des marque-pages.
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act, cleanup } from '@testing-library/react';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { renderHook, cleanup } from '@testing-library/react';
 import { useBookmark } from '../../src/frise/useBookmark.js';
-import { loadBookmarks } from '../../src/frise/bookmark.storage.js';
 
-const saveStored = (bookmarks) => localStorage.setItem('bookmarks', JSON.stringify({ version: 2, bookmarks }));
-// Un marque-page qui suit la lecture
-const at = (position) => ({ position, verse: null });
+const PLACED = { position: 4.2, verse: 'Gn 1,3' };
+const stored = (version, bookmarks) => localStorage.setItem('bookmarks', JSON.stringify({ version, bookmarks }));
 
 describe('useBookmark', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    vi.useFakeTimers();
+  beforeEach(() => localStorage.clear());
+  afterEach(cleanup);
+
+  test('la position du marque-page posé dans cette lecture', () => {
+    stored(3, { history: PLACED, bible: { position: 300, verse: 'Ps 22,1' } });
+
+    expect(renderHook(() => useBookmark('history')).result.current).toBe(4.2);
   });
 
-  afterEach(() => {
-    cleanup();
-    vi.useRealTimers();
+  test('pas de marque-page posé : null', () => {
+    expect(renderHook(() => useBookmark('bible')).result.current).toBeNull();
   });
 
-  test('renvoie le marque-page de la visite précédente, pour cette lecture', () => {
-    saveStored({ history: at(12.4), bible: at(300) });
+  test('ancien format (version 2) : le marque-page posé est relu ; celui qui suivait la lecture n\'en est plus un', () => {
+    stored(2, { history: PLACED, bible: { position: 300, verse: null } });
 
-    const { result } = renderHook(() => useBookmark('history', null));
-
-    expect(result.current.bookmark).toBe(12.4);
-  });
-
-  test('l\'ancien format du navigateur (une position seule) est relu', () => {
-    localStorage.setItem('bookmarks', JSON.stringify({ version: 1, bookmarks: { history: 12.4 } }));
-
-    const { result } = renderHook(() => useBookmark('history', null));
-
-    expect(result.current.bookmark).toBe(12.4);
-  });
-
-  test('pas de visite précédente : pas de marque-page', () => {
-    const { result } = renderHook(() => useBookmark('bible', null));
-
-    expect(result.current.bookmark).toBeNull();
-  });
-
-  test('ouvrir l\'app (première position mesurée) n\'écrase pas le marque-page', () => {
-    saveStored({ history: at(12.4) });
-
-    renderHook(() => useBookmark('history', 1));
-    act(() => vi.advanceTimersByTime(5000));
-
-    expect(loadBookmarks().get('history')).toEqual(at(12.4));
-  });
-
-  test('une fois qu\'on lit, la nouvelle position est retenue (un peu après, pas à chaque image)', () => {
-    saveStored({ history: at(12.4), bible: at(300) });
-    const { rerender } = renderHook(({ readingAt }) => useBookmark('history', readingAt), { initialProps: { readingAt: 1 } });
-
-    rerender({ readingAt: 1.5 });
-    expect(loadBookmarks().get('history')).toEqual(at(12.4));
-    act(() => vi.advanceTimersByTime(2000));
-
-    expect(loadBookmarks().get('history')).toEqual(at(1.5));
-    expect(loadBookmarks().get('bible')).toEqual(at(300));
-  });
-
-  test('posé à la main, il ne bouge plus avec la lecture, et reste montré même une fois repris', () => {
-    const placed = { position: 4.2, verse: 'Gn 1,3' };
-    saveStored({ history: placed });
-    const { result, rerender } = renderHook(({ readingAt }) => useBookmark('history', readingAt), { initialProps: { readingAt: 1 } });
-
-    rerender({ readingAt: 7 });
-    act(() => vi.advanceTimersByTime(5000));
-    act(() => result.current.forget());
-
-    expect(loadBookmarks().get('history')).toEqual(placed);
-    expect(result.current.bookmark).toBe(4.2);
-  });
-
-  test('une fois le marque-page repris, il n\'est plus montré', () => {
-    saveStored({ history: at(12.4) });
-    const { result } = renderHook(() => useBookmark('history', null));
-
-    act(() => result.current.forget());
-
-    expect(result.current.bookmark).toBeNull();
+    expect(renderHook(() => useBookmark('history')).result.current).toBe(4.2);
+    expect(renderHook(() => useBookmark('bible')).result.current).toBeNull();
   });
 });

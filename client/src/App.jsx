@@ -24,6 +24,7 @@ import ProgressPage from './pages/ProgressPage.jsx';
 import PrivacyPage from './pages/PrivacyPage.jsx';
 import { useLibrary } from './library/useLibrary.js';
 import { BookmarksContext } from './library/BookmarksContext.js';
+import { ReadingPositionsContext } from './library/ReadingPositionsContext.js';
 import { copyText } from './copy/clipboard.js';
 import { verseReadingPosition } from './frise/readingPosition.js';
 import { useSettings } from './settings/useSettings.js';
@@ -96,18 +97,20 @@ function App() {
       <NavBar pages={PAGES} onOpenSettings={() => setIsSettingsOpen(true)} />
       {/* Le panneau des parallèles fixé à droite : la lecture lui laisse la place */}
       <main className={isParallelsDocked ? 'with-docked-panel' : undefined}>
-        {/* Le marque-page de chaque lecture, pour la frise (compte ou navigateur) */}
+        {/* Le marque-page de chaque lecture, pour la frise, et où on en est, pour y revenir (compte ou navigateur) */}
         <BookmarksContext.Provider value={library.bookmarks}>
-          <Routes>
-            <Route path="/" element={<HistoryPage annotations={annotations} />} />
-            <Route path="/bible" element={<BiblePage annotations={annotations} />} />
-            {/* Où en est un lecteur, depuis le lien qu'il a partagé */}
-            <Route path="/progression/:token" element={<ProgressPage />} />
-            {/* Confidentialité et mentions légales (RGPD) */}
-            <Route path="/confidentialite" element={<PrivacyPage />} />
-            {/* Adresse inconnue : retour à l'histoire du salut */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <ReadingPositionsContext.Provider value={library.readings}>
+            <Routes>
+              <Route path="/" element={<HistoryPage annotations={annotations} />} />
+              <Route path="/bible" element={<BiblePage annotations={annotations} />} />
+              {/* Où en est un lecteur, depuis le lien qu'il a partagé */}
+              <Route path="/progression/:token" element={<ProgressPage />} />
+              {/* Confidentialité et mentions légales (RGPD) */}
+              <Route path="/confidentialite" element={<PrivacyPage />} />
+              {/* Adresse inconnue : retour à l'histoire du salut */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ReadingPositionsContext.Provider>
         </BookmarksContext.Provider>
       </main>
 

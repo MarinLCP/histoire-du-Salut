@@ -28,7 +28,7 @@ test('surligner un verset, et le retrouver surligné après avoir rechargé la p
   await expect(page.getByRole('button', { name: 'Retirer le surlignage' })).toBeVisible();
 });
 
-test('poser le marque-page sur un verset : il y reste quand on lit plus loin, jusqu\'à ce qu\'on le retire', async ({ page, isMobile }) => {
+test('poser le marque-page sur un verset : il y reste quand on lit plus loin ; le ruban de la frise y ramène', async ({ page, isMobile }) => {
   const tag = page.getByText('Marque-page', { exact: true });
   await longPress(page, firstVerse(page));
   await page.getByRole('button', { name: 'Poser le marque-page ici' }).click();
@@ -40,9 +40,13 @@ test('poser le marque-page sur un verset : il y reste quand on lit plus loin, ju
   await page.waitForTimeout(2500);
   await page.goto('/');
 
-  await expect(tag).toBeVisible();
-  // Sur ordinateur, le ruban de la frise le montre aussi (sur téléphone, la frise est dans un panneau)
-  if (!isMobile) await expect(page.getByRole('button', { name: /Reprendre la lecture.*Les origines/ })).toBeVisible();
+  // L'app rouvre où on lisait ; le ruban de la frise (dans son panneau sur téléphone) ramène au marque-page
+  await expect(page.getByRole('heading', { name: "L'appel d'Abraham" })).toBeInViewport();
+  if (isMobile) await page.getByRole('button', { name: 'Frise' }).click();
+  await page.getByRole('button', { name: /Aller au marque-page.*Les origines/ }).click();
+  await expect(tag).toBeInViewport();
+  // Le panneau de la frise (téléphone) se referme (Échap : sans attendre que la lecture ait fini de se placer)
+  if (isMobile) await page.keyboard.press('Escape');
 
   await longPress(page, firstVerse(page));
   await page.getByRole('button', { name: 'Retirer le marque-page' }).click();

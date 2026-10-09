@@ -116,17 +116,17 @@ describe('Frise', () => {
     expect(screen.getByRole('button', { name: 'Les patriarches' }).getAttribute('aria-current')).toBeNull();
   });
 
-  test('marque-page : un ruban sur le bloc où on s\'était arrêté ; un clic y ramène, puis il disparaît', async () => {
-    localStorage.setItem('bookmarks', JSON.stringify({ version: 2, bookmarks: { history: { position: 3.4, verse: null } } }));
+  test('marque-page posé à la main : un ruban sur son bloc ; un clic y ramène, et il reste', async () => {
+    localStorage.setItem('bookmarks', JSON.stringify({ version: 3, bookmarks: { history: { position: 3.4, verse: 'Gn 12,1' } } }));
     const onJump = vi.fn();
     renderFrise(onJump);
 
-    const ribbon = await screen.findByRole('button', { name: /Reprendre la lecture/ });
+    const ribbon = await screen.findByRole('button', { name: /Aller au marque-page/ });
     expect(ribbon.getAttribute('aria-label')).toContain('Les patriarches');
 
     fireEvent.click(ribbon);
 
     expect(onJump).toHaveBeenCalledWith(3.4);
-    expect(screen.queryByRole('button', { name: /Reprendre la lecture/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Aller au marque-page/ })).toBeTruthy();
   });
 });
